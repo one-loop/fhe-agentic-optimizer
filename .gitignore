@@ -50,4 +50,5 @@ egraphs/target/**
 *.pyc
 __pycache__/
 *.pyo
-*.pydbuild-ckks-operators/
+*.pyd
+/build-ckks-operators/
