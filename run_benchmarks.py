@@ -42,7 +42,7 @@ try:
 except subprocess.CalledProcessError as e:
     print(f"Command failed with error:\n{e.stderr}")    
 
-benchmark_folders = ["max","sort","box_blur","lin_reg","hamming_dist","poly_reg","l2_distance","dot_product","gx_kernel","gy_kernel","roberts_cross","matrix_mul"] 
+benchmark_folders = ["max","sort","box_blur","lin_reg","hamming_dist","poly_reg","l2_distance","dot_product","gx_kernel","gy_kernel","roberts_cross","matrix_mul","nn_linear","nn_conv2d","nn_avgpool2d"] 
 
 #benchmark_folders = ["lin_reg","hamming_dist","poly_reg","l2_distance","dot_product","gx_kernel","gy_kernel","roberts_cross","matrix_mul","max","sort"] 
 exceptions = ["max","sort","discrete_cosin_transform","poly_derivative"]
