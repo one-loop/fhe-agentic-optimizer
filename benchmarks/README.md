@@ -2,10 +2,6 @@
 
 This benchmark suite implements core deep learning operators in **CHEHAB's Domain-Specific Language (DSL)**, adapted from the [Orion](https://github.com/baahl-nyu/orion) FHE deep learning framework.
 
-It forms **Phase 1** of the capstone project:
-> **"Optimizing Fully Homomorphic Encryption Code Using LLM-Guided Compiler Feedback"**  
-> *Umair Hafeez, Saad Sifar (Advised by Riyadh Baghdadi & Eliseo Ferrante, NYU Abu Dhabi)*
-
 ---
 
 ## 🧠 Operators Overview
