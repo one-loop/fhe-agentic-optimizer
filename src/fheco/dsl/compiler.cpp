@@ -67,9 +67,22 @@ void Compiler::gen_he_code(
 #endif
   size_t relin_keys_count;
   if (lazy_relin)
+  {
+    // insert_rescale relies on relin directly following each product
+    func->require_bfv("lazy relinearization");
     relin_keys_count = passes::lazy_relin_heuristic(func);
+  }
   else
     relin_keys_count = passes::relin_after_ctxt_ctxt_mul(func);
+
+  if (func->scheme() == Scheme::ckks)
+  {
+#ifdef FHECO_LOGGING
+    clog << "\nrescale_insertion\n";
+#endif
+    passes::insert_rescale(func);
+    passes::check_ckks_levels(func);
+  }
 
 #ifdef FHECO_LOGGING
   clog << "\ncode_generation\n";
