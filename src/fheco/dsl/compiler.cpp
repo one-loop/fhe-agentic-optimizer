@@ -204,6 +204,7 @@ void Compiler::compile(shared_ptr<ir::Func> func, Ruleset ruleset, trs::RewriteH
  */
 void Compiler::gen_vectorized_code(const std::shared_ptr<ir::Func> &func, int optimization_method)
 {
+  func->require_bfv("vectorization");
   // Utility function to print expressions in prefix notation
   util::ExprPrinter expr_printer(func);
   expr_printer.make_terms_str_expr(util::ExprPrinter::Mode::prefix);
@@ -339,6 +340,7 @@ void Compiler::gen_vectorized_code(const std::shared_ptr<ir::Func> &func, int op
  */
 void Compiler::gen_vectorized_code(const std::shared_ptr<ir::Func> &func, int window, int optimization_method)
 {
+  func->require_bfv("vectorization");
   if (window < 0)
   {
     std::cerr << "Window size must be greater than 0." << std::endl;

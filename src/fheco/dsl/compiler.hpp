@@ -53,7 +53,15 @@ public:
       std::move(name), slot_count, bit_width, signedness, need_cyclic_rotation, overflow_warnings));
   }
 
-  static void compile( 
+  // CKKS function with explicitly given encryption parameters.
+  static inline const std::shared_ptr<ir::Func> &create_ckks_func(
+    std::string name, std::size_t slot_count, CkksParams ckks_params, bool need_cyclic_rotation = false)
+  {
+    return add_func(
+      std::make_shared<ir::Func>(std::move(name), slot_count, std::move(ckks_params), need_cyclic_rotation));
+  }
+
+  static void compile(
     std::shared_ptr<ir::Func> func, Ruleset ruleset, trs::RewriteHeuristic rewrite_heuristic);
   
   static ir::Term *build_expression(
