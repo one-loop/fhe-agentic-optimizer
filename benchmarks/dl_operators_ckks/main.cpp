@@ -105,7 +105,13 @@ constexpr double fold_abs_tolerance = 1e-12;
 struct Result {
     std::string name;
     double max_fhe_error = 0.0;           // decrypted output vs plaintext reference
-    double latency_ms = 0.0;
+    // Latency of the encrypted operator alone (plaintext encoding done inside
+    // the operator included; encryption, decryption and key generation
+    // excluded), over `timed_runs` runs after one untimed warmup run.
+    double median_ms = 0.0;
+    double min_ms = 0.0;
+    double max_ms = 0.0;
+    std::size_t timed_runs = 0;
     std::size_t start_chain_index = 0;    // chain index of the fresh input
     std::size_t end_chain_index = 0;      // chain index of the output
     double output_scale_log2 = 0.0;
@@ -122,7 +128,14 @@ struct Result {
     }
 };
 
-// Encrypt x, run op on the ciphertext, decrypt, and compare with expected.
+double median(std::vector<double> v) {
+    std::sort(v.begin(), v.end());
+    const std::size_t n = v.size();
+    return n % 2 == 1 ? v[n / 2] : 0.5 * (v[n / 2 - 1] + v[n / 2]);
+}
+
+// Encrypt x, run op once as a warmup and then `timed_runs` more times,
+// decrypt the last output, and compare it with expected.
 template <typename Op>
 Result evaluate(
     std::string name,
@@ -130,6 +143,7 @@ Result evaluate(
     const std::vector<double>& expected,
     Op op,
     std::size_t ct_ct_depth,
+    std::size_t timed_runs,
     double scale,
     const seal::SEALContext& context,
     seal::CKKSEncoder& encoder,
@@ -140,15 +154,24 @@ Result evaluate(
     seal::Ciphertext ct;
     encryptor.encrypt(pt, ct);
 
-    const auto start = Clock::now();
-    seal::Ciphertext out_ct = op(ct);
-    const auto stop = Clock::now();
+    seal::Ciphertext out_ct = op(ct); // warmup, not timed
+    std::vector<double> times_ms;
+    times_ms.reserve(timed_runs);
+    for (std::size_t i = 0; i < timed_runs; ++i) {
+        const auto start = Clock::now();
+        out_ct = op(ct);
+        const auto stop = Clock::now();
+        times_ms.push_back(std::chrono::duration<double, std::milli>(stop - start).count());
+    }
 
     Result r;
     r.name = std::move(name);
     r.max_fhe_error = max_abs_error(
         decrypt_decode(out_ct, decryptor, encoder, x.size()), expected);
-    r.latency_ms = std::chrono::duration<double, std::milli>(stop - start).count();
+    r.median_ms = median(times_ms);
+    r.min_ms = *std::min_element(times_ms.begin(), times_ms.end());
+    r.max_ms = *std::max_element(times_ms.begin(), times_ms.end());
+    r.timed_runs = timed_runs;
     r.start_chain_index = context.get_context_data(ct.parms_id())->chain_index();
     r.end_chain_index = context.get_context_data(out_ct.parms_id())->chain_index();
     r.output_scale_log2 = std::log2(out_ct.scale());
@@ -165,7 +188,7 @@ void print_table(const std::vector<Result>& results) {
               << std::setw(14) << "chain(s->e)"
               << std::setw(8) << "levels"
               << std::setw(12) << "out_log2s"
-              << "latency_ms\n";
+              << "median_ms (min..max)\n";
     for (const auto& r : results) {
         std::cout << std::left << std::setw(18) << r.name
                   << std::setw(8) << (r.pass() ? "PASS" : "FAIL")
@@ -183,10 +206,15 @@ void print_table(const std::vector<Result>& results) {
                   << std::setw(8) << (r.start_chain_index - r.end_chain_index)
                   << std::fixed << std::setprecision(6) << std::setw(12)
                   << r.output_scale_log2;
-        std::cout << std::fixed << std::setprecision(3) << r.latency_ms << '\n';
+        std::cout << std::fixed << std::setprecision(3) << r.median_ms
+                  << " (" << r.min_ms << ".." << r.max_ms << ")\n";
     }
     std::cout << "depth = ciphertext-ciphertext multiplicative depth; "
                  "levels = start chain index - end chain index\n";
+    if (!results.empty()) {
+        std::cout << "latency: encrypted operator only, 1 warmup + "
+                  << results.front().timed_runs << " timed runs\n";
+    }
     std::cout << "tolerance: |fhe - plaintext reference| <= " << std::scientific
               << std::setprecision(1) << fhe_abs_tolerance
               << " (BatchNorm folding <= " << fold_abs_tolerance << ")\n";
@@ -194,9 +222,24 @@ void print_table(const std::vector<Result>& results) {
 
 } // namespace
 
-int main() {
+int main(int argc, char** argv) {
     using namespace seal;
     using namespace chehab::dl;
+
+    std::size_t timed_runs = 10;
+    for (int i = 1; i < argc; ++i) {
+        const std::string arg = argv[i];
+        if (arg == "--repeats" && i + 1 < argc) {
+            timed_runs = std::stoul(argv[++i]);
+        } else {
+            std::cerr << "usage: " << argv[0] << " [--repeats N]\n";
+            return 2;
+        }
+    }
+    if (timed_runs == 0) {
+        std::cerr << "--repeats must be at least 1\n";
+        return 2;
+    }
 
     EncryptionParameters parms(scheme_type::ckks);
     const std::size_t poly_modulus_degree = 32768;
@@ -238,7 +281,7 @@ int main() {
         results.push_back(evaluate(
             "Quad", x, expected,
             [&](const Ciphertext& ct) { return quad(ct, evaluator, relin_keys); },
-            1, scale, context, encoder, encryptor, decryptor));
+            1, timed_runs, scale, context, encoder, encryptor, decryptor));
     }
 
     // ------------------------------------------------------------
@@ -266,7 +309,7 @@ int main() {
             [&](const Ciphertext& ct) {
                 return batch_norm(ct, s, b, context, encoder, evaluator, scale);
             },
-            0, scale, context, encoder, encryptor, decryptor);
+            0, timed_runs, scale, context, encoder, encryptor, decryptor);
         r.fold_diff = max_abs_error(folded, expected);
         results.push_back(r);
     }
@@ -296,7 +339,7 @@ int main() {
             [&](const Ciphertext& ct) {
                 return batch_norm(ct, s, b, context, encoder, evaluator, scale);
             },
-            0, scale, context, encoder, encryptor, decryptor);
+            0, timed_runs, scale, context, encoder, encryptor, decryptor);
         r.fold_diff = max_abs_error(folded, expected);
         results.push_back(r);
     }
@@ -329,7 +372,7 @@ int main() {
                 return chebyshev(
                     ct, coeffs, lo, hi, context, encoder, evaluator, relin_keys, scale);
             },
-            coeffs.size() - 2, scale, context, encoder, encryptor, decryptor);
+            coeffs.size() - 2, timed_runs, scale, context, encoder, encryptor, decryptor);
         r.approx_error = max_abs_error(poly_ref, true_sigmoid);
         results.push_back(r);
     }
