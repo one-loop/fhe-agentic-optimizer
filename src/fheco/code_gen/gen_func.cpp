@@ -21,37 +21,55 @@ void gen_func(
   const bool ckks = func->scheme() == Scheme::ckks;
   if (ckks)
   {
-    // CKKS v1 (Quad): real-valued constants and plaintext inputs need encoding
-    // at the level and scale of the ciphertext they meet, not implemented yet.
+    // Real-valued IR constants are not supported; real values enter CKKS
+    // functions only as named plaintext inputs.
     if (!func->data_flow().constants_info().empty())
       throw logic_error("CKKS functions do not support constants yet");
 
-    for (const auto &input_info : func->data_flow().inputs_info())
+    for (const auto &output_info : func->data_flow().outputs_info())
     {
-      if (input_info.first->type() != ir::Term::Type::cipher)
-        throw logic_error("CKKS functions do not support plaintext inputs yet");
+      if (output_info.first->type() != ir::Term::Type::cipher)
+        throw logic_error("CKKS functions do not support plaintext outputs yet");
     }
   }
-  const string_view func_encoder_type = ckks ? ckks_encoder_type : encoder_type;
 
   passes::prepare_code_gen(func);
   header_os << header_includes;
   header_os << '\n';
-  gen_func_decl(func->name(), func_encoder_type, header_os);
+  gen_func_decl(func->name(), func->scheme(), header_os);
   header_os << '\n';
   gen_rotation_steps_getter_decl(func->name(), header_os);
   /*************************************************************/
   /*************************************************************/
   source_os << source_includes;
+  if (ckks)
+    source_os << "#include <cmath>\n";
   source_os << "#include \"" << header_name << "\"\n";
   source_os << '\n';
   source_os << source_usings;
   source_os << '\n';
-  gen_func_def_signature(func->name(), func_encoder_type, source_os);
+  gen_func_def_signature(func->name(), func->scheme(), source_os);
   source_os << "\n{\n";
 
+  if (ckks)
+  {
+    // Nominal CKKS scale, used to encode plaintext multiplicands.
+    bool has_ctxt_ptxt_mul = false;
+    for (auto term : func->get_top_sorted_terms())
+    {
+      if (term->op_code().type() == ir::OpCode::Type::mul && term->type() == ir::Term::Type::cipher)
+      {
+        for (auto operand : term->operands())
+          has_ctxt_ptxt_mul = has_ctxt_ptxt_mul || operand->type() == ir::Term::Type::plain;
+      }
+    }
+    if (has_ctxt_ptxt_mul)
+      source_os << "const double " << ckks_scale_id << " = std::ldexp(1.0, " << func->ckks_params().log2_scale
+                << ");\n";
+  }
+
   TermsCtxtObjectsInfo terms_ctxt_objects_info;
-  gen_input_terms(func->data_flow().inputs_info(), source_os, terms_ctxt_objects_info);
+  gen_input_terms(func->data_flow().inputs_info(), func->scheme(), source_os, terms_ctxt_objects_info);
   gen_const_terms(func->data_flow().constants_info(), func->clear_data_evaluator().signedness(), source_os);
   gen_op_terms(func, source_os, terms_ctxt_objects_info);
   gen_output_terms(func->data_flow().outputs_info(), source_os, terms_ctxt_objects_info);
@@ -86,11 +104,16 @@ void gen_func(
 /**************************************************************************************/
 /**************************************************************************************/
 
-void gen_func_decl(const string &func_name, string_view encoder_type_name, ostream &os)
+void gen_func_decl(const string &func_name, Scheme scheme, ostream &os)
 {
+  const bool ckks = scheme == Scheme::ckks;
+  const string_view encoder_type_name = ckks ? ckks_encoder_type : encoder_type;
   os << "void " << func_name << "("; 
   os << "const " << header_encrypted_io_type << " &" << encrypted_inputs_container_id << ",\n";
-  os << "const " << header_encoded_io_type << " &" << encoded_inputs_container_id << ",\n";
+  if (ckks)
+    os << "const " << header_ckks_plain_io_type << " &" << ckks_plain_inputs_container_id << ",\n";
+  else
+    os << "const " << header_encoded_io_type << " &" << encoded_inputs_container_id << ",\n";
   os << header_encrypted_io_type << " &" << encrypted_outputs_container_id << ",\n";
   os << header_encoded_io_type << " &" << encoded_outputs_container_id << ",\n";
   os << "const " << seal_namespace << "::" << encoder_type_name << " &" << encoder_id << ",\n";
@@ -105,11 +128,16 @@ void gen_rotation_steps_getter_decl(const string &func_name, ostream &os)
   os << "std::vector<int> " << rotation_steps_getter_id + "_" + func_name << "();\n";
 }
 
-void gen_func_def_signature(const string &func_name, string_view encoder_type_name, ostream &os)
+void gen_func_def_signature(const string &func_name, Scheme scheme, ostream &os)
 { 
+  const bool ckks = scheme == Scheme::ckks;
+  const string_view encoder_type_name = ckks ? ckks_encoder_type : encoder_type;
   os << "void " << func_name << "(";
   os << "const " << source_encrypted_io_type << " &" << encrypted_inputs_container_id << ",\n";
-  os << "const " << source_encoded_io_type << " &" << encoded_inputs_container_id << ",\n";
+  if (ckks)
+    os << "const " << source_ckks_plain_io_type << " &" << ckks_plain_inputs_container_id << ",\n";
+  else
+    os << "const " << source_encoded_io_type << " &" << encoded_inputs_container_id << ",\n";
   os << source_encrypted_io_type << " &" << encrypted_outputs_container_id << ",\n";
   os << source_encoded_io_type << " &" << encoded_outputs_container_id << ",\n";
   os << "const " << encoder_type_name << " &" << encoder_id << ",\n";
@@ -120,7 +148,7 @@ void gen_func_def_signature(const string &func_name, string_view encoder_type_na
 }
 
 void gen_input_terms(
-  const ir::InputTermsInfo &input_terms_info, ostream &os, TermsCtxtObjectsInfo &terms_ctxt_objects_info)
+  const ir::InputTermsInfo &input_terms_info, Scheme scheme, ostream &os, TermsCtxtObjectsInfo &terms_ctxt_objects_info)
 {
   for (const auto &input_info : input_terms_info)
   {
@@ -132,6 +160,13 @@ void gen_input_terms(
       os << cipher_type << " ";
       gen_cipher_var_id(object_id, os);
       os << " = " << encrypted_inputs_container_id << ".at(\"" << input_info.second.label_ << "\")";
+    }
+    else if (scheme == Scheme::ckks)
+    {
+      // real values; encoded where used (see gen_op_terms)
+      os << "const vector<double> &";
+      gen_plain_var_id(object_id, os);
+      os << " = " << ckks_plain_inputs_container_id << ".at(\"" << input_info.second.label_ << "\")";
     }
     else
     {
@@ -245,6 +280,49 @@ void gen_op_terms(const shared_ptr<ir::Func> &func, ostream &os, TermsCtxtObject
       os << ";\n";
     }
 
+    // CKKS: encode each plaintext operand at the level of the ciphertext
+    // operand. A multiplicand gets the nominal scale (the product is rescaled
+    // by insert_rescale); an addend gets the ciphertext's exact scale.
+    vector<string> ckks_encoded_plain_ids(term->operands().size());
+    if (func->scheme() == Scheme::ckks)
+    {
+      if (term->op_code().type() == ir::OpCode::Type::encrypt)
+        throw logic_error("CKKS functions do not support encrypting plaintexts yet");
+
+      for (size_t i = 0; i < term->operands().size(); ++i)
+      {
+        auto operand = term->operands()[i];
+        if (operand->type() != ir::Term::Type::plain)
+          continue;
+
+        const auto op_type = term->op_code().type();
+        if (
+          term->operands().size() != 2 ||
+          (op_type != ir::OpCode::Type::mul && op_type != ir::OpCode::Type::add && op_type != ir::OpCode::Type::sub))
+          throw logic_error(
+            "CKKS functions only support plaintext operands of ciphertext-plaintext mul/add/sub, not '" +
+            term->op_code().str_repr() + "'");
+
+        const size_t ctxt_object_id = operands_ctxt_objects_ids[1 - i];
+        const string encoded_id = "p" + to_string(operand->id()) + "_" + to_string(term->id());
+        os << plain_type << " " << encoded_id << ";\n";
+        os << encoder_id << ".encode(";
+        gen_plain_var_id(operand->id(), os);
+        os << ", ";
+        gen_cipher_var_id(ctxt_object_id, os);
+        os << ".parms_id(), ";
+        if (op_type == ir::OpCode::Type::mul)
+          os << ckks_scale_id;
+        else
+        {
+          gen_cipher_var_id(ctxt_object_id, os);
+          os << ".scale()";
+        }
+        os << ", " << encoded_id << ");\n";
+        ckks_encoded_plain_ids[i] = encoded_id;
+      }
+    }
+
     vector<ir::Term::Type> operands_types;
     operands_types.reserve(term->operands().size());
     transform(
@@ -267,6 +345,8 @@ void gen_op_terms(const shared_ptr<ir::Func> &func, ostream &os, TermsCtxtObject
 
         if (operand->type() == ir::Term::Type::cipher)
           gen_cipher_var_id(operands_ctxt_objects_ids[i], os);
+        else if (!ckks_encoded_plain_ids[i].empty())
+          os << ckks_encoded_plain_ids[i];
         else
           gen_plain_var_id(operand->id(), os);
 
@@ -554,7 +634,7 @@ int main(int argc, char **argv)
   Decryptor decryptor(context, secret_key);
 
   EncryptedArgs encrypted_inputs;
-  EncodedArgs encoded_inputs;
+  CkksClearArgs plain_inputs;
   EncryptedArgs encrypted_outputs;
   EncodedArgs encoded_outputs;
 
@@ -562,9 +642,9 @@ int main(int argc, char **argv)
   // encode, encrypt and evaluate, single run.
   chrono::high_resolution_clock::time_point t = chrono::high_resolution_clock::now();
   CkksIoExample io = parse_ckks_io_file(is);
-  prepare_ckks_inputs(encoder, encryptor, scale, io, encrypted_inputs, encoded_inputs);
+  prepare_ckks_inputs(encoder, encryptor, scale, io, encrypted_inputs, plain_inputs);
   fhe(
-    encrypted_inputs, encoded_inputs, encrypted_outputs, encoded_outputs, encoder, encryptor, evaluator, relin_keys,
+    encrypted_inputs, plain_inputs, encrypted_outputs, encoded_outputs, encoder, encryptor, evaluator, relin_keys,
     galois_keys);
   chrono::duration<double, milli> elapsed = chrono::high_resolution_clock::now() - t;
 
@@ -577,7 +657,7 @@ int main(int argc, char **argv)
     EncodedArgs run_encoded_outputs;
     auto start = chrono::high_resolution_clock::now();
     fhe(
-      encrypted_inputs, encoded_inputs, run_encrypted_outputs, run_encoded_outputs, encoder, encryptor, evaluator,
+      encrypted_inputs, plain_inputs, run_encrypted_outputs, run_encoded_outputs, encoder, encryptor, evaluator,
       relin_keys, galois_keys);
     chrono::duration<double, milli> run = chrono::high_resolution_clock::now() - start;
     if (i > 0)

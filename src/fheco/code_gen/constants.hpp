@@ -23,6 +23,13 @@ constexpr std::string_view source_encoded_io_type{"unordered_map<string, Plainte
 constexpr std::string_view encrypted_inputs_container_id{"encrypted_inputs"};
 constexpr std::string_view encoded_inputs_container_id{"encoded_inputs"};
 
+// CKKS: plaintext inputs reach fhe() as real values and are encoded at each use,
+// at the level and scale of the ciphertext they meet.
+constexpr std::string_view header_ckks_plain_io_type{"std::unordered_map<std::string, std::vector<double>>"};
+constexpr std::string_view source_ckks_plain_io_type{"unordered_map<string, vector<double>>"};
+constexpr std::string_view ckks_plain_inputs_container_id{"plain_inputs"};
+constexpr std::string_view ckks_scale_id{"scale"};
+
 constexpr std::string_view encrypted_outputs_container_id{"encrypted_outputs"};
 constexpr std::string_view encoded_outputs_container_id{"encoded_outputs"};
 

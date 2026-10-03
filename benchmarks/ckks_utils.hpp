@@ -31,11 +31,13 @@ struct CkksIoExample
 
 CkksIoExample parse_ckks_io_file(std::istream &is);
 
-// Encode every ciphertext input at `scale`, repeating its values to fill all
-// slots, and encrypt it. Plaintext inputs are not supported yet.
+// Repeat every input's values to fill all slots. Ciphertext inputs are then
+// encoded at `scale` and encrypted. Plaintext inputs are returned as real
+// values: the generated fhe() encodes them where they are used, at the level
+// and scale of the ciphertext they meet.
 void prepare_ckks_inputs(
   const seal::CKKSEncoder &encoder, const seal::Encryptor &encryptor, double scale, const CkksIoExample &io,
-  EncryptedArgs &encrypted_inputs, EncodedArgs &encoded_inputs);
+  EncryptedArgs &encrypted_inputs, CkksClearArgs &plain_inputs);
 
 // Decrypt and decode every output, keeping the first func_slot_count slots.
 CkksClearArgs decrypt_ckks_outputs(

@@ -70,27 +70,30 @@ CkksIoExample parse_ckks_io_file(istream &is)
 
 void prepare_ckks_inputs(
   const CKKSEncoder &encoder, const Encryptor &encryptor, double scale, const CkksIoExample &io,
-  EncryptedArgs &encrypted_inputs, EncodedArgs &encoded_inputs)
+  EncryptedArgs &encrypted_inputs, CkksClearArgs &plain_inputs)
 {
-  if (!io.plain_inputs.empty())
-    throw invalid_argument("CKKS runtime does not support plaintext inputs yet");
-
   const size_t slot_count = encoder.slot_count();
-  for (const auto &[label, values] : io.cipher_inputs)
-  {
+  auto fill_slots = [slot_count](const vector<double> &values) {
     if (values.empty() || values.size() > slot_count)
       throw logic_error("input size must be in [1, slot_count]");
 
     vector<double> slots(slot_count);
     for (size_t i = 0; i < slot_count; ++i)
       slots[i] = values[i % values.size()];
+    return slots;
+  };
 
+  for (const auto &[label, values] : io.cipher_inputs)
+  {
     Plaintext encoded;
-    encoder.encode(slots, scale, encoded);
+    encoder.encode(fill_slots(values), scale, encoded);
     Ciphertext encrypted;
     encryptor.encrypt(encoded, encrypted);
     encrypted_inputs.emplace(label, std::move(encrypted));
   }
+
+  for (const auto &[label, values] : io.plain_inputs)
+    plain_inputs.emplace(label, fill_slots(values));
 }
 
 CkksClearArgs decrypt_ckks_outputs(

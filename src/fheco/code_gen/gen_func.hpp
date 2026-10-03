@@ -30,14 +30,15 @@ void gen_func(
   const std::shared_ptr<ir::Func> &func, const std::unordered_set<int> &rotataion_steps, std::ostream &header_os,
   std::string_view header_name, std::ostream &source_os,param_select::EncParams::SecurityLevel security_level,bool automatic_enc_params_enabled);
 
-void gen_func_decl(const std::string &func_name, std::string_view encoder_type_name, std::ostream &os);
+void gen_func_decl(const std::string &func_name, Scheme scheme, std::ostream &os);
 
 void gen_rotation_steps_getter_decl(const std::string &func_name, std::ostream &os);
 
-void gen_func_def_signature(const std::string &func_name, std::string_view encoder_type_name, std::ostream &os);
+void gen_func_def_signature(const std::string &func_name, Scheme scheme, std::ostream &os);
 
 void gen_input_terms(
-  const ir::InputTermsInfo &input_terms_info, std::ostream &os, TermsCtxtObjectsInfo &terms_ctxt_objects_info);
+  const ir::InputTermsInfo &input_terms_info, Scheme scheme, std::ostream &os,
+  TermsCtxtObjectsInfo &terms_ctxt_objects_info);
 
 void gen_cipher_var_id(std::size_t term_id, std::ostream &os);
 
