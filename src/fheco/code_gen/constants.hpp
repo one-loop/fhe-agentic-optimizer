@@ -29,6 +29,32 @@ constexpr std::string_view header_ckks_plain_io_type{"std::unordered_map<std::st
 constexpr std::string_view source_ckks_plain_io_type{"unordered_map<string, vector<double>>"};
 constexpr std::string_view ckks_plain_inputs_container_id{"plain_inputs"};
 constexpr std::string_view ckks_scale_id{"scale"};
+constexpr std::string_view context_type{"SEALContext"};
+constexpr std::string_view context_id{"context"};
+
+// Helpers emitted into generated CKKS sources that align scales.
+constexpr std::string_view ckks_scale_helpers{
+  R"(namespace
+{
+// Plaintext scale that makes multiply_plain followed by rescale_to_next land
+// exactly on target_scale.
+[[maybe_unused]] double ckks_landing_scale(const SEALContext &context, const Ciphertext &ct, double target_scale)
+{
+  const double q =
+    static_cast<double>(context.get_context_data(ct.parms_id())->parms().coeff_modulus().back().value());
+  return target_scale * q / ct.scale();
+}
+
+// Assign `scale` to ct only when the two agree up to floating-point rounding
+// (1e-9 relative); a real mismatch is an error, never silently overwritten.
+[[maybe_unused]] void ckks_snap_scale(Ciphertext &ct, double scale)
+{
+  if (std::abs(ct.scale() - scale) > 1e-9 * std::max(std::abs(ct.scale()), std::abs(scale)))
+    throw std::logic_error("CKKS scale mismatch");
+  ct.scale() = scale;
+}
+} // namespace
+)"};
 
 constexpr std::string_view encrypted_outputs_container_id{"encrypted_outputs"};
 constexpr std::string_view encoded_outputs_container_id{"encoded_outputs"};

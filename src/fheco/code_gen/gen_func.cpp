@@ -41,13 +41,36 @@ void gen_func(
   gen_rotation_steps_getter_decl(func->name(), header_os);
   /*************************************************************/
   /*************************************************************/
+  // CKKS scale-alignment helpers are needed by match_scale terms and by
+  // ciphertext-ciphertext additions/subtractions.
+  bool need_ckks_scale_helpers = false;
+  if (ckks)
+  {
+    for (auto term : func->get_top_sorted_terms())
+    {
+      const auto op_type = term->op_code().type();
+      if (op_type == ir::OpCode::Type::match_scale)
+        need_ckks_scale_helpers = true;
+      else if (
+        (op_type == ir::OpCode::Type::add || op_type == ir::OpCode::Type::sub) &&
+        term->operands()[0]->type() == ir::Term::Type::cipher && term->operands()[1]->type() == ir::Term::Type::cipher)
+        need_ckks_scale_helpers = true;
+    }
+  }
+
   source_os << source_includes;
   if (ckks)
+  {
     source_os << "#include <cmath>\n";
+    if (need_ckks_scale_helpers)
+      source_os << "#include <algorithm>\n#include <stdexcept>\n";
+  }
   source_os << "#include \"" << header_name << "\"\n";
   source_os << '\n';
   source_os << source_usings;
   source_os << '\n';
+  if (need_ckks_scale_helpers)
+    source_os << ckks_scale_helpers << '\n';
   gen_func_def_signature(func->name(), func->scheme(), source_os);
   source_os << "\n{\n";
 
@@ -120,7 +143,10 @@ void gen_func_decl(const string &func_name, Scheme scheme, ostream &os)
   os << "const " << seal_namespace << "::" << encryptor_type << " &" << encryptor_id << ",\n";
   os << "const " << seal_namespace << "::" << evaluator_type << " &" << evaluator_id << ",\n";
   os << "const " << seal_namespace << "::" << relin_keys_type << " &" << relin_keys_id << ",\n";
-  os << "const " << seal_namespace << "::" << galois_keys_type << " &" << galois_keys_id << ");\n";
+  os << "const " << seal_namespace << "::" << galois_keys_type << " &" << galois_keys_id;
+  if (ckks)
+    os << ",\nconst " << seal_namespace << "::" << context_type << " &" << context_id;
+  os << ");\n";
 }
 
 void gen_rotation_steps_getter_decl(const string &func_name, ostream &os)
@@ -144,7 +170,10 @@ void gen_func_def_signature(const string &func_name, Scheme scheme, ostream &os)
   os << "const " << encryptor_type << " &" << encryptor_id << ",\n";
   os << "const " << evaluator_type << " &" << evaluator_id << ",\n";
   os << "const " << relin_keys_type << " &" << relin_keys_id << ",\n";
-  os << "const " << galois_keys_type << " &" << galois_keys_id << ")";
+  os << "const " << galois_keys_type << " &" << galois_keys_id;
+  if (ckks)
+    os << ",\nconst " << context_type << " &" << context_id;
+  os << ")";
 }
 
 void gen_input_terms(
@@ -328,6 +357,52 @@ void gen_op_terms(const shared_ptr<ir::Func> &func, ostream &os, TermsCtxtObject
     transform(
       term->operands().cbegin(), term->operands().cend(), back_inserter(operands_types),
       [](const ir::Term *operand) { return operand->type(); });
+
+    if (func->scheme() == Scheme::ckks && term->op_code().type() == ir::OpCode::Type::match_scale)
+    {
+      // a * 1 encoded so that, after rescaling, the scale equals ref's exactly.
+      // ref's scale is read first: ref's object may be the destination.
+      const string target_scale_id = "target_scale_" + to_string(term->id());
+      const string one_id = "one_" + to_string(term->id());
+      os << "const double " << target_scale_id << " = ";
+      gen_cipher_var_id(operands_ctxt_objects_ids[1], os);
+      os << ".scale();\n";
+      os << plain_type << " " << one_id << ";\n";
+      os << encoder_id << ".encode(1.0, ";
+      gen_cipher_var_id(operands_ctxt_objects_ids[0], os);
+      os << ".parms_id(), ckks_landing_scale(" << context_id << ", ";
+      gen_cipher_var_id(operands_ctxt_objects_ids[0], os);
+      os << ", " << target_scale_id << "), " << one_id << ");\n";
+      os << evaluator_id << ".multiply_plain(";
+      gen_cipher_var_id(operands_ctxt_objects_ids[0], os);
+      os << ", " << one_id << ", ";
+      gen_cipher_var_id(term_object_id, os);
+      os << ");\n";
+      os << evaluator_id << ".rescale_to_next(";
+      gen_cipher_var_id(term_object_id, os);
+      os << ", ";
+      gen_cipher_var_id(term_object_id, os);
+      os << ");\n";
+      os << "ckks_snap_scale(";
+      gen_cipher_var_id(term_object_id, os);
+      os << ", " << target_scale_id << ");\n";
+      continue;
+    }
+
+    if (
+      func->scheme() == Scheme::ckks &&
+      (term->op_code().type() == ir::OpCode::Type::add || term->op_code().type() == ir::OpCode::Type::sub) &&
+      term->operands()[0]->type() == ir::Term::Type::cipher && term->operands()[1]->type() == ir::Term::Type::cipher &&
+      operands_ctxt_objects_ids[0] != operands_ctxt_objects_ids[1])
+    {
+      // align_ckks_operands made the scales equal; remove floating-point
+      // rounding differences, which SEAL's add/sub would reject.
+      os << "ckks_snap_scale(";
+      gen_cipher_var_id(operands_ctxt_objects_ids[1], os);
+      os << ", ";
+      gen_cipher_var_id(operands_ctxt_objects_ids[0], os);
+      os << ".scale());\n";
+    }
 
     if (term->op_code() == ir::OpCode::encrypt)
     {
@@ -645,7 +720,7 @@ int main(int argc, char **argv)
   prepare_ckks_inputs(encoder, encryptor, scale, io, encrypted_inputs, plain_inputs);
   fhe(
     encrypted_inputs, plain_inputs, encrypted_outputs, encoded_outputs, encoder, encryptor, evaluator, relin_keys,
-    galois_keys);
+    galois_keys, context);
   chrono::duration<double, milli> elapsed = chrono::high_resolution_clock::now() - t;
 
   // Evaluation only, comparable with the direct-SEAL reference: one warmup
@@ -658,7 +733,7 @@ int main(int argc, char **argv)
     auto start = chrono::high_resolution_clock::now();
     fhe(
       encrypted_inputs, plain_inputs, run_encrypted_outputs, run_encoded_outputs, encoder, encryptor, evaluator,
-      relin_keys, galois_keys);
+      relin_keys, galois_keys, context);
     chrono::duration<double, milli> run = chrono::high_resolution_clock::now() - start;
     if (i > 0)
       eval_ms.push_back(run.count());
