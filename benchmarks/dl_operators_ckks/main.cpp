@@ -64,6 +64,28 @@ std::vector<double> chebyshev_plain(
     return out;
 }
 
+// Eval-mode BatchNorm on flattened [N, C, spatial...] data, computed from the
+// original statistics. Deliberately independent of precompute_batch_norm()
+// and the expand_* packing helpers: the channel of slot i is derived directly
+// from its index.
+std::vector<double> batch_norm_reference(
+    const std::vector<double>& x,
+    const std::vector<double>& gamma,
+    const std::vector<double>& beta,
+    const std::vector<double>& running_mean,
+    const std::vector<double>& running_var,
+    double eps,
+    std::size_t channels,
+    std::size_t spatial_size) {
+    std::vector<double> out(x.size());
+    for (std::size_t i = 0; i < x.size(); ++i) {
+        const std::size_t c = (i / spatial_size) % channels;
+        out[i] = gamma[c] * (x[i] - running_mean[c]) / std::sqrt(running_var[c] + eps)
+                 + beta[c];
+    }
+    return out;
+}
+
 void print_result(const char* name, double ms, double error) {
     std::cout << std::left << std::setw(18) << name
               << " latency_ms=" << std::fixed << std::setprecision(3) << ms
@@ -135,12 +157,14 @@ int main() {
         std::vector<double> beta{0.1, -0.2};
         std::vector<double> mean{0.25, 1.25};
         std::vector<double> var{0.5, 0.75};
-        auto bn = precompute_batch_norm(gamma, beta, mean, var, 1e-5);
+        const double eps = 1e-5;
+        auto bn = precompute_batch_norm(gamma, beta, mean, var, eps);
         auto s = expand_batchnorm1d_channels(bn.scale, N, C, L);
         auto b = expand_batchnorm1d_channels(bn.shift, N, C, L);
 
-        std::vector<double> expected(x.size());
-        for (std::size_t i = 0; i < x.size(); ++i) expected[i] = s[i] * x[i] + b[i];
+        auto expected = batch_norm_reference(x, gamma, beta, mean, var, eps, C, L);
+        std::vector<double> folded(x.size());
+        for (std::size_t i = 0; i < x.size(); ++i) folded[i] = s[i] * x[i] + b[i];
 
         Plaintext pt;
         encoder.encode(x, scale, pt);
@@ -153,6 +177,8 @@ int main() {
         auto out = decrypt_decode(out_ct, decryptor, encoder, x.size());
         const double ms = std::chrono::duration<double, std::milli>(stop - start).count();
         print_result("BatchNorm1d", ms, max_abs_error(out, expected));
+        std::cout << "  folded A*x+B vs reference max_diff="
+                  << std::scientific << max_abs_error(folded, expected) << '\n';
     }
 
     // ------------------------------------------------------------
@@ -166,12 +192,14 @@ int main() {
         std::vector<double> beta{0.0, 0.2};
         std::vector<double> mean{0.1, 1.0};
         std::vector<double> var{0.9, 0.6};
-        auto bn = precompute_batch_norm(gamma, beta, mean, var, 1e-5);
+        const double eps = 1e-5;
+        auto bn = precompute_batch_norm(gamma, beta, mean, var, eps);
         auto s = expand_batchnorm2d_channels(bn.scale, N, C, H, W);
         auto b = expand_batchnorm2d_channels(bn.shift, N, C, H, W);
 
-        std::vector<double> expected(x.size());
-        for (std::size_t i = 0; i < x.size(); ++i) expected[i] = s[i] * x[i] + b[i];
+        auto expected = batch_norm_reference(x, gamma, beta, mean, var, eps, C, H * W);
+        std::vector<double> folded(x.size());
+        for (std::size_t i = 0; i < x.size(); ++i) folded[i] = s[i] * x[i] + b[i];
 
         Plaintext pt;
         encoder.encode(x, scale, pt);
@@ -184,6 +212,8 @@ int main() {
         auto out = decrypt_decode(out_ct, decryptor, encoder, x.size());
         const double ms = std::chrono::duration<double, std::milli>(stop - start).count();
         print_result("BatchNorm2d", ms, max_abs_error(out, expected));
+        std::cout << "  folded A*x+B vs reference max_diff="
+                  << std::scientific << max_abs_error(folded, expected) << '\n';
     }
 
     // ------------------------------------------------------------
