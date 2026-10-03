@@ -9,8 +9,9 @@
 #   poly_reg  (scalar path: ./poly_reg 0 4 0 0 1 1 1): generated he/ sources,
 #             he/main.cpp and compiler stdout (minus the compile-time line);
 #             then builds and runs the generated BFV program.
-#   quad_bfv  (tests/bfv_golden/quad_bfv_probe.cpp, y = x * x): generated
-#             sources and Quantifier output.
+#   quad_bfv  (tests/bfv_golden/quad_bfv_probe.cpp, y = x * x) and
+#   bn_bfv    (tests/bfv_golden/bn_bfv_probe.cpp, y = x * A + B with plaintext
+#             inputs): generated sources and Quantifier output.
 #
 # Uses the standard CHEHAB build directory <repo>/build (the benchmark CMake
 # files hard-code it). SEAL is found through CMAKE_PREFIX_PATH (default
@@ -82,14 +83,17 @@ else
   status=1
 fi
 
-# --- quad_bfv probe -----------------------------------------------------
-mkdir -p "$work/quad_bfv/he"
-c++ -std=c++17 -O1 -I"$repo/src" "$here/quad_bfv_probe.cpp" "$build/libfheco.a" -o "$work/quad_bfv/probe"
-(cd "$work/quad_bfv" && ./probe) > "$work/quad_bfv_stdout.txt"
-check quad_bfv/stdout.txt "$work/quad_bfv_stdout.txt"
-check quad_bfv/_gen_he_fhe.hpp "$work/quad_bfv/he/_gen_he_fhe.hpp"
-check quad_bfv/_gen_he_fhe.cpp "$work/quad_bfv/he/_gen_he_fhe.cpp"
-check quad_bfv/main.cpp "$work/quad_bfv/he/main.cpp"
+# --- DSL probes ---------------------------------------------------------
+# <name>_probe.cpp: quad_bfv (y = x * x), bn_bfv (y = x * A + B, plaintext inputs)
+for probe in quad_bfv bn_bfv; do
+  mkdir -p "$work/$probe/he"
+  c++ -std=c++17 -O1 -I"$repo/src" "$here/${probe}_probe.cpp" "$build/libfheco.a" -o "$work/$probe/probe"
+  (cd "$work/$probe" && ./probe) > "$work/${probe}_stdout.txt"
+  check "$probe/stdout.txt" "$work/${probe}_stdout.txt"
+  check "$probe/_gen_he_fhe.hpp" "$work/$probe/he/_gen_he_fhe.hpp"
+  check "$probe/_gen_he_fhe.cpp" "$work/$probe/he/_gen_he_fhe.cpp"
+  check "$probe/main.cpp" "$work/$probe/he/main.cpp"
+done
 
 if [[ $update -eq 0 ]]; then
   if [[ $status -eq 0 ]]; then
