@@ -59,4 +59,5 @@ option(FHECO_BUILD_CKKS_BENCHMARKS "Build CHEHAB-compiled CKKS benchmarks" OFF)
 
 if(FHECO_BUILD_CKKS_BENCHMARKS)
     add_subdirectory(benchmarks/quad_ckks)
+    add_subdirectory(benchmarks/batchnorm_ckks)
 endif()
