@@ -114,7 +114,7 @@ int main() {
         encryptor.encrypt(pt, ct);
 
         const auto start = Clock::now();
-        auto out_ct = quad(ct, evaluator, relin_keys, scale);
+        auto out_ct = quad(ct, evaluator, relin_keys);
         const auto stop = Clock::now();
 
         auto out = decrypt_decode(out_ct, decryptor, encoder, x.size());
@@ -148,7 +148,7 @@ int main() {
         encryptor.encrypt(pt, ct);
 
         const auto start = Clock::now();
-        auto out_ct = batch_norm(ct, s, b, encoder, evaluator, scale);
+        auto out_ct = batch_norm(ct, s, b, context, encoder, evaluator, scale);
         const auto stop = Clock::now();
         auto out = decrypt_decode(out_ct, decryptor, encoder, x.size());
         const double ms = std::chrono::duration<double, std::milli>(stop - start).count();
@@ -179,7 +179,7 @@ int main() {
         encryptor.encrypt(pt, ct);
 
         const auto start = Clock::now();
-        auto out_ct = batch_norm(ct, s, b, encoder, evaluator, scale);
+        auto out_ct = batch_norm(ct, s, b, context, encoder, evaluator, scale);
         const auto stop = Clock::now();
         auto out = decrypt_decode(out_ct, decryptor, encoder, x.size());
         const double ms = std::chrono::duration<double, std::milli>(stop - start).count();
@@ -215,7 +215,7 @@ int main() {
 
         const auto start = Clock::now();
         auto out_ct = chebyshev(
-            ct, coeffs, lo, hi, encoder, evaluator, relin_keys, scale);
+            ct, coeffs, lo, hi, context, encoder, evaluator, relin_keys, scale);
         const auto stop = Clock::now();
         auto out = decrypt_decode(out_ct, decryptor, encoder, x.size());
         const double ms = std::chrono::duration<double, std::milli>(stop - start).count();

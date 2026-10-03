@@ -2,10 +2,24 @@
 
 #include <algorithm>
 #include <cmath>
+#include <optional>
+#include <sstream>
 #include <stdexcept>
 
 namespace chehab::dl {
 namespace {
+
+// Chebyshev coefficients at or below this magnitude are fitting noise
+// (e.g. even terms of an odd function) and are not evaluated.
+constexpr double coeff_epsilon = 1e-14;
+
+// Two scales constructed to be equal (e.g. s * p / q with p = target * q / s)
+// differ only by floating-point rounding, ~1e-16 relative. SEAL's add requires
+// near bit-equal scales, so such scales are snapped together. Any larger
+// difference is a real mismatch and is reported instead of being hidden; a
+// relative scale change of 1e-9 would perturb decoded values by at most 1e-9
+// relative, far below CKKS noise at a 2^40 scale.
+constexpr double scale_rel_tolerance = 1e-9;
 
 void require_same_size(const std::vector<double>& a,
                        const std::vector<double>& b,
@@ -15,112 +29,108 @@ void require_same_size(const std::vector<double>& a,
     }
 }
 
-seal::Plaintext encode_vector_at(
-    const std::vector<double>& values,
-    seal::parms_id_type parms_id,
-    double scale,
+std::size_t chain_index(const seal::SEALContext& context, seal::parms_id_type parms_id) {
+    return context.get_context_data(parms_id)->chain_index();
+}
+
+// The prime removed by rescale_to_next at this level.
+double last_prime(const seal::SEALContext& context, seal::parms_id_type parms_id) {
+    return static_cast<double>(
+        context.get_context_data(parms_id)->parms().coeff_modulus().back().value());
+}
+
+bool same_scale(double a, double b) {
+    return std::abs(a - b) <= scale_rel_tolerance * std::max(std::abs(a), std::abs(b));
+}
+
+void snap_scale(seal::Ciphertext& ct, double expected) {
+    if (!same_scale(ct.scale(), expected)) {
+        std::ostringstream msg;
+        msg << "CKKS scale mismatch: have " << ct.scale() << ", expected " << expected;
+        throw std::logic_error(msg.str());
+    }
+    ct.scale() = expected;
+}
+
+void mod_switch_to(seal::Ciphertext& ct,
+                   seal::parms_id_type parms_id,
+                   seal::Evaluator& evaluator) {
+    if (ct.parms_id() != parms_id) {
+        evaluator.mod_switch_to_inplace(ct, parms_id);
+    }
+}
+
+// ct * values followed by a rescale, with the result landing on out_scale.
+template <typename Values>
+seal::Ciphertext multiply_plain_to_scale(
+    const seal::Ciphertext& ct,
+    const Values& values,
+    double out_scale,
+    const seal::SEALContext& context,
+    seal::CKKSEncoder& encoder,
+    seal::Evaluator& evaluator) {
+    const double plain_scale = out_scale * last_prime(context, ct.parms_id()) / ct.scale();
+    seal::Plaintext pt;
+    encoder.encode(values, ct.parms_id(), plain_scale, pt);
+    seal::Ciphertext out;
+    evaluator.multiply_plain(ct, pt, out);
+    evaluator.rescale_to_next_inplace(out);
+    snap_scale(out, out_scale);
+    return out;
+}
+
+// ct + values, with values encoded at the ciphertext's own level and scale.
+template <typename Values>
+void add_plain_inplace(
+    seal::Ciphertext& ct,
+    const Values& values,
     seal::CKKSEncoder& encoder,
     seal::Evaluator& evaluator) {
     seal::Plaintext pt;
-    encoder.encode(values, scale, pt);
-    if (pt.parms_id() != parms_id) {
-        evaluator.mod_switch_to_inplace(pt, parms_id);
-    }
-    return pt;
+    encoder.encode(values, ct.parms_id(), ct.scale(), pt);
+    evaluator.add_plain_inplace(ct, pt);
 }
 
-seal::Plaintext encode_scalar_at(
-    double value,
+// Bring ct to (parms_id, scale). If the scales already agree this is a plain
+// mod switch. Otherwise ct is multiplied by 1 encoded so the rescaled result
+// lands on the target scale, which requires ct to sit above the target level.
+seal::Ciphertext align_to(
+    seal::Ciphertext ct,
     seal::parms_id_type parms_id,
     double scale,
+    const seal::SEALContext& context,
     seal::CKKSEncoder& encoder,
     seal::Evaluator& evaluator) {
-    seal::Plaintext pt;
-    encoder.encode(value, scale, pt);
-    if (pt.parms_id() != parms_id) {
-        evaluator.mod_switch_to_inplace(pt, parms_id);
-    }
-    return pt;
-}
-
-void normalize_scale(seal::Ciphertext& ct, double target_scale) {
-    ct.scale() = target_scale;
-}
-
-void align_ciphertexts(seal::Ciphertext& a,
-                       seal::Ciphertext& b,
-                       seal::Evaluator& evaluator,
-                       double target_scale) {
-    if (a.parms_id() != b.parms_id()) {
-        // parms_id ordering is not numerically comparable, so try switching copies
-        // to each other's level. Only one direction can succeed.
-        try {
-            evaluator.mod_switch_to_inplace(a, b.parms_id());
-        } catch (const std::invalid_argument&) {
-            evaluator.mod_switch_to_inplace(b, a.parms_id());
+    if (!same_scale(ct.scale(), scale)) {
+        if (chain_index(context, ct.parms_id()) <= chain_index(context, parms_id)) {
+            throw std::logic_error(
+                "cannot align CKKS scale without a spare level above the target");
         }
+        ct = multiply_plain_to_scale(ct, 1.0, scale, context, encoder, evaluator);
     }
-    normalize_scale(a, target_scale);
-    normalize_scale(b, target_scale);
+    mod_switch_to(ct, parms_id, evaluator);
+    snap_scale(ct, scale);
+    return ct;
 }
 
+// lhs * rhs at the lower of the two levels, relinearized and rescaled. The
+// result keeps its natural scale lhs.scale() * rhs.scale() / q_l.
 seal::Ciphertext multiply_rescale(
     seal::Ciphertext lhs,
     seal::Ciphertext rhs,
+    const seal::SEALContext& context,
     seal::Evaluator& evaluator,
-    const seal::RelinKeys& relin_keys,
-    double target_scale) {
-    align_ciphertexts(lhs, rhs, evaluator, target_scale);
+    const seal::RelinKeys& relin_keys) {
+    if (chain_index(context, lhs.parms_id()) > chain_index(context, rhs.parms_id())) {
+        mod_switch_to(lhs, rhs.parms_id(), evaluator);
+    } else {
+        mod_switch_to(rhs, lhs.parms_id(), evaluator);
+    }
     seal::Ciphertext out;
     evaluator.multiply(lhs, rhs, out);
     evaluator.relinearize_inplace(out, relin_keys);
     evaluator.rescale_to_next_inplace(out);
-    normalize_scale(out, target_scale);
     return out;
-}
-
-seal::Ciphertext multiply_plain_rescale(
-    seal::Ciphertext input,
-    const seal::Plaintext& plain,
-    seal::Evaluator& evaluator,
-    double target_scale) {
-    seal::Ciphertext out;
-    evaluator.multiply_plain(input, plain, out);
-    evaluator.rescale_to_next_inplace(out);
-    normalize_scale(out, target_scale);
-    return out;
-}
-
-void add_plain_scalar_inplace(
-    seal::Ciphertext& ct,
-    double value,
-    seal::CKKSEncoder& encoder,
-    seal::Evaluator& evaluator,
-    double target_scale) {
-    auto pt = encode_scalar_at(value, ct.parms_id(), target_scale, encoder, evaluator);
-    normalize_scale(ct, target_scale);
-    evaluator.add_plain_inplace(ct, pt);
-}
-
-void add_plain_vector_inplace(
-    seal::Ciphertext& ct,
-    const std::vector<double>& value,
-    seal::CKKSEncoder& encoder,
-    seal::Evaluator& evaluator,
-    double target_scale) {
-    auto pt = encode_vector_at(value, ct.parms_id(), target_scale, encoder, evaluator);
-    normalize_scale(ct, target_scale);
-    evaluator.add_plain_inplace(ct, pt);
-}
-
-seal::Ciphertext multiply_plain_scalar_rescale(
-    const seal::Ciphertext& input,
-    double value,
-    seal::CKKSEncoder& encoder,
-    seal::Evaluator& evaluator,
-    double target_scale) {
-    auto pt = encode_scalar_at(value, input.parms_id(), target_scale, encoder, evaluator);
-    return multiply_plain_rescale(input, pt, evaluator, target_scale);
 }
 
 } // namespace
@@ -199,49 +209,46 @@ seal::Ciphertext batch_norm(
     const seal::Ciphertext& input,
     const std::vector<double>& expanded_scale,
     const std::vector<double>& expanded_shift,
+    const seal::SEALContext& context,
     seal::CKKSEncoder& encoder,
     seal::Evaluator& evaluator,
-    double target_scale) {
+    double output_scale) {
     require_same_size(expanded_scale, expanded_shift, "batchnorm scale/shift");
     if (expanded_scale.empty()) {
         throw std::invalid_argument("batchnorm parameter vectors cannot be empty");
     }
 
-    auto scale_pt = encode_vector_at(
-        expanded_scale, input.parms_id(), target_scale, encoder, evaluator);
-    seal::Ciphertext out = multiply_plain_rescale(
-        input, scale_pt, evaluator, target_scale);
-    add_plain_vector_inplace(out, expanded_shift, encoder, evaluator, target_scale);
+    seal::Ciphertext out = multiply_plain_to_scale(
+        input, expanded_scale, output_scale, context, encoder, evaluator);
+    add_plain_inplace(out, expanded_shift, encoder, evaluator);
     return out;
 }
 
 seal::Ciphertext quad(
     const seal::Ciphertext& input,
     seal::Evaluator& evaluator,
-    const seal::RelinKeys& relin_keys,
-    double target_scale) {
+    const seal::RelinKeys& relin_keys) {
     seal::Ciphertext out;
     evaluator.square(input, out);
     evaluator.relinearize_inplace(out, relin_keys);
     evaluator.rescale_to_next_inplace(out);
-    normalize_scale(out, target_scale);
     return out;
 }
-
 
 seal::Ciphertext chebyshev(
     const seal::Ciphertext& input,
     const std::vector<double>& coeffs,
     double range_min,
     double range_max,
+    const seal::SEALContext& context,
     seal::CKKSEncoder& encoder,
     seal::Evaluator& evaluator,
     const seal::RelinKeys& relin_keys,
-    double target_scale) {
+    double output_scale) {
 
-    if (coeffs.empty()) {
+    if (coeffs.size() < 2) {
         throw std::invalid_argument(
-            "Chebyshev coefficient vector cannot be empty");
+            "Chebyshev polynomial must have degree >= 1");
     }
 
     if (!(range_max > range_min)) {
@@ -249,219 +256,73 @@ seal::Ciphertext chebyshev(
             "Chebyshev range_max must exceed range_min");
     }
 
-    const double alpha =
-        2.0 / (range_max - range_min);
+    // Map x from [range_min, range_max] to z in [-1, 1]: z = alpha*x + beta.
+    const double alpha = 2.0 / (range_max - range_min);
+    const double beta = -(range_max + range_min) / (range_max - range_min);
 
-    const double beta =
-        -(range_max + range_min) /
-        (range_max - range_min);
-
-    seal::Ciphertext z =
-        multiply_plain_scalar_rescale(
-            input,
-            alpha,
-            encoder,
-            evaluator,
-            target_scale);
-
-    if (std::abs(beta) > 1e-14) {
-        add_plain_scalar_inplace(
-            z,
-            beta,
-            encoder,
-            evaluator,
-            target_scale);
+    seal::Ciphertext z = multiply_plain_to_scale(
+        input, alpha, output_scale, context, encoder, evaluator);
+    if (std::abs(beta) > coeff_epsilon) {
+        add_plain_inplace(z, beta, encoder, evaluator);
     }
 
-    if (coeffs.size() == 1) {
+    // Accumulate c_k * T_k for k >= 1. Every term lands on output_scale, so
+    // accumulating only needs the running sum switched down to the term's
+    // level. The sum starts from the first non-negligible term, which avoids
+    // building an encrypted zero (SEAL rejects transparent ciphertexts).
+    std::optional<seal::Ciphertext> result;
+    auto add_term = [&](const seal::Ciphertext& t, double c) {
+        if (std::abs(c) <= coeff_epsilon) {
+            return;
+        }
+        seal::Ciphertext term = multiply_plain_to_scale(
+            t, c, output_scale, context, encoder, evaluator);
+        if (!result) {
+            result = std::move(term);
+            return;
+        }
+        mod_switch_to(*result, term.parms_id(), evaluator);
+        snap_scale(*result, output_scale);
+        evaluator.add_inplace(*result, term);
+    };
+
+    // T1 = z.
+    add_term(z, coeffs[1]);
+
+    if (coeffs.size() > 2) {
+        // T2 = 2*z^2 - 1, built explicitly so no encrypted T0 is needed.
+        seal::Ciphertext t_prev2 = z;
+        seal::Ciphertext t_prev1 = multiply_rescale(z, z, context, evaluator, relin_keys);
+        evaluator.add_inplace(t_prev1, t_prev1);
+        add_plain_inplace(t_prev1, -1.0, encoder, evaluator);
+        add_term(t_prev1, coeffs[2]);
+
+        // Tk = 2*z*T{k-1} - T{k-2}. T{k-2} sits two levels above Tk, so it can
+        // be brought to Tk's exact scale with one plaintext multiply and no
+        // extra depth.
+        for (std::size_t k = 3; k < coeffs.size(); ++k) {
+            seal::Ciphertext tk = multiply_rescale(z, t_prev1, context, evaluator, relin_keys);
+            evaluator.add_inplace(tk, tk);
+            seal::Ciphertext prev2 = align_to(
+                t_prev2, tk.parms_id(), tk.scale(), context, encoder, evaluator);
+            evaluator.sub_inplace(tk, prev2);
+            add_term(tk, coeffs[k]);
+
+            t_prev2 = std::move(t_prev1);
+            t_prev1 = std::move(tk);
+        }
+    }
+
+    if (!result) {
         throw std::invalid_argument(
-            "degree-0 Chebyshev polynomial is not supported");
+            "Chebyshev polynomial has no non-negligible coefficient of degree >= 1");
     }
 
-    constexpr double coeff_epsilon = 1e-14;
-
-    seal::Ciphertext result =
-        multiply_plain_scalar_rescale(
-            z,
-            coeffs[1],
-            encoder,
-            evaluator,
-            target_scale);
-
+    // c0 * T0 = c0.
     if (std::abs(coeffs[0]) > coeff_epsilon) {
-        add_plain_scalar_inplace(
-            result,
-            coeffs[0],
-            encoder,
-            evaluator,
-            target_scale);
+        add_plain_inplace(*result, coeffs[0], encoder, evaluator);
     }
-
-    if (coeffs.size() == 2) {
-        return result;
-    }
-
-    seal::Ciphertext t_prev2 = z;
-
-    seal::Ciphertext t_prev1 =
-        multiply_rescale(
-            z,
-            z,
-            evaluator,
-            relin_keys,
-            target_scale);
-
-    auto two = encode_scalar_at(
-        2.0,
-        t_prev1.parms_id(),
-        1.0,
-        encoder,
-        evaluator);
-
-    evaluator.multiply_plain_inplace(
-        t_prev1,
-        two);
-
-    normalize_scale(
-        t_prev1,
-        target_scale);
-
-    add_plain_scalar_inplace(
-        t_prev1,
-        -1.0,
-        encoder,
-        evaluator,
-        target_scale);
-
-    if (std::abs(coeffs[2]) > coeff_epsilon) {
-        seal::Ciphertext term =
-            multiply_plain_scalar_rescale(
-                t_prev1,
-                coeffs[2],
-                encoder,
-                evaluator,
-                target_scale);
-
-        if (result.parms_id() != term.parms_id()) {
-            evaluator.mod_switch_to_inplace(
-                result,
-                term.parms_id());
-        }
-
-        normalize_scale(
-            result,
-            target_scale);
-
-        normalize_scale(
-            term,
-            target_scale);
-
-        evaluator.add_inplace(
-            result,
-            term);
-    }
-
-    for (std::size_t k = 3;
-         k < coeffs.size();
-         ++k) {
-
-        seal::Ciphertext z_k = z;
-        seal::Ciphertext prev1_k = t_prev1;
-
-        if (z_k.parms_id() != prev1_k.parms_id()) {
-            evaluator.mod_switch_to_inplace(
-                z_k,
-                prev1_k.parms_id());
-        }
-
-        normalize_scale(
-            z_k,
-            target_scale);
-
-        normalize_scale(
-            prev1_k,
-            target_scale);
-
-        seal::Ciphertext tk =
-            multiply_rescale(
-                z_k,
-                prev1_k,
-                evaluator,
-                relin_keys,
-                target_scale);
-
-        auto two_k = encode_scalar_at(
-            2.0,
-            tk.parms_id(),
-            1.0,
-            encoder,
-            evaluator);
-
-        evaluator.multiply_plain_inplace(
-            tk,
-            two_k);
-
-        normalize_scale(
-            tk,
-            target_scale);
-
-        seal::Ciphertext prev2_k =
-            t_prev2;
-
-        if (prev2_k.parms_id() !=
-            tk.parms_id()) {
-
-            evaluator.mod_switch_to_inplace(
-                prev2_k,
-                tk.parms_id());
-        }
-
-        normalize_scale(
-            prev2_k,
-            target_scale);
-
-        evaluator.sub_inplace(
-            tk,
-            prev2_k);
-
-        if (std::abs(coeffs[k]) >
-            coeff_epsilon) {
-
-            seal::Ciphertext term =
-                multiply_plain_scalar_rescale(
-                    tk,
-                    coeffs[k],
-                    encoder,
-                    evaluator,
-                    target_scale);
-
-            if (result.parms_id() !=
-                term.parms_id()) {
-
-                evaluator.mod_switch_to_inplace(
-                    result,
-                    term.parms_id());
-            }
-
-            normalize_scale(
-                result,
-                target_scale);
-
-            normalize_scale(
-                term,
-                target_scale);
-
-            evaluator.add_inplace(
-                result,
-                term);
-        }
-
-        t_prev2 = std::move(t_prev1);
-        t_prev1 = std::move(tk);
-    }
-
-    return result;
+    return std::move(*result);
 }
-
 
 } // namespace chehab::dl
