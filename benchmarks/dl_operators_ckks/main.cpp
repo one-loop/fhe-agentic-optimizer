@@ -195,7 +195,7 @@ Result evaluate(
 }
 
 void print_table(const std::vector<Result>& results) {
-    std::cout << std::left << std::setw(22) << "operator"
+    std::cout << std::left << std::setw(25) << "operator"
               << std::setw(8) << "status"
               << std::setw(13) << "max_fhe_err"
               << std::setw(13) << "approx_err"
@@ -205,7 +205,7 @@ void print_table(const std::vector<Result>& results) {
               << std::setw(12) << "out_log2s"
               << "median_ms (min..max)\n";
     for (const auto& r : results) {
-        std::cout << std::left << std::setw(22) << r.name
+        std::cout << std::left << std::setw(25) << r.name
                   << std::setw(8) << (r.pass() ? "PASS" : "FAIL")
                   << std::scientific << std::setprecision(3)
                   << std::setw(13) << r.max_fhe_error;
