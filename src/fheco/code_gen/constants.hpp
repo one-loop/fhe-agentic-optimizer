@@ -36,6 +36,7 @@ const std::string rotation_steps_getter_id = "get_rotation_steps";
 constexpr std::size_t line_threshold = 16;
 
 constexpr std::string_view encoder_type{"BatchEncoder"};
+constexpr std::string_view ckks_encoder_type{"CKKSEncoder"};
 constexpr std::string_view encoder_id{"encoder"};
 constexpr std::string_view slot_count_id{"slot_count"};
 constexpr std::string_view encode{"encode"};

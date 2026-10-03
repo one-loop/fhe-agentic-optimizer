@@ -18,10 +18,26 @@ void gen_func(
   const shared_ptr<ir::Func> &func, const unordered_set<int> &rotataion_steps, ostream &header_os,
   string_view header_name, ostream &source_os,param_select::EncParams::SecurityLevel security_level,bool automatic_enc_params_enabled)
 {
+  const bool ckks = func->scheme() == Scheme::ckks;
+  if (ckks)
+  {
+    // CKKS v1 (Quad): real-valued constants and plaintext inputs need encoding
+    // at the level and scale of the ciphertext they meet, not implemented yet.
+    if (!func->data_flow().constants_info().empty())
+      throw logic_error("CKKS functions do not support constants yet");
+
+    for (const auto &input_info : func->data_flow().inputs_info())
+    {
+      if (input_info.first->type() != ir::Term::Type::cipher)
+        throw logic_error("CKKS functions do not support plaintext inputs yet");
+    }
+  }
+  const string_view func_encoder_type = ckks ? ckks_encoder_type : encoder_type;
+
   passes::prepare_code_gen(func);
   header_os << header_includes;
   header_os << '\n';
-  gen_func_decl(func->name(), header_os);
+  gen_func_decl(func->name(), func_encoder_type, header_os);
   header_os << '\n';
   gen_rotation_steps_getter_decl(func->name(), header_os);
   /*************************************************************/
@@ -31,7 +47,7 @@ void gen_func(
   source_os << '\n';
   source_os << source_usings;
   source_os << '\n';
-  gen_func_def_signature(func->name(), source_os);
+  gen_func_def_signature(func->name(), func_encoder_type, source_os);
   source_os << "\n{\n";
 
   TermsCtxtObjectsInfo terms_ctxt_objects_info;
@@ -45,6 +61,12 @@ void gen_func(
   gen_rotation_steps_getter_def(func->name(), rotataion_steps, source_os);
   source_os << '\n';
   /****************************************************************/
+  if (ckks)
+  {
+    // CKKS parameters are given explicitly; the parameter selector is BFV-only.
+    gen_main_code_ckks(func->ckks_params(), security_level);
+    return;
+  }
   //std::cout<<"\n ==>Welcome in encryption params selection : \n";
   param_select::ParameterSelector selector(func, security_level);
   bool use_mod_switch = false ;
@@ -64,14 +86,14 @@ void gen_func(
 /**************************************************************************************/
 /**************************************************************************************/
 
-void gen_func_decl(const string &func_name, ostream &os)
+void gen_func_decl(const string &func_name, string_view encoder_type_name, ostream &os)
 {
   os << "void " << func_name << "("; 
   os << "const " << header_encrypted_io_type << " &" << encrypted_inputs_container_id << ",\n";
   os << "const " << header_encoded_io_type << " &" << encoded_inputs_container_id << ",\n";
   os << header_encrypted_io_type << " &" << encrypted_outputs_container_id << ",\n";
   os << header_encoded_io_type << " &" << encoded_outputs_container_id << ",\n";
-  os << "const " << seal_namespace << "::" << encoder_type << " &" << encoder_id << ",\n";
+  os << "const " << seal_namespace << "::" << encoder_type_name << " &" << encoder_id << ",\n";
   os << "const " << seal_namespace << "::" << encryptor_type << " &" << encryptor_id << ",\n";
   os << "const " << seal_namespace << "::" << evaluator_type << " &" << evaluator_id << ",\n";
   os << "const " << seal_namespace << "::" << relin_keys_type << " &" << relin_keys_id << ",\n";
@@ -83,14 +105,14 @@ void gen_rotation_steps_getter_decl(const string &func_name, ostream &os)
   os << "std::vector<int> " << rotation_steps_getter_id + "_" + func_name << "();\n";
 }
 
-void gen_func_def_signature(const string &func_name, ostream &os)
+void gen_func_def_signature(const string &func_name, string_view encoder_type_name, ostream &os)
 { 
   os << "void " << func_name << "(";
   os << "const " << source_encrypted_io_type << " &" << encrypted_inputs_container_id << ",\n";
   os << "const " << source_encoded_io_type << " &" << encoded_inputs_container_id << ",\n";
   os << source_encrypted_io_type << " &" << encrypted_outputs_container_id << ",\n";
   os << source_encoded_io_type << " &" << encoded_outputs_container_id << ",\n";
-  os << "const " << encoder_type << " &" << encoder_id << ",\n";
+  os << "const " << encoder_type_name << " &" << encoder_id << ",\n";
   os << "const " << encryptor_type << " &" << encryptor_id << ",\n";
   os << "const " << evaluator_type << " &" << evaluator_id << ",\n";
   os << "const " << relin_keys_type << " &" << relin_keys_id << ",\n";
@@ -445,5 +467,132 @@ void gen_main_code(fheco::param_select::EncParams params,param_select::EncParams
       out<<str_2_converted ;
       out.close();
   }
+
+void gen_main_code_ckks(const CkksParams &params, param_select::EncParams::SecurityLevel security_level)
+{
+  string security_level_label;
+  switch (security_level)
+  {
+  case param_select::EncParams::SecurityLevel::tc128:
+    security_level_label = "tc128";
+    break;
+  case param_select::EncParams::SecurityLevel::tc192:
+    security_level_label = "tc192";
+    break;
+  case param_select::EncParams::SecurityLevel::tc256:
+    security_level_label = "tc256";
+    break;
+  default:
+    throw invalid_argument("Unsupported Security level");
+  }
+
+  ofstream out("./he/main.cpp");
+  if (!out)
+    throw logic_error("failed to create he/main.cpp");
+
+  out << R"(#include <chrono>
+#include <cmath>
+#include <cstddef>
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <vector>
+#include "_gen_he_fhe.hpp"
+#include "ckks_utils.hpp"
+
+using namespace std;
+using namespace seal;
+
+int main(int argc, char **argv)
+{
+  // Absolute tolerance for |decrypted output - expected output|.
+  double tolerance = 1e-6;
+  // Timed fhe() runs after one warmup run, for the evaluation-only timing.
+  size_t repeats = 10;
+  for (int i = 1; i < argc; ++i)
+  {
+    string arg = argv[i];
+    if (arg == "--tol" && i + 1 < argc)
+      tolerance = stod(argv[++i]);
+    else if (arg == "--repeats" && i + 1 < argc)
+      repeats = stoul(argv[++i]);
+    else
+    {
+      cerr << "usage: " << argv[0] << " [--tol T] [--repeats N]\n";
+      return 2;
+    }
+  }
+
+  string app_name = "fhe";
+  ifstream is("../" + app_name + "_io_example_adapted.txt");
+  if (!is)
+    throw invalid_argument("failed to open io example file");
+
+  EncryptionParameters params(scheme_type::ckks);
+)";
+  out << "  size_t n = " << params.poly_modulus_degree << ";\n";
+  out << "  params.set_poly_modulus_degree(n);\n";
+  out << "  params.set_coeff_modulus(CoeffModulus::Create(n, {";
+  gen_sequence(params.coeff_mod_bit_sizes.cbegin(), params.coeff_mod_bit_sizes.cend(), line_threshold, out);
+  out << "}));\n";
+  out << "  SEALContext context(params, true, sec_level_type::" << security_level_label << ");\n";
+  out << "  const double scale = pow(2.0, " << params.log2_scale << ");\n";
+  out << R"(
+  CKKSEncoder encoder(context);
+  KeyGenerator keygen(context);
+  const SecretKey &secret_key = keygen.secret_key();
+  PublicKey public_key;
+  keygen.create_public_key(public_key);
+  RelinKeys relin_keys;
+  keygen.create_relin_keys(relin_keys);
+  GaloisKeys galois_keys;
+  vector<int> rotation_steps = get_rotation_steps_fhe();
+  if (!rotation_steps.empty())
+    keygen.create_galois_keys(rotation_steps, galois_keys);
+  Encryptor encryptor(context, public_key);
+  Evaluator evaluator(context);
+  Decryptor decryptor(context, secret_key);
+
+  EncryptedArgs encrypted_inputs;
+  EncodedArgs encoded_inputs;
+  EncryptedArgs encrypted_outputs;
+  EncodedArgs encoded_outputs;
+
+  // CHEHAB timing convention (same as the BFV runtime): parse the inputs,
+  // encode, encrypt and evaluate, single run.
+  chrono::high_resolution_clock::time_point t = chrono::high_resolution_clock::now();
+  CkksIoExample io = parse_ckks_io_file(is);
+  prepare_ckks_inputs(encoder, encryptor, scale, io, encrypted_inputs, encoded_inputs);
+  fhe(
+    encrypted_inputs, encoded_inputs, encrypted_outputs, encoded_outputs, encoder, encryptor, evaluator, relin_keys,
+    galois_keys);
+  chrono::duration<double, milli> elapsed = chrono::high_resolution_clock::now() - t;
+
+  // Evaluation only, comparable with the direct-SEAL reference: one warmup
+  // run and `repeats` timed runs of fhe() on the same encrypted inputs.
+  vector<double> eval_ms;
+  for (size_t i = 0; i <= repeats; ++i)
+  {
+    EncryptedArgs run_encrypted_outputs;
+    EncodedArgs run_encoded_outputs;
+    auto start = chrono::high_resolution_clock::now();
+    fhe(
+      encrypted_inputs, encoded_inputs, run_encrypted_outputs, run_encoded_outputs, encoder, encryptor, evaluator,
+      relin_keys, galois_keys);
+    chrono::duration<double, milli> run = chrono::high_resolution_clock::now() - start;
+    if (i > 0)
+      eval_ms.push_back(run.count());
+  }
+
+  CkksClearArgs obtained = decrypt_ckks_outputs(encoder, decryptor, encrypted_outputs, io.func_slot_count);
+  bool ok = check_ckks_outputs(context, encrypted_inputs, encrypted_outputs, io.outputs, obtained, tolerance, cout);
+  cout << "execution_time_(ms): " << elapsed.count() << "\n";
+  if (!eval_ms.empty())
+    cout << "fhe_eval_median_(ms): " << median(eval_ms) << " (1 warmup + " << repeats << " runs)\n";
+  cout << (ok ? "PASS" : "FAIL") << " (tolerance " << tolerance << ")\n";
+  return ok ? 0 : 1;
+}
+)";
+}
 } // namespace fheco::code_gen
  
