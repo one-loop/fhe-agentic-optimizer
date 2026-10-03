@@ -27,6 +27,9 @@ public:
     // CKKS only: rescale_to_next. Appended last so existing type ordinals
     // (used in ordering and hashing) are unchanged.
     rescale,
+    // CKKS only: match_scale(a, ref) multiplies a by 1 encoded so that, after
+    // rescale_to_next, a's scale equals ref's. ref only fixes the target scale.
+    match_scale,
   };
 
   static const OpCode nop; 
@@ -40,6 +43,7 @@ public:
   static const OpCode mod_switch;
   static const OpCode relin;
   static const OpCode rescale;
+  static const OpCode match_scale;
   ////****************************
   static OpCode SumVec(int size) ;
   ////****************************

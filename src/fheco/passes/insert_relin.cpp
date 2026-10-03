@@ -151,6 +151,12 @@ size_t get_ctxt_result_size(ir::OpCode::Type op_code_type, const vector<size_t> 
 
     return ctxt_args_sizes[0];
 
+  case ir::OpCode::Type::match_scale:
+    if (ctxt_args_sizes.size() != 2)
+      throw invalid_argument("invalid number of ctxt args");
+
+    return ctxt_args_sizes[0];
+
   case ir::OpCode::Type::relin:
     if (ctxt_args_sizes.size() != 1)
       throw invalid_argument("invalid number of ctxt args");

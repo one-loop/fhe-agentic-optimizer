@@ -84,9 +84,14 @@ ir::IOValues evaluate_on_clear(const shared_ptr<ir::Func> &func, const ir::IOVal
           auto arg2 = term->operands()[1];
           if (auto arg2_val_it = temps_values.find(arg2); arg2_val_it != temps_values.end())
           {
-            PackedVal dest_val;
-            evaluator.operate_binary(term->op_code(), arg1_val_it->second, arg2_val_it->second, dest_val);
-            temps_values.emplace(term, dest_val);
+            if (term->op_code().type() == ir::OpCode::Type::match_scale)
+              temps_values.emplace(term, arg1_val_it->second);
+            else
+            {
+              PackedVal dest_val;
+              evaluator.operate_binary(term->op_code(), arg1_val_it->second, arg2_val_it->second, dest_val);
+              temps_values.emplace(term, dest_val);
+            }
           }
           else
             cerr << "missing arg when computing term (arg2 id=" << arg2->id() << ")\n";

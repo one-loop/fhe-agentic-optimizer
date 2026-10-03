@@ -129,6 +129,10 @@ double static_eval_op(const OpCode &op_code, const vector<TermInfo> &operands_in
   case OpCode::Type::rescale:
     return 0.1;
 
+  // multiply_plain + rescale
+  case OpCode::Type::match_scale:
+    return 0.3;
+
   case OpCode::Type::add:
   case OpCode::Type::sub:
   case OpCode::Type::negate:

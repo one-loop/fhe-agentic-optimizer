@@ -95,6 +95,14 @@ Term::Type Term::deduce_result_type(const OpCode &op_code, const vector<Type> &o
     return Type::cipher;
   }
 
+  if (op_code.type() == OpCode::Type::match_scale)
+  {
+    if (operands_types[0] != Type::cipher || operands_types[1] != Type::cipher)
+      throw invalid_argument("match_scale args must be ciphers");
+
+    return Type::cipher;
+  }
+
   // arithmetic operations
   switch (op_code.arity())
   {

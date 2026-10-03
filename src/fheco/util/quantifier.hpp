@@ -179,6 +179,10 @@ public:
 
   inline double rescale_total() const { return rescale_total_; }
 
+  inline const CAOpsCounts &match_scale_counts() const { return match_scale_counts_; }
+
+  inline double match_scale_total() const { return match_scale_total_; }
+
   inline const CAOpsCounts &he_add_counts() const { return he_add_counts_; }
 
   inline double he_add_total() const { return he_add_total_; }
@@ -265,6 +269,10 @@ private:
   CAOpsCounts rescale_counts_{};
 
   double rescale_total_ = 0;
+
+  CAOpsCounts match_scale_counts_{};
+
+  double match_scale_total_ = 0;
 
   CAOpsCounts he_add_counts_{};
 

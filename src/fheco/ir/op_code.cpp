@@ -37,6 +37,8 @@ const OpCode OpCode::relin{Type::relin, {}, 1, false, "relin"};
 
 const OpCode OpCode::rescale{Type::rescale, {}, 1, false, "rescale"};
 
+const OpCode OpCode::match_scale{Type::match_scale, {}, 2, false, "match_scale"};
+
 // an alias of o.generators()[0] for the rotate operation
 int OpCode::steps() const
 {
@@ -133,6 +135,10 @@ ostream &operator<<(ostream &os, OpCode::Type op_code_type)
 
   case OpCode::Type::rescale:
     os << "rescale";
+    break;
+
+  case OpCode::Type::match_scale:
+    os << "match_scale";
     break;
 
   default:
