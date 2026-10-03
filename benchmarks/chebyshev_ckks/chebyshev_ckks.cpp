@@ -96,7 +96,7 @@ void fhe(const chehab::dl::ChebyshevCoeffSet &set, const string &target)
 
 int main(int argc, char **argv)
 {
-  // ./chebyshev_ckks [target] [slot_count] [call_quantifier] [cse] [const_folding]
+  // ./chebyshev_ckks [target] [slot_count] [call_quantifier] [cse] [const_folding] [activation] [degree]
   string target = "p";
   if (argc > 1)
     target = argv[1];
@@ -119,6 +119,16 @@ int main(int argc, char **argv)
   if (argc > 5)
     const_folding = stoi(argv[5]);
 
+  // Any committed coefficient set (benchmarks/dl_operators_ckks/chebyshev_coeffs.hpp);
+  // the default is the degree-5 Sigmoid of the direct-SEAL reference test.
+  string activation = "sigmoid";
+  if (argc > 6)
+    activation = argv[6];
+
+  int degree = 5;
+  if (argc > 7)
+    degree = stoi(argv[7]);
+
   if (cse)
   {
     Compiler::enable_cse();
@@ -135,8 +145,7 @@ int main(int argc, char **argv)
   else
     Compiler::disable_const_folding();
 
-  // Degree-5 Sigmoid on [-4, 4], as in the direct-SEAL reference test.
-  const auto &set = find_coeff_set("sigmoid", 5);
+  const auto &set = find_coeff_set(activation, degree);
 
   // Same CKKS parameters as the direct-SEAL reference in
   // benchmarks/dl_operators_ckks: N = 32768, {60, 40 x 10, 60}, scale 2^40.

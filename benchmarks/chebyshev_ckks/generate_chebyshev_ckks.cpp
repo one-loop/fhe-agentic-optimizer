@@ -1,19 +1,23 @@
-// Writes fhe_io_example.txt for the chebyshev_ckks benchmark (degree-5 Sigmoid
-// on [-4, 4], the committed set in benchmarks/dl_operators_ckks).
+// Writes fhe_io_example.txt for the chebyshev_ckks benchmark, for a committed
+// coefficient set of benchmarks/dl_operators_ckks (default: degree-5 Sigmoid),
+// on that set's fitting range.
 //
-//   ./generate_chebyshev_ckks <target> <points>
+//   ./generate_chebyshev_ckks <target> <points> [activation] [degree]
 //
 // target: z | t2 | t3 | p   (the value the compiled program outputs)
-// points: points9  the nine points -4, -3, ..., 4 of the direct-SEAL reference
-//         dense    256 seeded uniform points in [-4, 4]
+// points: points9  nine evenly spaced points over the fitting range (for
+//                  degree-5 Sigmoid: -4, -3, ..., 4, the reference's points)
+//         dense    256 seeded uniform points over the fitting range
 //
-// Inputs: ciphertext x; plaintexts alpha, beta, one, c0..c5 (each value
+// Inputs: ciphertext x; plaintexts alpha, beta, one, c0..c<degree> (each value
 // repeated in every slot). The expected output is the same computation in
 // plaintext double arithmetic, so comparing it with the decrypted output
 // measures FHE numerical error only. Polynomial approximation error (the
-// plaintext polynomial vs the true Sigmoid) is printed separately.
+// plaintext polynomial vs the true activation) is printed separately.
 //
-// Prints the slot count on the first line, then diagnostics.
+// Prints the slot count on the first line, then diagnostics, including the
+// levels the reference evaluator consumes for this set (highest index k >= 1
+// with |c_k| > 1e-14, plus one for the input mapping).
 #include "activations.hpp"
 #include "chebyshev_coeffs.hpp"
 #include <algorithm>
@@ -31,14 +35,14 @@ using namespace chehab::dl;
 
 namespace
 {
-const ChebyshevCoeffSet &sigmoid_degree5()
+const ChebyshevCoeffSet &find_coeff_set(const string &activation, int degree)
 {
   for (const auto &set : chebyshev_coeff_sets())
   {
-    if (string(set.activation) == "sigmoid" && set.degree == 5)
+    if (activation == set.activation && set.degree == degree)
       return set;
   }
-  throw logic_error("missing sigmoid degree-5 coefficient set");
+  throw invalid_argument("no committed coefficient set for " + activation + " degree " + to_string(degree));
 }
 
 void write_values(FILE *f, const vector<double> &values)
@@ -59,7 +63,9 @@ int main(int argc, char **argv)
     return 2;
   }
 
-  const auto &set = sigmoid_degree5();
+  const string activation = argc > 3 ? argv[3] : "sigmoid";
+  const int degree = argc > 4 ? stoi(argv[4]) : 5;
+  const auto &set = find_coeff_set(activation, degree);
   const double lo = set.range_min, hi = set.range_max;
 
   vector<double> x;
@@ -110,10 +116,9 @@ int main(int argc, char **argv)
   FILE *f = fopen("fhe_io_example.txt", "w");
   if (!f)
     throw runtime_error("failed to create fhe_io_example.txt");
-  const vector<pair<string, double>> scalars{
-    {"alpha", alpha}, {"beta", beta}, {"one", 1.0},
-    {"c0", set.coeffs[0]}, {"c1", set.coeffs[1]}, {"c2", set.coeffs[2]},
-    {"c3", set.coeffs[3]}, {"c4", set.coeffs[4]}, {"c5", set.coeffs[5]}};
+  vector<pair<string, double>> scalars{{"alpha", alpha}, {"beta", beta}, {"one", 1.0}};
+  for (int k = 0; k <= set.degree; ++k)
+    scalars.emplace_back("c" + to_string(k), set.coeffs[k]);
   fprintf(f, "%zu %zu 1\n", n, scalars.size() + 1);
   fprintf(f, "x 1 1");
   write_values(f, x);
@@ -127,9 +132,17 @@ int main(int argc, char **argv)
   fclose(f);
 
   cout << n << "\n";
-  cout << "sigmoid degree " << set.degree << " on [" << lo << ", " << hi << "], target " << target << ", "
+  int last_term = 0;
+  for (int k = 1; k <= set.degree; ++k)
+  {
+    if (abs(set.coeffs[k]) > 1e-14)
+      last_term = k;
+  }
+
+  cout << set.activation << " degree " << set.degree << " on [" << lo << ", " << hi << "], target " << target << ", "
        << points << " (" << n << " points)\n";
-  cout << "approximation error (plaintext polynomial vs sigmoid) on these points: " << approx_error << "\n";
+  cout << "approximation error (plaintext polynomial vs " << set.activation << ") on these points: " << approx_error << "\n";
   cout << "max_fit_error (fitting grid, chebyshev_coeffs.json): " << set.max_fit_error << "\n";
+  cout << "reference levels: " << last_term + 1 << "\n";
   return 0;
 }
