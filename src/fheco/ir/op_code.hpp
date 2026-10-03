@@ -24,6 +24,9 @@ public:
     mod_switch,
     relin,
     SumVec,
+    // CKKS only: rescale_to_next. Appended last so existing type ordinals
+    // (used in ordering and hashing) are unchanged.
+    rescale,
   };
 
   static const OpCode nop; 
@@ -36,6 +39,7 @@ public:
   static const OpCode mul;
   static const OpCode mod_switch;
   static const OpCode relin;
+  static const OpCode rescale;
   ////****************************
   static OpCode SumVec(int size) ;
   ////****************************

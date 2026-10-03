@@ -82,5 +82,6 @@ const std::unordered_map<ir::OpType, std::string_view, ir::HashOpType, ir::Equal
   {{ir::OpCode::Type::mul, {ir::Term::Type::cipher, ir::Term::Type::plain}}, "multiply_plain"sv},
   {{ir::OpCode::Type::mod_switch, {ir::Term::Type::cipher}}, "mod_switch_to_next"sv},
   {{ir::OpCode::Type::relin, {ir::Term::Type::cipher}}, "relinearize"sv},
+  {{ir::OpCode::Type::rescale, {ir::Term::Type::cipher}}, "rescale_to_next"sv},
 };
 } // namespace fheco::code_gen

@@ -145,6 +145,7 @@ size_t get_ctxt_result_size(ir::OpCode::Type op_code_type, const vector<size_t> 
       throw invalid_argument("invalid number of ctxt args");
 
   case ir::OpCode::Type::mod_switch:
+  case ir::OpCode::Type::rescale:
     if (ctxt_args_sizes.size() != 1)
       throw invalid_argument("invalid number of ctxt args");
 

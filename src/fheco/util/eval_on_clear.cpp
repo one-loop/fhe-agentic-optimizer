@@ -62,6 +62,7 @@ ir::IOValues evaluate_on_clear(const shared_ptr<ir::Func> &func, const ir::IOVal
           case ir::OpCode::Type::encrypt:
           case ir::OpCode::Type::mod_switch:
           case ir::OpCode::Type::relin:
+          case ir::OpCode::Type::rescale:
             temps_values.emplace(term, arg_val_it->second);
             break;
 

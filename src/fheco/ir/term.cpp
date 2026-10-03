@@ -87,6 +87,14 @@ Term::Type Term::deduce_result_type(const OpCode &op_code, const vector<Type> &o
     return Type::cipher;
   }
 
+  if (op_code.type() == OpCode::Type::rescale)
+  {
+    if (operands_types[0] != Type::cipher)
+      throw invalid_argument("rescale arg must be cipher");
+
+    return Type::cipher;
+  }
+
   // arithmetic operations
   switch (op_code.arity())
   {

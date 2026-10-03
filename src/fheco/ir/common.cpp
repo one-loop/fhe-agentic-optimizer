@@ -125,6 +125,10 @@ double static_eval_op(const OpCode &op_code, const vector<TermInfo> &operands_in
   case OpCode::Type::mod_switch:
     return 0.05;
 
+  // rough relative cost: an NTT-based division by the last prime
+  case OpCode::Type::rescale:
+    return 0.1;
+
   case OpCode::Type::add:
   case OpCode::Type::sub:
   case OpCode::Type::negate:
