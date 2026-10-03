@@ -81,6 +81,7 @@ void Compiler::gen_he_code(
     clog << "\nrescale_insertion\n";
 #endif
     passes::insert_rescale(func);
+    passes::align_ckks_operands(func);
     passes::check_ckks_levels(func);
   }
 

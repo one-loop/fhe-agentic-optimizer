@@ -1,4 +1,5 @@
 set(FHECO_SOURCE_FILES ${FHECO_SOURCE_FILES}
+    ${CMAKE_CURRENT_LIST_DIR}/align_ckks_operands.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cse_commut.cpp
     ${CMAKE_CURRENT_LIST_DIR}/get_rotation_keys_steps.cpp
     ${CMAKE_CURRENT_LIST_DIR}/insert_relin.cpp
@@ -10,6 +11,7 @@ set(FHECO_SOURCE_FILES ${FHECO_SOURCE_FILES}
 
 install(
     FILES
+    ${CMAKE_CURRENT_LIST_DIR}/align_ckks_operands.hpp
     ${CMAKE_CURRENT_LIST_DIR}/cse_commut.hpp
     ${CMAKE_CURRENT_LIST_DIR}/get_rotation_keys_steps.hpp
     ${CMAKE_CURRENT_LIST_DIR}/insert_relin.hpp

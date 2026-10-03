@@ -78,11 +78,14 @@ size_t check_ckks_levels(const shared_ptr<ir::Func> &func)
       continue;
     }
 
+    const bool is_match_scale = term->op_code().type() == ir::OpCode::Type::match_scale;
     size_t level = 0;
     bool first = true;
-    for (auto operand : term->operands())
+    for (size_t i = 0; i < term->operands().size(); ++i)
     {
-      if (operand->type() != ir::Term::Type::cipher)
+      auto operand = term->operands()[i];
+      // match_scale's second operand only gives the target scale
+      if (operand->type() != ir::Term::Type::cipher || (is_match_scale && i == 1))
         continue;
 
       auto operand_level = levels.at(operand);
@@ -90,13 +93,15 @@ size_t check_ckks_levels(const shared_ptr<ir::Func> &func)
         throw logic_error(
           "CKKS level mismatch: ciphertext operands of '" + term->op_code().str_repr() + "' (term " +
           to_string(term->id()) + ") are at levels " + to_string(level) + " and " + to_string(operand_level) +
-          "; automatic level alignment is not implemented yet");
+          "; they should have been aligned by align_ckks_operands");
 
       level = operand_level;
       first = false;
     }
 
-    if (term->op_code().type() == ir::OpCode::Type::rescale || term->op_code().type() == ir::OpCode::Type::mod_switch)
+    if (
+      term->op_code().type() == ir::OpCode::Type::rescale || term->op_code().type() == ir::OpCode::Type::mod_switch ||
+      is_match_scale)
       ++level;
 
     if (level > available_levels)
