@@ -106,6 +106,13 @@ struct Result {
     std::string name;
     double max_fhe_error = 0.0;           // decrypted output vs plaintext reference
     double latency_ms = 0.0;
+    std::size_t start_chain_index = 0;    // chain index of the fresh input
+    std::size_t end_chain_index = 0;      // chain index of the output
+    double output_scale_log2 = 0.0;
+    // Longest chain of ciphertext-ciphertext multiplications, from the
+    // operator's evaluation structure (not measured): Quad 1, BatchNorm 0,
+    // Chebyshev recurrence of degree d: d - 1.
+    std::size_t ct_ct_depth = 0;
     std::optional<double> fold_diff;      // BatchNorm only
     std::optional<double> approx_error;   // Chebyshev only, informational
 
@@ -122,7 +129,9 @@ Result evaluate(
     const std::vector<double>& x,
     const std::vector<double>& expected,
     Op op,
+    std::size_t ct_ct_depth,
     double scale,
+    const seal::SEALContext& context,
     seal::CKKSEncoder& encoder,
     seal::Encryptor& encryptor,
     seal::Decryptor& decryptor) {
@@ -140,6 +149,10 @@ Result evaluate(
     r.max_fhe_error = max_abs_error(
         decrypt_decode(out_ct, decryptor, encoder, x.size()), expected);
     r.latency_ms = std::chrono::duration<double, std::milli>(stop - start).count();
+    r.start_chain_index = context.get_context_data(ct.parms_id())->chain_index();
+    r.end_chain_index = context.get_context_data(out_ct.parms_id())->chain_index();
+    r.output_scale_log2 = std::log2(out_ct.scale());
+    r.ct_ct_depth = ct_ct_depth;
     return r;
 }
 
@@ -148,6 +161,10 @@ void print_table(const std::vector<Result>& results) {
               << std::setw(8) << "status"
               << std::setw(13) << "max_fhe_err"
               << std::setw(13) << "approx_err"
+              << std::setw(7) << "depth"
+              << std::setw(14) << "chain(s->e)"
+              << std::setw(8) << "levels"
+              << std::setw(12) << "out_log2s"
               << "latency_ms\n";
     for (const auto& r : results) {
         std::cout << std::left << std::setw(18) << r.name
@@ -159,8 +176,17 @@ void print_table(const std::vector<Result>& results) {
         } else {
             std::cout << std::setw(13) << "n/a";
         }
+        std::cout << std::setw(7) << r.ct_ct_depth
+                  << std::setw(14)
+                  << (std::to_string(r.start_chain_index) + "->"
+                      + std::to_string(r.end_chain_index))
+                  << std::setw(8) << (r.start_chain_index - r.end_chain_index)
+                  << std::fixed << std::setprecision(6) << std::setw(12)
+                  << r.output_scale_log2;
         std::cout << std::fixed << std::setprecision(3) << r.latency_ms << '\n';
     }
+    std::cout << "depth = ciphertext-ciphertext multiplicative depth; "
+                 "levels = start chain index - end chain index\n";
     std::cout << "tolerance: |fhe - plaintext reference| <= " << std::scientific
               << std::setprecision(1) << fhe_abs_tolerance
               << " (BatchNorm folding <= " << fold_abs_tolerance << ")\n";
@@ -212,7 +238,7 @@ int main() {
         results.push_back(evaluate(
             "Quad", x, expected,
             [&](const Ciphertext& ct) { return quad(ct, evaluator, relin_keys); },
-            scale, encoder, encryptor, decryptor));
+            1, scale, context, encoder, encryptor, decryptor));
     }
 
     // ------------------------------------------------------------
@@ -240,7 +266,7 @@ int main() {
             [&](const Ciphertext& ct) {
                 return batch_norm(ct, s, b, context, encoder, evaluator, scale);
             },
-            scale, encoder, encryptor, decryptor);
+            0, scale, context, encoder, encryptor, decryptor);
         r.fold_diff = max_abs_error(folded, expected);
         results.push_back(r);
     }
@@ -270,7 +296,7 @@ int main() {
             [&](const Ciphertext& ct) {
                 return batch_norm(ct, s, b, context, encoder, evaluator, scale);
             },
-            scale, encoder, encryptor, decryptor);
+            0, scale, context, encoder, encryptor, decryptor);
         r.fold_diff = max_abs_error(folded, expected);
         results.push_back(r);
     }
@@ -303,7 +329,7 @@ int main() {
                 return chebyshev(
                     ct, coeffs, lo, hi, context, encoder, evaluator, relin_keys, scale);
             },
-            scale, encoder, encryptor, decryptor);
+            coeffs.size() - 2, scale, context, encoder, encryptor, decryptor);
         r.approx_error = max_abs_error(poly_ref, true_sigmoid);
         results.push_back(r);
     }
