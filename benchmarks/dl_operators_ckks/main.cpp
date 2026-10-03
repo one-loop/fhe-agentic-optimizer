@@ -7,7 +7,9 @@
 #include <cmath>
 #include <iomanip>
 #include <iostream>
+#include <optional>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 namespace {
@@ -86,10 +88,82 @@ std::vector<double> batch_norm_reference(
     return out;
 }
 
-void print_result(const char* name, double ms, double error) {
-    std::cout << std::left << std::setw(18) << name
-              << " latency_ms=" << std::fixed << std::setprecision(3) << ms
-              << " max_error=" << std::scientific << error << '\n';
+// PASS/FAIL tolerance: absolute error between the decrypted CKKS output and a
+// plaintext reference of the same computation. This is the conservative CKKS
+// tolerance suggested in the project handoff. With N = 32768 and a 2^40 scale
+// the observed errors are 1e-9..4e-7 (Chebyshev up to degree 9 included), so
+// it leaves ample headroom; it is NOT tight enough to catch a small
+// systematic bias such as the 5.7e-6 forced-scale error fixed earlier.
+// Polynomial approximation error (true activation vs the fitted polynomial)
+// is a modelling property, reported separately and not part of PASS/FAIL.
+constexpr double fhe_abs_tolerance = 1e-4;
+
+// BatchNorm folding check: folded A*x+B vs the original-formula reference,
+// both in plaintext double arithmetic.
+constexpr double fold_abs_tolerance = 1e-12;
+
+struct Result {
+    std::string name;
+    double max_fhe_error = 0.0;           // decrypted output vs plaintext reference
+    double latency_ms = 0.0;
+    std::optional<double> fold_diff;      // BatchNorm only
+    std::optional<double> approx_error;   // Chebyshev only, informational
+
+    bool pass() const {
+        return max_fhe_error <= fhe_abs_tolerance
+               && (!fold_diff || *fold_diff <= fold_abs_tolerance);
+    }
+};
+
+// Encrypt x, run op on the ciphertext, decrypt, and compare with expected.
+template <typename Op>
+Result evaluate(
+    std::string name,
+    const std::vector<double>& x,
+    const std::vector<double>& expected,
+    Op op,
+    double scale,
+    seal::CKKSEncoder& encoder,
+    seal::Encryptor& encryptor,
+    seal::Decryptor& decryptor) {
+    seal::Plaintext pt;
+    encoder.encode(x, scale, pt);
+    seal::Ciphertext ct;
+    encryptor.encrypt(pt, ct);
+
+    const auto start = Clock::now();
+    seal::Ciphertext out_ct = op(ct);
+    const auto stop = Clock::now();
+
+    Result r;
+    r.name = std::move(name);
+    r.max_fhe_error = max_abs_error(
+        decrypt_decode(out_ct, decryptor, encoder, x.size()), expected);
+    r.latency_ms = std::chrono::duration<double, std::milli>(stop - start).count();
+    return r;
+}
+
+void print_table(const std::vector<Result>& results) {
+    std::cout << std::left << std::setw(18) << "operator"
+              << std::setw(8) << "status"
+              << std::setw(13) << "max_fhe_err"
+              << std::setw(13) << "approx_err"
+              << "latency_ms\n";
+    for (const auto& r : results) {
+        std::cout << std::left << std::setw(18) << r.name
+                  << std::setw(8) << (r.pass() ? "PASS" : "FAIL")
+                  << std::scientific << std::setprecision(3)
+                  << std::setw(13) << r.max_fhe_error;
+        if (r.approx_error) {
+            std::cout << std::setw(13) << *r.approx_error;
+        } else {
+            std::cout << std::setw(13) << "n/a";
+        }
+        std::cout << std::fixed << std::setprecision(3) << r.latency_ms << '\n';
+    }
+    std::cout << "tolerance: |fhe - plaintext reference| <= " << std::scientific
+              << std::setprecision(1) << fhe_abs_tolerance
+              << " (BatchNorm folding <= " << fold_abs_tolerance << ")\n";
 }
 
 } // namespace
@@ -125,25 +199,20 @@ int main() {
 
     const double scale = std::pow(2.0, 40);
 
+    std::vector<Result> results;
+
     // ------------------------------------------------------------
     // Quad: exact square activation.
     // ------------------------------------------------------------
     {
         std::vector<double> x{-2.0, -1.0, -0.25, 0.0, 0.5, 1.5, 2.0};
-        Plaintext pt;
-        encoder.encode(x, scale, pt);
-        Ciphertext ct;
-        encryptor.encrypt(pt, ct);
-
-        const auto start = Clock::now();
-        auto out_ct = quad(ct, evaluator, relin_keys);
-        const auto stop = Clock::now();
-
-        auto out = decrypt_decode(out_ct, decryptor, encoder, x.size());
         std::vector<double> expected(x.size());
         for (std::size_t i = 0; i < x.size(); ++i) expected[i] = x[i] * x[i];
-        const double ms = std::chrono::duration<double, std::milli>(stop - start).count();
-        print_result("Quad", ms, max_abs_error(out, expected));
+
+        results.push_back(evaluate(
+            "Quad", x, expected,
+            [&](const Ciphertext& ct) { return quad(ct, evaluator, relin_keys); },
+            scale, encoder, encryptor, decryptor));
     }
 
     // ------------------------------------------------------------
@@ -166,19 +235,14 @@ int main() {
         std::vector<double> folded(x.size());
         for (std::size_t i = 0; i < x.size(); ++i) folded[i] = s[i] * x[i] + b[i];
 
-        Plaintext pt;
-        encoder.encode(x, scale, pt);
-        Ciphertext ct;
-        encryptor.encrypt(pt, ct);
-
-        const auto start = Clock::now();
-        auto out_ct = batch_norm(ct, s, b, context, encoder, evaluator, scale);
-        const auto stop = Clock::now();
-        auto out = decrypt_decode(out_ct, decryptor, encoder, x.size());
-        const double ms = std::chrono::duration<double, std::milli>(stop - start).count();
-        print_result("BatchNorm1d", ms, max_abs_error(out, expected));
-        std::cout << "  folded A*x+B vs reference max_diff="
-                  << std::scientific << max_abs_error(folded, expected) << '\n';
+        auto r = evaluate(
+            "BatchNorm1d", x, expected,
+            [&](const Ciphertext& ct) {
+                return batch_norm(ct, s, b, context, encoder, evaluator, scale);
+            },
+            scale, encoder, encryptor, decryptor);
+        r.fold_diff = max_abs_error(folded, expected);
+        results.push_back(r);
     }
 
     // ------------------------------------------------------------
@@ -201,19 +265,14 @@ int main() {
         std::vector<double> folded(x.size());
         for (std::size_t i = 0; i < x.size(); ++i) folded[i] = s[i] * x[i] + b[i];
 
-        Plaintext pt;
-        encoder.encode(x, scale, pt);
-        Ciphertext ct;
-        encryptor.encrypt(pt, ct);
-
-        const auto start = Clock::now();
-        auto out_ct = batch_norm(ct, s, b, context, encoder, evaluator, scale);
-        const auto stop = Clock::now();
-        auto out = decrypt_decode(out_ct, decryptor, encoder, x.size());
-        const double ms = std::chrono::duration<double, std::milli>(stop - start).count();
-        print_result("BatchNorm2d", ms, max_abs_error(out, expected));
-        std::cout << "  folded A*x+B vs reference max_diff="
-                  << std::scientific << max_abs_error(folded, expected) << '\n';
+        auto r = evaluate(
+            "BatchNorm2d", x, expected,
+            [&](const Ciphertext& ct) {
+                return batch_norm(ct, s, b, context, encoder, evaluator, scale);
+            },
+            scale, encoder, encryptor, decryptor);
+        r.fold_diff = max_abs_error(folded, expected);
+        results.push_back(r);
     }
 
     // ------------------------------------------------------------
@@ -238,22 +297,20 @@ int main() {
             true_sigmoid[i] = 1.0 / (1.0 + std::exp(-x[i]));
         }
 
-        Plaintext pt;
-        encoder.encode(x, scale, pt);
-        Ciphertext ct;
-        encryptor.encrypt(pt, ct);
-
-        const auto start = Clock::now();
-        auto out_ct = chebyshev(
-            ct, coeffs, lo, hi, context, encoder, evaluator, relin_keys, scale);
-        const auto stop = Clock::now();
-        auto out = decrypt_decode(out_ct, decryptor, encoder, x.size());
-        const double ms = std::chrono::duration<double, std::milli>(stop - start).count();
-
-        print_result("ChebyshevSigmoid", ms, max_abs_error(out, poly_ref));
-        std::cout << "  polynomial approximation max_error="
-                  << std::scientific << max_abs_error(poly_ref, true_sigmoid) << '\n';
+        auto r = evaluate(
+            "ChebyshevSigmoid", x, poly_ref,
+            [&](const Ciphertext& ct) {
+                return chebyshev(
+                    ct, coeffs, lo, hi, context, encoder, evaluator, relin_keys, scale);
+            },
+            scale, encoder, encryptor, decryptor);
+        r.approx_error = max_abs_error(poly_ref, true_sigmoid);
+        results.push_back(r);
     }
 
-    return 0;
+    print_table(results);
+
+    const bool all_pass = std::all_of(
+        results.begin(), results.end(), [](const Result& r) { return r.pass(); });
+    return all_pass ? 0 : 1;
 }
