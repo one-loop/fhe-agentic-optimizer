@@ -139,7 +139,9 @@ bool check_ckks_outputs(
     if (have_input)
       os << ", chain_index " << input_chain_index << " -> " << output_chain_index << " (levels consumed "
          << input_chain_index - output_chain_index << ")";
+    const auto precision = os.precision(9);
     os << ", log2_scale=" << log2(ct_it->second.scale()) << '\n';
+    os.precision(precision);
   }
   return ok;
 }

@@ -54,3 +54,9 @@ option(FHECO_BUILD_CKKS_OPERATOR_DEMO "Build CKKS DL operator demo" OFF)
 if(FHECO_BUILD_CKKS_OPERATOR_DEMO)
     add_subdirectory(benchmarks/dl_operators_ckks)
 endif()
+
+option(FHECO_BUILD_CKKS_BENCHMARKS "Build CHEHAB-compiled CKKS benchmarks" OFF)
+
+if(FHECO_BUILD_CKKS_BENCHMARKS)
+    add_subdirectory(benchmarks/quad_ckks)
+endif()
