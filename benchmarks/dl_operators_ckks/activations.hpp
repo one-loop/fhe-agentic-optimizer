@@ -40,6 +40,9 @@ inline double activation_reference(const std::string& name, double x) {
         constexpr double lambd = 0.5;
         return (x >= -lambd && x <= lambd) ? 0.0 : x;
     }
+    if (name == "relu") {
+        return std::max(x, 0.0);
+    }
     throw std::invalid_argument("unsupported activation: " + name);
 }
 

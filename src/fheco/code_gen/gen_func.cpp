@@ -44,11 +44,17 @@ void gen_func(
   // CKKS scale-alignment helpers are needed by match_scale terms and by
   // ciphertext-ciphertext additions/subtractions.
   bool need_ckks_scale_helpers = false;
+  bool need_ckks_encode_helper = false;
   if (ckks)
   {
     for (auto term : func->get_top_sorted_terms())
     {
       const auto op_type = term->op_code().type();
+      if (term->type() == ir::Term::Type::cipher)
+      {
+        for (auto operand : term->operands())
+          need_ckks_encode_helper = need_ckks_encode_helper || operand->type() == ir::Term::Type::plain;
+      }
       if (op_type == ir::OpCode::Type::match_scale)
         need_ckks_scale_helpers = true;
       else if (
@@ -71,6 +77,8 @@ void gen_func(
   source_os << '\n';
   if (need_ckks_scale_helpers)
     source_os << ckks_scale_helpers << '\n';
+  if (need_ckks_encode_helper)
+    source_os << ckks_encode_helper << '\n';
   gen_func_def_signature(func->name(), func->scheme(), source_os);
   source_os << "\n{\n";
 
@@ -335,7 +343,7 @@ void gen_op_terms(const shared_ptr<ir::Func> &func, ostream &os, TermsCtxtObject
         const size_t ctxt_object_id = operands_ctxt_objects_ids[1 - i];
         const string encoded_id = "p" + to_string(operand->id()) + "_" + to_string(term->id());
         os << plain_type << " " << encoded_id << ";\n";
-        os << encoder_id << ".encode(";
+        os << ckks_encode_helper_id << "(" << encoder_id << ", ";
         gen_plain_var_id(operand->id(), os);
         os << ", ";
         gen_cipher_var_id(ctxt_object_id, os);

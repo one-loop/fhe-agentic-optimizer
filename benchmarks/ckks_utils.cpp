@@ -51,7 +51,15 @@ CkksIoExample parse_ckks_io_file(istream &is)
     if (!(tokens >> label >> is_cipher >> is_signed))
       throw invalid_argument("io file: malformatted input line");
 
-    auto values = read_values(tokens, io.func_slot_count, label);
+    // A plaintext input given as a single value is a scalar; every other
+    // input has one value per function slot.
+    vector<double> values;
+    for (double value; tokens >> value;)
+      values.push_back(value);
+    if (values.size() != io.func_slot_count && !(values.size() == 1 && !is_cipher))
+      throw invalid_argument(
+        "io file: " + label + " needs " + to_string(io.func_slot_count) + " values" +
+        (is_cipher ? "" : " (or one value for a scalar)"));
     (is_cipher ? io.cipher_inputs : io.plain_inputs).emplace(std::move(label), std::move(values));
   }
 
@@ -92,8 +100,10 @@ void prepare_ckks_inputs(
     encrypted_inputs.emplace(label, std::move(encrypted));
   }
 
+  // Scalars stay one value: the generated fhe() encodes them with SEAL's
+  // scalar encode (ckks_encode), a constant in every slot.
   for (const auto &[label, values] : io.plain_inputs)
-    plain_inputs.emplace(label, fill_slots(values));
+    plain_inputs.emplace(label, values.size() == 1 ? values : fill_slots(values));
 }
 
 CkksClearArgs decrypt_ckks_outputs(

@@ -2,7 +2,7 @@
   "generator": "generate_chebyshev_coeffs.py --emit-all",
   "method": "numpy.polynomial.chebyshev.chebfit least squares on a uniform grid over [min, max] mapped to [-1, 1]",
   "samples": 4097,
-  "numpy_version": "2.4.6",
+  "numpy_version": "2.0.2",
   "max_fit_error_note": "max |poly - activation| on the fitting grid; not a global error bound",
   "sets": [
     {
@@ -173,6 +173,39 @@
         0.024061351870331538
       ],
       "max_fit_error": 0.01058480818354779
+    },
+    {
+      "activation": "relu",
+      "degree": 7,
+      "range": [
+        -4.0,
+        4.0
+      ],
+      "coefficients": [
+        1.2795111037760323,
+        1.9999999999999996,
+        0.8617936777838913,
+        -4.309607465682598e-16,
+        -0.15524475193631146,
+        -1.0455770915630802e-15,
+        0.09153279845263368,
+        -1.3992248279037172e-16
+      ],
+      "max_fit_error": 0.1709398756031959
+    },
+    {
+      "activation": "relu",
+      "degree": 2,
+      "range": [
+        -4.0,
+        4.0
+      ],
+      "coefficients": [
+        1.3123627602018024,
+        1.9999999999999996,
+        0.937271341545159
+      ],
+      "max_fit_error": 0.3750914186566434
     }
   ]
 }

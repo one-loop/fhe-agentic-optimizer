@@ -21,6 +21,8 @@ using CkksClearArgs = std::unordered_map<std::string, std::vector<double>>;
 //   <label> <is_cipher> <is_signed> <v_0> ... <v_{func_slot_count-1}>   (inputs)
 //   <label> <is_cipher> <v_0> ... <v_{func_slot_count-1}>               (outputs)
 // is_signed is ignored for CKKS.
+// A plaintext input line may instead give a single value: a scalar operand,
+// encoded as a constant in every slot.
 struct CkksIoExample
 {
   std::size_t func_slot_count = 0;
@@ -34,7 +36,8 @@ CkksIoExample parse_ckks_io_file(std::istream &is);
 // Repeat every input's values to fill all slots. Ciphertext inputs are then
 // encoded at `scale` and encrypted. Plaintext inputs are returned as real
 // values: the generated fhe() encodes them where they are used, at the level
-// and scale of the ciphertext they meet.
+// and scale of the ciphertext they meet. Scalar plaintext inputs (one value)
+// are returned as that one value.
 void prepare_ckks_inputs(
   const seal::CKKSEncoder &encoder, const seal::Encryptor &encryptor, double scale, const CkksIoExample &io,
   EncryptedArgs &encrypted_inputs, CkksClearArgs &plain_inputs);

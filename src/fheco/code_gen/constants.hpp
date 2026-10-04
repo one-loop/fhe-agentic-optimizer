@@ -56,6 +56,25 @@ constexpr std::string_view ckks_scale_helpers{
 } // namespace
 )"};
 
+// Helper emitted into generated CKKS sources that use plaintext operands. A
+// plaintext input given as one value is a scalar: SEAL encodes it as a
+// constant in every slot (no FFT). Any other input is a slot vector.
+constexpr std::string_view ckks_encode_helper_id{"ckks_encode"};
+constexpr std::string_view ckks_encode_helper{
+  R"(namespace
+{
+void ckks_encode(
+  const CKKSEncoder &encoder, const std::vector<double> &values, parms_id_type parms_id, double scale,
+  Plaintext &destination)
+{
+  if (values.size() == 1)
+    encoder.encode(values[0], parms_id, scale, destination);
+  else
+    encoder.encode(values, parms_id, scale, destination);
+}
+} // namespace
+)"};
+
 constexpr std::string_view encrypted_outputs_container_id{"encrypted_outputs"};
 constexpr std::string_view encoded_outputs_container_id{"encoded_outputs"};
 

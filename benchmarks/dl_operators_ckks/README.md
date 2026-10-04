@@ -65,9 +65,9 @@ definitions.
 
 ## Activation coefficients
 
-All eight activations (GELU, SiLU, Sigmoid, ELU, SELU, Softplus, Mish,
-Hardshrink) at degree 7 on [-4, 4], plus the degree-5 Sigmoid set used by the
-encrypted test, are committed in `chebyshev_coeffs.json` (with fit metadata)
+All nine activations (GELU, SiLU, Sigmoid, ELU, SELU, Softplus, Mish,
+Hardshrink, ReLU) at degree 7 on [-4, 4], plus the degree-5 Sigmoid set used by
+the encrypted test and a degree-2 ReLU set, are committed in `chebyshev_coeffs.json` (with fit metadata)
 and `chebyshev_coeffs.hpp` (for the C++ harness). Regenerate them, byte for
 byte, with:
 
@@ -82,6 +82,15 @@ python3 generate_chebyshev_coeffs.py --activation gelu --degree 7 --min -5 --max
 ```
 
 Use activation ranges collected from representative plaintext/calibration data.
+
+ReLU is not a polynomial and has a kink at 0, so its Chebyshev fit converges
+slowly: the fitting-grid error on [-4, 4] is about 0.17 at degree 7 (7 levels)
+and 0.38 at degree 2 (3 levels). The degree-2 set is the cheap, low-depth
+option used by HE CNN work that trains the network with the polynomial in
+place; the degree-7 set is comparable in cost with the other activations.
+These Chebyshev ReLU sets are low-depth baselines. The ReLU operator itself is
+`benchmarks/relu_ckks`: a composite minimax approximation of sign (three
+degree-7 stages, 10 levels, max error 0.012 on [-4, 4]).
 
 To run another activation through the encrypted test, add its
 `(activation, degree)` to `encrypted_activation_tests` in `main.cpp`; the set

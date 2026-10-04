@@ -53,7 +53,7 @@ POLYNOMIAL_DEPTHS = [5, 10]
 POLYNOMIAL_REGIMES = ["50-50", "100-50", "100-100"]
 POLYNOMIAL_INSTANCES = 1
 
-ACTIVATIONS = ["gelu", "silu", "sigmoid", "elu", "selu", "softplus", "mish", "hardshrink"]
+ACTIVATIONS = ["gelu", "silu", "sigmoid", "elu", "selu", "softplus", "mish", "hardshrink", "relu"]
 
 
 @dataclass
@@ -137,6 +137,27 @@ def ckks_benchmarks(args) -> List[Benchmark]:
         quad.cases.append(Case(case, prepare, lambda s: ["./quad_ckks", str(s), "1", *tail], 1))
 
     benches = [quad]
+    # Elementwise add (no level) and multiply (one level) of a ciphertext and a
+    # ciphertext, a plaintext vector (_plain) or a plaintext scalar (_scalar).
+    for op, levels in (("add", 0), ("add_plain", 0), ("add_scalar", 0),
+                       ("mul", 1), ("mul_plain", 1), ("mul_scalar", 1)):
+        bench = Benchmark(f"{op}_ckks", "CKKS", "elementwise_ckks", path=path)
+        for case, slot, seed in (("fixed", 8, 0), ("dense", 256, 1)):
+            def prepare(bench_dir, op=op, slot=slot, seed=seed):
+                run(["python3", "generate_elementwise_ckks.py", "--op", op, "--slot_count", str(slot), "--seed",
+                     str(seed)], bench_dir)
+                return slot, {}
+            bench.cases.append(Case(case, prepare, lambda s, op=op: ["./elementwise_ckks", op, str(s), "1", *tail],
+                                    levels))
+        benches.append(bench)
+
+    # ReLU through a composite minimax sign approximation (three degree-7 stages).
+    relu = Benchmark("relu_ckks", "CKKS", "relu_ckks", path=path)
+    for case, points in (("fixed", "points9"), ("dense", "dense")):
+        relu.cases.append(Case(case, first_line_slot(["python3", "generate_relu_ckks.py", points]),
+                               lambda s: ["./relu_ckks", str(s), "1", *tail]))
+    benches.append(relu)
+
     for name, fixed, dense in (("batchnorm1d_ckks", "bn1d", "bn1d_rand"), ("batchnorm2d_ckks", "bn2d", "bn2d_rand")):
         bench = Benchmark(name, "CKKS", "batchnorm_ckks", path=path)
         for case, generator_case in (("fixed", fixed), ("dense", dense)):
@@ -144,7 +165,7 @@ def ckks_benchmarks(args) -> List[Benchmark]:
                                     lambda s: ["./batchnorm_ckks", str(s), "1", *tail], 1))
         benches.append(bench)
 
-    for activation, degree in [(a, 7) for a in ACTIVATIONS] + [("sigmoid", 5)]:
+    for activation, degree in [(a, 7) for a in ACTIVATIONS] + [("sigmoid", 5), ("relu", 2)]:
         bench = Benchmark(f"chebyshev_{activation}_d{degree}_ckks", "CKKS", "chebyshev_ckks", path=path)
         for case, points in (("fixed", "points9"), ("dense", "dense")):
             bench.cases.append(Case(

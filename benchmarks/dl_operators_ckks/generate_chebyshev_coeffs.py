@@ -36,6 +36,8 @@ def activation(name: str, x: np.ndarray) -> np.ndarray:
     if name == "hardshrink":
         lambd = 0.5
         return np.where((x >= -lambd) & (x <= lambd), 0.0, x)
+    if name == "relu":
+        return np.maximum(x, 0.0)
     raise ValueError(f"unsupported activation: {name}")
 
 
@@ -53,13 +55,19 @@ def fit(name: str, degree: int, lo: float, hi: float, samples: int):
 
 
 ACTIVATIONS = ["gelu", "silu", "sigmoid", "elu", "selu",
-               "softplus", "mish", "hardshrink"]
+               "softplus", "mish", "hardshrink", "relu"]
 
 # Coefficient sets written by --emit-all: (activation, degree, min, max).
-# All eight activations at degree 7 on [-4, 4], plus the degree-5 Sigmoid
-# set used by the encrypted end-to-end test in main.cpp.
-COEFF_SETS = [(name, 7, -4.0, 4.0) for name in ACTIVATIONS] + [
+# All nine activations at degree 7 on [-4, 4], plus the degree-5 Sigmoid
+# set used by the encrypted end-to-end test in main.cpp and a degree-2 ReLU.
+# ReLU is not smooth (kink at 0), so its Chebyshev fit converges slowly; the
+# degree-2 set is the cheap low-depth option (3 levels instead of 7) common in
+# HE CNN inference, at a larger approximation error. Sets are appended, never
+# reordered, so existing coefficients stay byte-identical.
+COEFF_SETS = [(name, 7, -4.0, 4.0) for name in ACTIVATIONS if name != "relu"] + [
     ("sigmoid", 5, -4.0, 4.0),
+    ("relu", 7, -4.0, 4.0),
+    ("relu", 2, -4.0, 4.0),
 ]
 
 

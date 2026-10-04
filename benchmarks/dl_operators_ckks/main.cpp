@@ -366,6 +366,8 @@ int main(int argc, char** argv) {
     // ------------------------------------------------------------
     const std::vector<std::pair<std::string, int>> encrypted_activation_tests{
         {"sigmoid", 5},
+        {"relu", 2},
+        {"relu", 7},
     };
     constexpr std::size_t activation_test_points = 9;
     for (const auto& [activation, degree] : encrypted_activation_tests) {
