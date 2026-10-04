@@ -8,6 +8,8 @@
 #include "fheco/dsl/compiler.hpp"
 #include "fheco/dsl/ops_overloads.hpp"
 #include "fheco/dsl/plaintext.hpp"
+#include "fheco/operators/embedding.hpp"
+#include "fheco/operators/extract.hpp"
 #include "fheco/trs/common.hpp"
 #include "fheco/trs/reduct_order/check_ruleset.hpp"
 #include "fheco/trs/trs.hpp"
