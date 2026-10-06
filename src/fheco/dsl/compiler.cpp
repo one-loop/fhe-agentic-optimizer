@@ -67,9 +67,23 @@ void Compiler::gen_he_code(
 #endif
   size_t relin_keys_count;
   if (lazy_relin)
+  {
+    // insert_rescale relies on relin directly following each product
+    func->require_bfv("lazy relinearization");
     relin_keys_count = passes::lazy_relin_heuristic(func);
+  }
   else
     relin_keys_count = passes::relin_after_ctxt_ctxt_mul(func);
+
+  if (func->scheme() == Scheme::ckks)
+  {
+#ifdef FHECO_LOGGING
+    clog << "\nrescale_insertion\n";
+#endif
+    passes::insert_rescale(func);
+    passes::align_ckks_operands(func);
+    passes::check_ckks_levels(func);
+  }
 
 #ifdef FHECO_LOGGING
   clog << "\ncode_generation\n";
@@ -204,6 +218,7 @@ void Compiler::compile(shared_ptr<ir::Func> func, Ruleset ruleset, trs::RewriteH
  */
 void Compiler::gen_vectorized_code(const std::shared_ptr<ir::Func> &func, int optimization_method)
 {
+  func->require_bfv("vectorization");
   // Utility function to print expressions in prefix notation
   util::ExprPrinter expr_printer(func);
   expr_printer.make_terms_str_expr(util::ExprPrinter::Mode::prefix);
@@ -339,6 +354,7 @@ void Compiler::gen_vectorized_code(const std::shared_ptr<ir::Func> &func, int op
  */
 void Compiler::gen_vectorized_code(const std::shared_ptr<ir::Func> &func, int window, int optimization_method)
 {
+  func->require_bfv("vectorization");
   if (window < 0)
   {
     std::cerr << "Window size must be greater than 0." << std::endl;

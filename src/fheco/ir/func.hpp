@@ -6,6 +6,7 @@
 #include "fheco/util/clear_data_eval.hpp"
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -26,6 +27,11 @@ public:
     bool overflow_warnings)
     : Func(std::move(name), slot_count, true, bit_width, signedness, need_cyclic_rotation, overflow_warnings)
   {}
+
+  // CKKS function. Clear-data evaluation (example values, constant folding)
+  // is integer-modular and does not model CKKS, so CKKS functions reject
+  // example values and constants.
+  Func(std::string name, std::size_t slot_count, CkksParams ckks_params, bool need_cyclic_rotation);
 
   template <typename T>
   void init_input(T &input, std::string label);
@@ -95,6 +101,14 @@ public:
    
   inline bool need_cyclic_rotation() const { return need_cyclic_rotation_; }
 
+  inline Scheme scheme() const { return scheme_; }
+
+  // Throws if called on a BFV function.
+  const CkksParams &ckks_params() const;
+
+  // Throws std::logic_error naming `what` if this is not a BFV function.
+  void require_bfv(const char *what) const;
+
   inline const Expr &data_flow() const { return data_flow_; }
   void reset_data_flow(){
     data_flow_.clear(); 
@@ -111,6 +125,10 @@ private:
   util::ClearDataEval clear_data_eval_;
 
   Expr data_flow_{};
+
+  Scheme scheme_ = Scheme::bfv;
+
+  std::optional<CkksParams> ckks_params_{};
 };
 
 inline bool operator==(const Func &lhs, const Func &rhs)

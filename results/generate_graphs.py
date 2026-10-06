@@ -143,6 +143,16 @@ COLUMN_BY_METRIC = {
     "noise": "Remaining_noise_budget",
 }
 
+# run_benchmarks.py result records (docs/benchmark_results.md): column and the
+# factor that converts it to the unit plotted above (seconds for times).
+METRIC_BY_COLUMN = {column: metric for metric, column in COLUMN_BY_METRIC.items()}
+
+RECORD_COLUMN_BY_METRIC = {
+    "compile": ("compile_time_ms", 1e-3),
+    "exec": ("exec_time_ms", 1e-3),
+    "noise": ("bfv_noise_budget_bits", 1.0),
+}
+
 
 def _parse_float(value: str) -> float:
     if value is None:
@@ -163,7 +173,8 @@ def _load_rows(path: Path) -> Dict[str, Dict[str, str]]:
     with path.open(newline="") as infile:
         reader = csv.DictReader(infile)
         for row in reader:
-            benchmark = row.get("benchmark")
+            # result records are keyed by record_id (e.g. box_blur_3), legacy CSVs by benchmark
+            benchmark = row.get("record_id") or row.get("benchmark")
             if benchmark:
                 rows[benchmark] = row
     return rows
@@ -186,7 +197,11 @@ def _extract_metric(
             values.append(math.inf)
             missing.append(name)
             continue
-        values.append(_parse_float(row.get(column, "")))
+        if column in row:
+            values.append(_parse_float(row.get(column, "")))
+        else:
+            record_column, factor = RECORD_COLUMN_BY_METRIC[METRIC_BY_COLUMN[column]]
+            values.append(_parse_float(row.get(record_column, "")) * factor)
     return values, missing
 
 
