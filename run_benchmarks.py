@@ -151,6 +151,23 @@ def ckks_benchmarks(args) -> List[Benchmark]:
                                     levels))
         benches.append(bench)
 
+    # Extraction and embedding operators use public masks/table columns as
+    # plaintext inputs because CHEHAB's CKKS IR does not yet support real
+    # compile-time constants.
+    for op, levels in (("extract", 1), ("extract_linear", 1), ("extract_sparse", 1),
+                       ("table_mult", 1), ("embedding", 2)):
+        bench = Benchmark(f"{op}_ckks", "CKKS", "extract_embedding_ckks", path=path)
+        for case, slot, seed in (("fixed", 8, 0), ("dense", 256, 1)):
+            runtime_op = "extract_sparse_boundary" if op == "extract_sparse" and case == "fixed" else op
+            def prepare(bench_dir, runtime_op=runtime_op, slot=slot, seed=seed):
+                run(["python3", "generate_extract_embedding_ckks.py", "--op", runtime_op,
+                     "--slot_count", str(slot), "--seed", str(seed)], bench_dir)
+                return slot, {}
+            bench.cases.append(Case(
+                case, prepare,
+                lambda s, runtime_op=runtime_op: ["./extract_embedding_ckks", runtime_op, str(s), "1", *tail], levels))
+        benches.append(bench)
+
     # ReLU through a composite minimax sign approximation (three degree-7 stages).
     relu = Benchmark("relu_ckks", "CKKS", "relu_ckks", path=path)
     for case, points in (("fixed", "points9"), ("dense", "dense")):

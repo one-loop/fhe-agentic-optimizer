@@ -419,8 +419,12 @@ void gen_op_terms(const shared_ptr<ir::Func> &func, ostream &os, TermsCtxtObject
     }
     else
     {
-      os << evaluator_id << "." << operation_mapping.at(ir::OpType{term->op_code().type(), move(operands_types)})
-         << "(";
+      os << evaluator_id << ".";
+      if (func->scheme() == Scheme::ckks && term->op_code().type() == ir::OpCode::Type::rotate)
+        os << "rotate_vector";
+      else
+        os << operation_mapping.at(ir::OpType{term->op_code().type(), move(operands_types)});
+      os << "(";
       // operation term needs operands so operands_ctxt_objects_ids cannot be empty
       for (size_t i = 0;; ++i)
       {
@@ -758,4 +762,3 @@ int main(int argc, char **argv)
 )";
 }
 } // namespace fheco::code_gen
- 
