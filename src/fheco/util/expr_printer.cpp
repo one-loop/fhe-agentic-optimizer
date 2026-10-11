@@ -40,6 +40,8 @@ std::vector<std::string> split(const std::string &str, char delimiter)
 // for infix representation to reduce unnecessary parenthesis
 const unordered_map<ir::OpCode::Type, int> ExprPrinter::ops_precedence_ = {
   {ir::OpCode::Type::encrypt, 1}, {ir::OpCode::Type::mod_switch, 1}, {ir::OpCode::Type::relin, 1},
+  {ir::OpCode::Type::rescale, 1},
+  {ir::OpCode::Type::match_scale, 4},
   {ir::OpCode::Type::negate, 1},  {ir::OpCode::Type::mul, 2},        {ir::OpCode::Type::square, 2},
   {ir::OpCode::Type::add, 3},     {ir::OpCode::Type::sub, 3},        {ir::OpCode::Type::rotate, 4},
   {ir::OpCode::Type::SumVec, 4} 

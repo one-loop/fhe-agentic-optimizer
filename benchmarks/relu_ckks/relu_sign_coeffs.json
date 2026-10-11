@@ -1,0 +1,54 @@
+{
+  "generator": "fit_composite_sign.py --degrees 7 7 7 --eps 0.0625 --bound 4.0",
+  "method": "stage-wise Remez minimax odd polynomials approximating sign (Lee et al., TDSC 2021); ReLU(x) = x * (1 + sign(x / bound)) / 2",
+  "numpy_version": "2.0.2",
+  "eps": 0.0625,
+  "bound": 4.0,
+  "stages": [
+    {
+      "degree": 7,
+      "interval": [
+        0.0625,
+        1.0
+      ],
+      "odd_coefficients": [
+        8.143894660785783,
+        -41.130528387466796,
+        72.52398089562433,
+        -39.0383263667225
+      ],
+      "minimax_error": 0.5009791977791842
+    },
+    {
+      "degree": 7,
+      "interval": [
+        0.4990208022208158,
+        1.5009791977791842
+      ],
+      "odd_coefficients": [
+        2.5650677742127215,
+        -2.965428881280122,
+        1.713700496907447,
+        -0.34468498546618426
+      ],
+      "minimax_error": 0.03810824058484097
+    },
+    {
+      "degree": 7,
+      "interval": [
+        0.961891759415159,
+        1.038108240584841
+      ],
+      "odd_coefficients": [
+        2.1892492569109647,
+        -2.191157598716058,
+        1.3145661609258708,
+        -0.31265897187455516
+      ],
+      "minimax_error": 1.1539602522425696e-06
+    }
+  ],
+  "relu_max_error_grid": 0.01180255036787943,
+  "relu_max_error_outside_eps": 2.307920504485139e-06,
+  "grid_note": "max |relu_approx - relu| on 400001 uniform points of [-bound, bound]; not a global bound"
+}

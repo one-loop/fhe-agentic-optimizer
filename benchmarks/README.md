@@ -151,14 +151,19 @@ When running `./<operator_name> <vectorize_code> <slot_count> <opt_method> <wind
 
 ## 📊 Automated Batch Benchmark Sweep
 
-To run an automated benchmark sweep across all operators (saving output metrics to CSV under `results/`):
+`run_benchmarks.py` (repository root) runs BFV and CKKS benchmarks through the
+same pipeline and writes one result record per run configuration to a CSV under
+`results/` (`results/results_<scheme>.csv`):
 
 ```bash
-cd /Volumes/SaveHere/capstone/CHEHAB
-python run_benchmarks.py
+python run_benchmarks.py                          # BFV sweep (vectorized, RL)
+python run_benchmarks.py --scheme ckks            # CHEHAB-compiled CKKS benchmarks
+python run_benchmarks.py --scheme all --vectorize 0 --slot-counts 4 --markdown baseline.md
 ```
 
-This sweep will automatically measure and record:
-- **$C$ (Compilation Time)**
-- **$L$ (Execution Latency in ms)**
-- **$D$ (Multiplicative Depth & Remaining Noise Budget)**
+Each record holds compile time, CHEHAB end-to-end execution time (median of 10
+measured runs after 1 warmup run), depth and xdepth, operation counts from the
+generated code, a correctness status, and scheme-specific metrics (BFV: outputs
+match, remaining noise budget; CKKS: FHE error, levels consumed, polynomial
+approximation error). All times are in ms. Field definitions and comparison
+rules: `docs/benchmark_results.md`.

@@ -1,0 +1,13 @@
+{
+  "commit": "10c1619",
+  "dirty": true,
+  "platform": "Darwin arm64",
+  "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)",
+  "seal": "4.1",
+  "command": "python run_benchmarks.py --scheme ckks --seal-prefix /Users/moonis/Documents/Codex/2026-09-20/re/work/seal-install --benchmarks add_ckks add_plain_ckks add_scalar_ckks mul_ckks mul_plain_ckks mul_scalar_ckks relu_ckks chebyshev_relu_d7_ckks chebyshev_relu_d2_ckks --output results/ckks_add_mul_relu.csv --markdown docs/ckks_add_mul_relu.md",
+  "compile_runs": 3,
+  "warmup": 1,
+  "repeats": 10,
+  "eval_repeats": 10,
+  "ckks_tolerance": 1e-06
+}

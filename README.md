@@ -183,7 +183,7 @@ Run the benchmark sweep (writes CSV results):
 python run_benchmarks.py
 ```
 
-Results are written under `results/` (and are available on the host via the bind mount configured in `docker-compose.yml`).
+Results are written under `results/` as `results_<scheme>.csv` (and are available on the host via the bind mount configured in `docker-compose.yml`). `python run_benchmarks.py --help` lists the options (scheme, benchmarks, slot counts, compiler path, run counts); the result fields are described in `docs/benchmark_results.md`.
 
 ### 2) Web UI (optional)
 Start the web service and open the browser UI:

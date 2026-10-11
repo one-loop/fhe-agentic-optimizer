@@ -1,0 +1,14 @@
+set(FHECO_SOURCE_FILES ${FHECO_SOURCE_FILES}
+    ${CMAKE_CURRENT_LIST_DIR}/embedding.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/extract.cpp
+)
+
+install(
+    FILES
+        ${CMAKE_CURRENT_LIST_DIR}/embedding.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/extract.hpp
+    DESTINATION
+        ${FHECO_INCLUDES_INSTALL_DIR}/operators
+)
+
+set(FHECO_SOURCE_FILES ${FHECO_SOURCE_FILES} PARENT_SCOPE)

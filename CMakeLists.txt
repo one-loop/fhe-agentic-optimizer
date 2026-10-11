@@ -48,3 +48,20 @@ add_subdirectory(benchmarks/discrete_cosin_transform)
 add_subdirectory(benchmarks/nn_linear)
 add_subdirectory(benchmarks/nn_conv2d)
 add_subdirectory(benchmarks/nn_avgpool2d)
+
+option(FHECO_BUILD_CKKS_OPERATOR_DEMO "Build CKKS DL operator demo" OFF)
+
+if(FHECO_BUILD_CKKS_OPERATOR_DEMO)
+    add_subdirectory(benchmarks/dl_operators_ckks)
+endif()
+
+option(FHECO_BUILD_CKKS_BENCHMARKS "Build CHEHAB-compiled CKKS benchmarks" OFF)
+
+if(FHECO_BUILD_CKKS_BENCHMARKS)
+    add_subdirectory(benchmarks/quad_ckks)
+    add_subdirectory(benchmarks/elementwise_ckks)
+    add_subdirectory(benchmarks/relu_ckks)
+    add_subdirectory(benchmarks/extract_embedding_ckks)
+    add_subdirectory(benchmarks/batchnorm_ckks)
+    add_subdirectory(benchmarks/chebyshev_ckks)
+endif()

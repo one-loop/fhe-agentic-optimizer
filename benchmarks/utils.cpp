@@ -1,9 +1,20 @@
 #include "utils.hpp"
+#include <iostream>
 #include <stdexcept>
 #include <utility>
 
 using namespace std;
 using namespace seal;
+
+namespace
+{
+// Expected outputs of the last io file parsed. The generated BFV main parses
+// the io file and later calls get_clear_outputs but never compares the two,
+// so get_clear_outputs reports the comparison (benchmark runners read the
+// "outputs_match:" line). Generated code is unchanged.
+ClearArgsInfo expected_outputs;
+bool have_expected_outputs = false;
+} // namespace
 
 void parse_inputs_outputs_file(
   istream &is, uint64_t plain_modulus, ClearArgsInfo &inputs, ClearArgsInfo &outputs, size_t &func_slot_count)
@@ -73,6 +84,8 @@ void parse_inputs_outputs_file(
     }
     outputs.emplace(var_name, ClearArgInfo{move(var_value), is_cipher, false});
   }
+  expected_outputs = outputs;
+  have_expected_outputs = true;
 }
 
 vector<string> split(const string &str, char delim)
@@ -156,6 +169,20 @@ void get_clear_outputs(
     encoder.decode(encoded_output.second, clear_output);
     clear_output.resize(func_slot_count);
     clear_outputs.emplace(encoded_output.first, ClearArgInfo{move(clear_output), false, false});
+  }
+
+  if (have_expected_outputs)
+  {
+    size_t mismatches = 0;
+    for (const auto &[label, expected] : expected_outputs)
+    {
+      auto it = clear_outputs.find(label);
+      if (it == clear_outputs.end() || !(it->second == expected))
+        ++mismatches;
+    }
+    cout << "outputs_match: " << (mismatches == 0 ? 1 : 0) << " (" << expected_outputs.size() - mismatches << "/"
+         << expected_outputs.size() << " outputs equal the expected values)\n"
+         << flush;
   }
 }
 

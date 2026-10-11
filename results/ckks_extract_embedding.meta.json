@@ -1,0 +1,13 @@
+{
+  "commit": "2012ffa",
+  "dirty": true,
+  "platform": "Darwin arm64",
+  "compiler": "Apple clang version 17.0.0 (clang-1700.6.3.2)",
+  "seal": "4.1",
+  "command": "python run_benchmarks.py --scheme ckks --seal-prefix /private/tmp/seal-install --benchmarks extract_ckks extract_linear_ckks extract_sparse_ckks table_mult_ckks embedding_ckks --compile-runs 3 --warmup 1 --repeats 3 --eval-repeats 3 --ckks-tolerance 1e-4 --output results/ckks_extract_embedding.csv --markdown docs/ckks_extract_embedding.md",
+  "compile_runs": 3,
+  "warmup": 1,
+  "repeats": 3,
+  "eval_repeats": 3,
+  "ckks_tolerance": 0.0001
+}

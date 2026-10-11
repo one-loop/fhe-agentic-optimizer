@@ -28,9 +28,50 @@ Func::Func(
     throw invalid_argument("when need_cyclic_rotation, slot_count must be a power of two");
 }
 
+// CKKS has no plaintext modulus. The integer clear-data evaluator is built
+// with a placeholder modulus and stays unused: CKKS functions reject example
+// values and constants (require_bfv), the only paths that feed it.
+Func::Func(string name, size_t slot_count, CkksParams ckks_params, bool need_cyclic_rotation)
+  : name_{move(name)}, slot_count_{slot_count}, plain_modulus_{0}, need_cyclic_rotation_{need_cyclic_rotation},
+    clear_data_eval_{slot_count_, 2, false, false, false}, scheme_{Scheme::ckks}, ckks_params_{move(ckks_params)}
+{
+  if (need_cyclic_rotation && !util::is_power_of_two(slot_count_))
+    throw invalid_argument("when need_cyclic_rotation, slot_count must be a power of two");
+
+  const auto &params = *ckks_params_;
+  if (!util::is_power_of_two(params.poly_modulus_degree))
+    throw invalid_argument("CKKS poly_modulus_degree must be a power of two");
+
+  if (slot_count_ == 0 || slot_count_ > params.poly_modulus_degree / 2)
+    throw invalid_argument("CKKS slot_count must be in [1, poly_modulus_degree / 2]");
+
+  if (params.coeff_mod_bit_sizes.size() < 2)
+    throw invalid_argument("CKKS coeff_mod_bit_sizes needs at least one data prime and the special prime");
+
+  if (params.log2_scale <= 0)
+    throw invalid_argument("CKKS log2_scale is missing or not positive");
+}
+
+const CkksParams &Func::ckks_params() const
+{
+  if (!ckks_params_)
+    throw logic_error("ckks_params requested on a non-CKKS function");
+
+  return *ckks_params_;
+}
+
+void Func::require_bfv(const char *what) const
+{
+  if (scheme_ != Scheme::bfv)
+    throw logic_error("CKKS functions do not support " + string(what) + " yet");
+}
+
 template <typename T>
 void Func::init_input(T &input, string label)
 {
+  if (input.example_val_)
+    require_bfv("input example values");
+
   Term::Type term_type;
   if constexpr (is_same<T, Ciphertext>::value)
     term_type = Term::Type::cipher;
@@ -43,6 +84,7 @@ void Func::init_input(T &input, string label)
 template <typename T>
 void Func::init_const(T &constant, PackedVal packed_val)
 {
+  require_bfv("constants");
   clear_data_eval_.adjust_packed_val(packed_val);
   constant.example_val_ = packed_val;
   constant.id_ = insert_const_term(move(packed_val))->id();
