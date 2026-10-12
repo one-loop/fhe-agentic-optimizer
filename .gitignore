@@ -53,3 +53,6 @@ __pycache__/
 *.pyd
 /build-ckks-operators/
 /build-ckks/
+
+# LLM optimization loop
+agent/.venv/
