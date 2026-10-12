@@ -231,7 +231,7 @@ def main():
         p.error("no Anthropic credentials: export ANTHROPIC_API_KEY=... (see agent/README.md), "
                 "or use --proposer files:<dir> to test offline")
 
-    results = []
+    results, failed = [], []
     for name in names:
         if args.proposer == "llm":
             proposer = LLMProposer(args.model, args.effort, args.max_tokens)
@@ -239,13 +239,19 @@ def main():
             proposer = FileProposer(args.proposer.split(":", 1)[1])
         else:
             p.error("--proposer must be 'llm' or 'files:<dir>'")
-        results.append(run_task(TASKS[name], args, proposer))
+        try:
+            results.append(run_task(TASKS[name], args, proposer))
+        except RuntimeError as e:  # a baseline that is not correct: record it and go on
+            print(f"== {name}: SKIPPED. {str(e).splitlines()[0]}", flush=True)
+            failed.append((name, str(e)))
 
     print("\n| task | baseline (ms) | best (ms) | speedup | best attempt | cost (USD) |")
     print("|---|---:|---:|---:|---:|---:|")
     for r in results:
         print(f"| {r['task']} | {fmt_time(r['baseline'].get('eval_time_ms'))} | {fmt_time(r['best'].get('eval_time_ms'))} "
               f"| x{r['speedup']:.2f} | {r['best_iteration']} | {r['approx_cost_usd']:.4f} |")
+    for name, message in failed:
+        print(f"SKIPPED {name}: {message.splitlines()[0]}")
 
 
 if __name__ == "__main__":
