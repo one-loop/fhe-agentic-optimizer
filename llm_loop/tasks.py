@@ -6,11 +6,13 @@ Each task has
     exact inputs the Phase 1 baseline was measured on;
   - an independent NumPy oracle that computes the expected outputs from the
     inputs, used for the held-out check;
-  - a held-out input randomizer: fresh random ciphertext data (and fresh tables
-    or BatchNorm vectors) with the dense case's slot count. Public structure
-    stays as defined by the operator (Chebyshev/sign coefficients, masks), so a
-    kernel cannot pass by exploiting coincidences of the committed inputs, such
-    as table columns that are multiples of each other.
+  - a held-out input randomizer: fresh random ciphertext data, fresh tables
+    and BatchNorm vectors, and perturbed polynomial coefficients (x U(0.5, 1.5) for Chebyshev, x U(0.999, 1.001)
+    for the composite ReLU, whose stages compound), with the dense
+    case's slot count. Operator structure stays as defined (which coefficients
+    are non-negligible, masks, the constants `one` and `half`), so a kernel
+    cannot pass by exploiting coincidences of the committed inputs, such as
+    table columns that are multiples of each other or c1 = 2 exactly.
 
 Tolerances follow each operator's owner: 1e-6 absolute, 1e-4 for the rotation
 and reduction operators (extract, table_mult, embedding).
@@ -71,6 +73,12 @@ class Task:
         return io
 
 
+def _perturb(io: IoExample, rng: np.random.Generator, labels, lo: float, hi: float) -> None:
+    """Multiply each listed (constant) plaintext input by its own random factor."""
+    for label in labels:
+        _set(io, label, io.inputs[label][1] * rng.uniform(lo, hi))
+
+
 def _set(io: IoExample, label: str, values) -> None:
     is_cipher = io.inputs[label][0]
     io.inputs[label] = (is_cipher, np.asarray(values, dtype=float))
@@ -116,6 +124,13 @@ def _chebyshev_oracle(activation: str, degree: int):
     return oracle
 
 
+def _chebyshev_randomize(terms: List[int]):
+    def randomize(io: IoExample, rng: np.random.Generator) -> None:
+        _set(io, "x", rng.uniform(-4.0, 4.0, len(io.inputs["x"][1])))
+        _perturb(io, rng, [f"c{k}" for k in terms], 0.5, 1.5)
+    return randomize
+
+
 def _chebyshev(activation: str, degree: int, owner: str) -> Task:
     terms = chebyshev_terms(activation, degree)
     return Task(
@@ -125,12 +140,13 @@ def _chebyshev(activation: str, degree: int, owner: str) -> Task:
                            activation, str(degree)])
                for case, points in (("fixed", "points9"), ("dense", "dense"))],
         oracle=_chebyshev_oracle(activation, degree),
-        randomize=_uniform(-4.0, 4.0, "x"),
+        randomize=_chebyshev_randomize(terms),
         description=(
             f"Degree-{degree} Chebyshev approximation of {activation} on [-4, 4]. Inputs: ciphertext `x` in [-4, 4]; "
             "plaintexts `alpha` (= 0.25, so z = x * alpha is in [-1, 1]), `one` (= 1) and the coefficients "
             f"c0..c{degree} (same value in every slot). Output `y` = sum_k c_k T_k(z) over the non-negligible "
-            f"terms {terms}, with T0 = 1, T1 = z, T_k = 2 z T_(k-1) - T_(k-2)."),
+            f"terms {terms} (the others are ~1e-16 and dropped), with T0 = 1, T1 = z, T_k = 2 z T_(k-1) - T_(k-2). "
+            "The kernel must be correct for any values of these coefficients."),
     )
 
 
@@ -143,6 +159,15 @@ def _relu_oracle(io: IoExample) -> Dict[str, np.ndarray]:
     for stage in (1, 2, 3):
         t = sum(io.value(f"s{stage}c{k}") * t ** k for k in (1, 3, 5, 7) if f"s{stage}c{k}" in io.inputs)
     return {"y": x * (t + io.value("half"))}
+
+
+def _relu_randomize(io: IoExample, rng: np.random.Generator) -> None:
+    _set(io, "x", rng.uniform(-4.0, 4.0, len(io.inputs["x"][1])))
+    # The three stages compose, so coefficient changes compound: +-10% already
+    # pushes intermediate values (and the absolute FHE error) out of range.
+    # +-0.1% is enough to catch kernels that exploit special coefficient values
+    # (kernels cannot contain numeric constants) while keeping |t| near 1.
+    _perturb(io, rng, [l for l in io.inputs if l.startswith("s") and "c" in l], 0.999, 1.001)
 
 
 # ---------------------------------------------------------------------------
@@ -247,9 +272,11 @@ TASKS["relu_composite"] = Task(
     name="relu_composite", family="relu_composite", owner="Moonis", record="relu_ckks", tolerance=TOL,
     cases=[Case(case, ["python3", str(SRC_BENCH / "relu_ckks" / "generate_relu_ckks.py"), points])
            for case, points in (("fixed", "points9"), ("dense", "dense"))],
-    oracle=_relu_oracle, randomize=_uniform(-4.0, 4.0, "x"),
+    oracle=_relu_oracle, randomize=_relu_randomize,
     description=("ReLU on [-4, 4] by a composite odd minimax approximation of sign: t0 = x, "
-                 "t_i = sum_k s<i>c<k> t_(i-1)^k (k = 1, 3, 5, 7; i = 1..3), y = x * (t_3 + half)."),
+                 "t_i = sum_k s<i>c<k> t_(i-1)^k (k = 1, 3, 5, 7; i = 1..3), y = x * (t_3 + half), with plaintext "
+                 "scalar coefficients s<i>c<k> and `half` (= 0.5). The kernel must be correct for any coefficient "
+                 "values."),
     expected_levels=10,
 )
 

@@ -4,8 +4,8 @@ Umair's Phase 2 loop. Each teammate builds an independent loop over the same
 CKKS operators, and the loops are then compared. This directory does not touch
 the compiler, the benchmarks, the shared runner or any other loop (`agent/`).
 
-Status: steps 1 and 2 (environment, baselines, reference kernels) are done. The
-search loop and the model proposer (steps 3 and 4) are not written yet.
+Status: steps 1-3 are done (environment, baselines, reference kernels, the loop,
+tested offline). Step 4 (runs with a model) has not started.
 
 ## Layout
 
@@ -20,6 +20,10 @@ search loop and the model proposer (steps 3 and 4) are not written yet.
 | `check_baselines.py` | Step 1 check: baselines reproduce their benchmarks. |
 | `reference/`, `reference_check.py` | Step 2: hand-derived kernels that show the headroom under the DSL rules. |
 | `results/` | `baseline_check.json`, `reference_check.json`. |
+| `loop.py` | The closed feedback loop (proposal Figure 1): strategies, feedback modes, run management, summaries. |
+| `prompts.py` | System prompt, domain knowledge levels, task prompts, compiler feedback in C / L / D terms. |
+| `proposers.py` | Where kernels come from: Claude through Claude Code's headless mode (subscription, no API key) or offline replay. |
+| `tests/replay/` | Scripted answers that exercise every path of the loop without a model. |
 
 Work files go to `build/llm_loop/` (ignored by git).
 
@@ -40,9 +44,13 @@ for extract, table_mult and embedding, as their owners chose):
 - **fixed** and **dense**: the benchmark's own generated inputs and expected outputs;
 - **heldout101**, **heldout202**: fresh random inputs with the dense layout,
   expected outputs from the oracle in `tasks.py`. Ciphertext data, table
-  columns and BatchNorm vectors are redrawn; operator structure (coefficients,
-  masks) is kept. This catches kernels that exploit coincidences of the
-  committed inputs (for example the table columns are multiples of each other).
+  columns and BatchNorm vectors are redrawn and polynomial coefficients are
+  perturbed (x U(0.5, 1.5) for Chebyshev, x U(0.999, 1.001) for the composite
+  ReLU, whose stages compound); operator structure (which terms exist, masks,
+  the constants `one`, `half`, `alpha`) is kept. This catches kernels that
+  exploit coincidences of the committed inputs: table columns that are multiples
+  of each other, or c1 = 2 exactly in gelu/silu/softplus/relu (the offline replay
+  test checks both).
 
 Each oracle is validated against the generators' expected outputs (max
 relative difference 1e-15).
@@ -92,9 +100,53 @@ scales. Fewer levels alone do not pay: the 4-level power-basis kernels are
 slower than the 5-level Chebyshev ones because they need more ct x ct
 multiplications. Time follows ct x ct, ct x pt and alignment operations.
 
+## The loop (step 3)
+
+```bash
+python3 -m llm_loop.loop --tasks all --iterations 8                     # archive search, measured feedback
+python3 -m llm_loop.loop --tasks all --runs 5                           # single-run and best-of-5 (ComPilot)
+python3 -m llm_loop.loop --tasks family:chebyshev --strategy linear     # ComPilot-style dialogue
+python3 -m llm_loop.loop --tasks chebyshev_gelu_d7 table_mult --proposer replay:llm_loop/tests/replay  # offline
+```
+
+Every call to the model is one iteration; `--iterations` is the budget per task and run.
+
+- **Strategies.** `linear`: the proposal's ComPilot-style dialogue, where the model sees
+  every earlier attempt and its feedback. `archive`: research-backed search (archive of
+  every kernel, the first quarter of the budget explores from the baseline with
+  different hints, then Thompson-sampling parent choice as in REx, one faster
+  kernel shown for inspiration as in FunSearch, one repair turn per illegal kernel,
+  duplicates not re-evaluated, static pre-screen of clearly slower kernels).
+- **Feedback** (`--feedback`), the proposal's open design question: `execution`
+  (measured latency) or `static` (cost-model latency; correctness is still checked
+  on encrypted inputs and measured times are recorded).
+- **Domain knowledge** (`--hints`): `none`, `identities`, `full` (identities plus
+  worked examples that are not benchmark tasks), to measure the effect of
+  structured grounding.
+- Each attempt's feedback reports compilation time C, latency L and multiplicative
+  depth D with the baseline and best-so-far, operation counts and the largest
+  estimated cost; illegal code gets CHEHAB's message verbatim. A kernel replaces
+  the best only when it is faster by more than `--margin` (2%), and each run's best
+  kernel is re-timed against the baseline with `score.py` (`--final-rounds`).
+- Results: `<out>/<task>/run<k>/` (every prompt, answer and kernel, `attempts.jsonl`,
+  `result.json`) and `<out>/summary.md`, `summary.csv`. Interrupted runs resume
+  with the same `--out`.
+
+### Model access without an API key
+
+The default proposer runs `claude -p` (Claude Code headless mode) with the model
+pinned to `claude-haiku-5-5`, a replaced system prompt, no tools and safe mode, from
+an empty directory. Signed in with a Claude subscription, calls count against the
+plan's usage limits instead of being billed per token. `ANTHROPIC_API_KEY` and
+`ANTHROPIC_AUTH_TOKEN` are removed from each call's environment, because headless
+mode always uses (and bills) a key when one is present. Haiku 5.5 needs Claude
+Code 2.1.293 or newer (`claude update`). If a usage limit is reached, the loop
+stops and the same command resumes it.
+
 ## Caveats
 
 - Not a sandbox: kernels are C++ compiled and run on this machine. The token
   blocklist in `evaluate.py` only stops accidental or obvious misuse.
 - Timings depend on the machine; compare kernels only through `score.py` runs
-  on the same machine.
+  on the same machine, with nothing else running.
+- Concurrent loop runs need different `--work` directories.

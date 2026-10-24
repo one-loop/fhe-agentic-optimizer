@@ -24,7 +24,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from llm_loop import iofile
-from llm_loop.static_analysis import StaticInfo, analyze
+from llm_loop.static_analysis import StaticInfo, analyze, annotated_trace
 from llm_loop.tasks import HELDOUT_SEEDS, REPO, SRC_BENCH, Task
 
 WORK = REPO / "build" / "llm_loop"
@@ -59,6 +59,9 @@ class Evaluation:
     terms: Optional[int] = None
     static: Dict[str, int] = field(default_factory=dict)
     ops: Dict[str, int] = field(default_factory=dict)
+    estimated_ms: Optional[float] = None  # static cost model (dense case)
+    cost_breakdown: Dict[str, float] = field(default_factory=dict)
+    trace: str = ""  # generated fhe() with the level after each statement
     cases: List[CaseResult] = field(default_factory=list)
     seconds: float = 0.0
 
@@ -245,8 +248,12 @@ class Evaluator:
                 if err := self._compile_case(run_dir, slots[name], ev, quantify=name == "dense"):
                     raise _Failure("chehab_error", f"CHEHAB rejected the kernel (case {name}):\n{err}")
                 if name == "dense":
-                    info: StaticInfo = analyze((run_dir / "stage" / "he" / "_gen_he_fhe.cpp").read_text())
+                    io = iofile.read(run_dir / "fhe_io_example.txt")
+                    scalars = {l for l, (c, v) in io.inputs.items() if not c and len(v) == 1}
+                    info: StaticInfo = analyze((run_dir / "stage" / "he" / "_gen_he_fhe.cpp").read_text(), scalars)
                     ev.static, ev.ops = info.summary(), info.ops
+                    ev.estimated_ms, ev.cost_breakdown = info.estimated_ms, info.cost_breakdown()
+                    ev.trace = annotated_trace(info)
                     if static_only:
                         break
                 case = CaseResult(name, slots[name])

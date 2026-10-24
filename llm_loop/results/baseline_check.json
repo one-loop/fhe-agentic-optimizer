@@ -5,7 +5,7 @@
   "status": "ok",
   "message": "",
   "oracle_rel_error": 6.62598909613173e-16,
-  "max_abs_error": 9.99465e-08,
+  "max_abs_error": 1.49689e-07,
   "tolerance": 1e-06,
   "levels": 7,
   "case_levels": {
@@ -37,7 +37,7 @@
   "status": "ok",
   "message": "",
   "oracle_rel_error": 3.403037151480916e-16,
-  "max_abs_error": 1.38353e-07,
+  "max_abs_error": 1.31964e-07,
   "tolerance": 1e-06,
   "levels": 7,
   "case_levels": {
@@ -69,7 +69,7 @@
   "status": "ok",
   "message": "",
   "oracle_rel_error": 1.1102230246251565e-15,
-  "max_abs_error": 5.91693e-08,
+  "max_abs_error": 7.53107e-08,
   "tolerance": 1e-06,
   "levels": 8,
   "case_levels": {
@@ -101,7 +101,7 @@
   "status": "ok",
   "message": "",
   "oracle_rel_error": 2.237268686983241e-16,
-  "max_abs_error": 1.22473e-07,
+  "max_abs_error": 1.06987e-07,
   "tolerance": 1e-06,
   "levels": 8,
   "case_levels": {
@@ -133,7 +133,7 @@
   "status": "ok",
   "message": "",
   "oracle_rel_error": 4.3084455067413074e-16,
-  "max_abs_error": 1.07137e-07,
+  "max_abs_error": 1.06272e-07,
   "tolerance": 1e-06,
   "levels": 8,
   "case_levels": {
@@ -165,7 +165,7 @@
   "status": "ok",
   "message": "",
   "oracle_rel_error": 3.334121992272798e-16,
-  "max_abs_error": 8.2e-08,
+  "max_abs_error": 1.40104e-07,
   "tolerance": 1e-06,
   "levels": 7,
   "case_levels": {
@@ -197,7 +197,7 @@
   "status": "ok",
   "message": "",
   "oracle_rel_error": 2.2218251544794947e-16,
-  "max_abs_error": 1.35335e-07,
+  "max_abs_error": 1.29818e-07,
   "tolerance": 1e-06,
   "levels": 8,
   "case_levels": {
@@ -229,7 +229,7 @@
   "status": "ok",
   "message": "",
   "oracle_rel_error": 6.64349161372839e-16,
-  "max_abs_error": 1.50123e-07,
+  "max_abs_error": 9.32626e-08,
   "tolerance": 1e-06,
   "levels": 8,
   "case_levels": {
@@ -261,7 +261,7 @@
   "status": "ok",
   "message": "",
   "oracle_rel_error": 4.440892098500626e-16,
-  "max_abs_error": 5.18191e-08,
+  "max_abs_error": 6.40148e-08,
   "tolerance": 1e-06,
   "levels": 6,
   "case_levels": {
@@ -293,7 +293,7 @@
   "status": "ok",
   "message": "",
   "oracle_rel_error": 4.3989779594028e-16,
-  "max_abs_error": 1.47508e-07,
+  "max_abs_error": 1.08763e-07,
   "tolerance": 1e-06,
   "levels": 7,
   "case_levels": {
@@ -325,7 +325,7 @@
   "status": "ok",
   "message": "",
   "oracle_rel_error": 2.108236471192328e-16,
-  "max_abs_error": 1.21411e-07,
+  "max_abs_error": 2.25537e-07,
   "tolerance": 1e-06,
   "levels": 3,
   "case_levels": {
@@ -357,7 +357,7 @@
   "status": "ok",
   "message": "",
   "oracle_rel_error": 0.0,
-  "max_abs_error": 2.16112e-07,
+  "max_abs_error": 9.76882e-07,
   "tolerance": 1e-06,
   "levels": 10,
   "case_levels": {
@@ -389,7 +389,7 @@
   "status": "ok",
   "message": "",
   "oracle_rel_error": 0.0,
-  "max_abs_error": 8.5934e-08,
+  "max_abs_error": 9.44998e-08,
   "tolerance": 1e-06,
   "levels": 1,
   "case_levels": {
@@ -421,7 +421,7 @@
   "status": "ok",
   "message": "",
   "oracle_rel_error": 1.6933153249571876e-16,
-  "max_abs_error": 5.44983e-08,
+  "max_abs_error": 2.93845e-08,
   "tolerance": 1e-06,
   "levels": 1,
   "case_levels": {
@@ -453,7 +453,7 @@
   "status": "ok",
   "message": "",
   "oracle_rel_error": 2.2427919333331466e-16,
-  "max_abs_error": 3.04271e-08,
+  "max_abs_error": 3.78019e-08,
   "tolerance": 1e-06,
   "levels": 1,
   "case_levels": {
@@ -485,7 +485,7 @@
   "status": "ok",
   "message": "",
   "oracle_rel_error": 0.0,
-  "max_abs_error": 2.82227e-08,
+  "max_abs_error": 2.91475e-08,
   "tolerance": 1e-06,
   "levels": 0,
   "case_levels": {
@@ -517,7 +517,7 @@
   "status": "ok",
   "message": "",
   "oracle_rel_error": 0.0,
-  "max_abs_error": 2.2179e-08,
+  "max_abs_error": 2.45498e-08,
   "tolerance": 1e-06,
   "levels": 0,
   "case_levels": {
@@ -549,7 +549,7 @@
   "status": "ok",
   "message": "",
   "oracle_rel_error": 0.0,
-  "max_abs_error": 3.07485e-08,
+  "max_abs_error": 2.39745e-08,
   "tolerance": 1e-06,
   "levels": 0,
   "case_levels": {
@@ -581,7 +581,7 @@
   "status": "ok",
   "message": "",
   "oracle_rel_error": 0.0,
-  "max_abs_error": 5.91807e-08,
+  "max_abs_error": 5.13349e-08,
   "tolerance": 1e-06,
   "levels": 1,
   "case_levels": {
@@ -613,7 +613,7 @@
   "status": "ok",
   "message": "",
   "oracle_rel_error": 0.0,
-  "max_abs_error": 3.64647e-08,
+  "max_abs_error": 3.55701e-08,
   "tolerance": 1e-06,
   "levels": 1,
   "case_levels": {
@@ -645,7 +645,7 @@
   "status": "ok",
   "message": "",
   "oracle_rel_error": 0.0,
-  "max_abs_error": 6.15388e-08,
+  "max_abs_error": 4.91563e-08,
   "tolerance": 1e-06,
   "levels": 1,
   "case_levels": {
@@ -677,7 +677,7 @@
   "status": "ok",
   "message": "",
   "oracle_rel_error": 0.0,
-  "max_abs_error": 9.15285e-06,
+  "max_abs_error": 5.23446e-06,
   "tolerance": 0.0001,
   "levels": 1,
   "case_levels": {
@@ -709,7 +709,7 @@
   "status": "ok",
   "message": "",
   "oracle_rel_error": 0.0,
-  "max_abs_error": 7.49018e-06,
+  "max_abs_error": 6.65103e-06,
   "tolerance": 0.0001,
   "levels": 1,
   "case_levels": {
@@ -741,7 +741,7 @@
   "status": "ok",
   "message": "",
   "oracle_rel_error": 0.0,
-  "max_abs_error": 8.92928e-06,
+  "max_abs_error": 9.99881e-06,
   "tolerance": 0.0001,
   "levels": 1,
   "case_levels": {
@@ -773,7 +773,7 @@
   "status": "ok",
   "message": "",
   "oracle_rel_error": 0.0,
-  "max_abs_error": 5.49223e-05,
+  "max_abs_error": 4.60717e-05,
   "tolerance": 0.0001,
   "levels": 1,
   "case_levels": {
@@ -805,7 +805,7 @@
   "status": "ok",
   "message": "",
   "oracle_rel_error": 0.0,
-  "max_abs_error": 5.60508e-05,
+  "max_abs_error": 2.23334e-05,
   "tolerance": 0.0001,
   "levels": 2,
   "case_levels": {
