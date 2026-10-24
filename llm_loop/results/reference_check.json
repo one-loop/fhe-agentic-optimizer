@@ -1,0 +1,829 @@
+[
+ {
+  "task": "chebyshev_gelu_d7",
+  "rounds": 5,
+  "repeats": 10,
+  "kernels": {
+   "baseline": {
+    "status": "ok",
+    "correct": true,
+    "message": "",
+    "static": {
+     "levels": 7,
+     "ct_ct_mul": 5,
+     "ct_pt_mul": 5,
+     "align_mul": 7,
+     "rotate": 0,
+     "mod_switch": 10,
+     "rescale": 17,
+     "add": 12,
+     "add_plain": 2
+    },
+    "depth": 19,
+    "xdepth": 7,
+    "max_abs_error": 9.9397e-08,
+    "times_ms": [
+     174.16,
+     174.392,
+     174.345,
+     174.263,
+     174.163
+    ],
+    "median_ms": 174.263,
+    "min_ms": 174.16,
+    "max_ms": 174.392,
+    "speedup": 1.0
+   },
+   "cheb_u": {
+    "status": "ok",
+    "correct": true,
+    "message": "",
+    "static": {
+     "levels": 4,
+     "ct_ct_mul": 3,
+     "ct_pt_mul": 4,
+     "align_mul": 2,
+     "rotate": 0,
+     "mod_switch": 1,
+     "rescale": 9,
+     "add": 7,
+     "add_plain": 4
+    },
+    "depth": 13,
+    "xdepth": 4,
+    "max_abs_error": 1.3498e-07,
+    "times_ms": [
+     123.663,
+     123.518,
+     123.814,
+     123.673,
+     123.53
+    ],
+    "median_ms": 123.663,
+    "min_ms": 123.518,
+    "max_ms": 123.814,
+    "speedup": 1.4091765524045188
+   }
+  }
+ },
+ {
+  "task": "chebyshev_silu_d7",
+  "rounds": 5,
+  "repeats": 10,
+  "kernels": {
+   "baseline": {
+    "status": "ok",
+    "correct": true,
+    "message": "",
+    "static": {
+     "levels": 7,
+     "ct_ct_mul": 5,
+     "ct_pt_mul": 5,
+     "align_mul": 7,
+     "rotate": 0,
+     "mod_switch": 10,
+     "rescale": 17,
+     "add": 12,
+     "add_plain": 2
+    },
+    "depth": 19,
+    "xdepth": 7,
+    "max_abs_error": 1.69443e-07,
+    "times_ms": [
+     174.104,
+     174.197,
+     174.177,
+     174.281,
+     174.267
+    ],
+    "median_ms": 174.197,
+    "min_ms": 174.104,
+    "max_ms": 174.281,
+    "speedup": 1.0
+   },
+   "cheb_u": {
+    "status": "ok",
+    "correct": true,
+    "message": "",
+    "static": {
+     "levels": 4,
+     "ct_ct_mul": 3,
+     "ct_pt_mul": 4,
+     "align_mul": 2,
+     "rotate": 0,
+     "mod_switch": 1,
+     "rescale": 9,
+     "add": 7,
+     "add_plain": 4
+    },
+    "depth": 13,
+    "xdepth": 4,
+    "max_abs_error": 1.82794e-07,
+    "times_ms": [
+     123.469,
+     123.405,
+     123.618,
+     123.492,
+     123.713
+    ],
+    "median_ms": 123.492,
+    "min_ms": 123.405,
+    "max_ms": 123.713,
+    "speedup": 1.4105933987626729
+   }
+  }
+ },
+ {
+  "task": "chebyshev_softplus_d7",
+  "rounds": 5,
+  "repeats": 10,
+  "kernels": {
+   "baseline": {
+    "status": "ok",
+    "correct": true,
+    "message": "",
+    "static": {
+     "levels": 7,
+     "ct_ct_mul": 5,
+     "ct_pt_mul": 5,
+     "align_mul": 7,
+     "rotate": 0,
+     "mod_switch": 10,
+     "rescale": 17,
+     "add": 12,
+     "add_plain": 2
+    },
+    "depth": 19,
+    "xdepth": 7,
+    "max_abs_error": 7.87531e-08,
+    "times_ms": [
+     174.583,
+     174.389,
+     174.566,
+     174.093,
+     174.142
+    ],
+    "median_ms": 174.389,
+    "min_ms": 174.093,
+    "max_ms": 174.583,
+    "speedup": 1.0
+   },
+   "cheb_u": {
+    "status": "ok",
+    "correct": true,
+    "message": "",
+    "static": {
+     "levels": 4,
+     "ct_ct_mul": 3,
+     "ct_pt_mul": 4,
+     "align_mul": 2,
+     "rotate": 0,
+     "mod_switch": 1,
+     "rescale": 9,
+     "add": 7,
+     "add_plain": 4
+    },
+    "depth": 13,
+    "xdepth": 4,
+    "max_abs_error": 1.08582e-07,
+    "times_ms": [
+     123.549,
+     123.647,
+     123.476,
+     123.325,
+     123.366
+    ],
+    "median_ms": 123.476,
+    "min_ms": 123.325,
+    "max_ms": 123.647,
+    "speedup": 1.4123311412744177
+   }
+  }
+ },
+ {
+  "task": "chebyshev_relu_d7",
+  "rounds": 5,
+  "repeats": 10,
+  "kernels": {
+   "baseline": {
+    "status": "ok",
+    "correct": true,
+    "message": "",
+    "static": {
+     "levels": 7,
+     "ct_ct_mul": 5,
+     "ct_pt_mul": 5,
+     "align_mul": 7,
+     "rotate": 0,
+     "mod_switch": 10,
+     "rescale": 17,
+     "add": 12,
+     "add_plain": 2
+    },
+    "depth": 19,
+    "xdepth": 7,
+    "max_abs_error": 1.0475e-07,
+    "times_ms": [
+     174.438,
+     174.238,
+     174.454,
+     174.736,
+     175.666
+    ],
+    "median_ms": 174.454,
+    "min_ms": 174.238,
+    "max_ms": 175.666,
+    "speedup": 1.0
+   },
+   "cheb_u": {
+    "status": "ok",
+    "correct": true,
+    "message": "",
+    "static": {
+     "levels": 4,
+     "ct_ct_mul": 3,
+     "ct_pt_mul": 4,
+     "align_mul": 2,
+     "rotate": 0,
+     "mod_switch": 1,
+     "rescale": 9,
+     "add": 7,
+     "add_plain": 4
+    },
+    "depth": 13,
+    "xdepth": 4,
+    "max_abs_error": 1.81972e-07,
+    "times_ms": [
+     123.426,
+     123.591,
+     123.715,
+     123.431,
+     123.555
+    ],
+    "median_ms": 123.555,
+    "min_ms": 123.426,
+    "max_ms": 123.715,
+    "speedup": 1.4119541904415038
+   }
+  }
+ },
+ {
+  "task": "chebyshev_sigmoid_d7",
+  "rounds": 5,
+  "repeats": 10,
+  "kernels": {
+   "baseline": {
+    "status": "ok",
+    "correct": true,
+    "message": "",
+    "static": {
+     "levels": 8,
+     "ct_ct_mul": 6,
+     "ct_pt_mul": 5,
+     "align_mul": 8,
+     "rotate": 0,
+     "mod_switch": 13,
+     "rescale": 19,
+     "add": 14,
+     "add_plain": 2
+    },
+    "depth": 22,
+    "xdepth": 8,
+    "max_abs_error": 5.91948e-08,
+    "times_ms": [
+     185.218,
+     185.339,
+     185.042,
+     185.29,
+     185.112
+    ],
+    "median_ms": 185.218,
+    "min_ms": 185.042,
+    "max_ms": 185.339,
+    "speedup": 1.0
+   },
+   "cheb_u": {
+    "status": "ok",
+    "correct": true,
+    "message": "",
+    "static": {
+     "levels": 5,
+     "ct_ct_mul": 4,
+     "ct_pt_mul": 4,
+     "align_mul": 1,
+     "rotate": 0,
+     "mod_switch": 3,
+     "rescale": 9,
+     "add": 9,
+     "add_plain": 8
+    },
+    "depth": 18,
+    "xdepth": 5,
+    "max_abs_error": 1.13713e-07,
+    "times_ms": [
+     143.748,
+     143.669,
+     143.753,
+     143.645,
+     143.693
+    ],
+    "median_ms": 143.693,
+    "min_ms": 143.645,
+    "max_ms": 143.753,
+    "speedup": 1.288984153716604
+   },
+   "power_ps": {
+    "status": "ok",
+    "correct": true,
+    "message": "",
+    "static": {
+     "levels": 4,
+     "ct_ct_mul": 5,
+     "ct_pt_mul": 5,
+     "align_mul": 3,
+     "rotate": 0,
+     "mod_switch": 0,
+     "rescale": 13,
+     "add": 30,
+     "add_plain": 1
+    },
+    "depth": 14,
+    "xdepth": 4,
+    "max_abs_error": 1.102e-07,
+    "times_ms": [
+     190.543,
+     190.302,
+     190.7,
+     190.717,
+     190.577
+    ],
+    "median_ms": 190.577,
+    "min_ms": 190.302,
+    "max_ms": 190.717,
+    "speedup": 0.9718801324399061
+   }
+  }
+ },
+ {
+  "task": "chebyshev_hardshrink_d7",
+  "rounds": 5,
+  "repeats": 10,
+  "kernels": {
+   "baseline": {
+    "status": "ok",
+    "correct": true,
+    "message": "",
+    "static": {
+     "levels": 8,
+     "ct_ct_mul": 6,
+     "ct_pt_mul": 5,
+     "align_mul": 8,
+     "rotate": 0,
+     "mod_switch": 13,
+     "rescale": 19,
+     "add": 14,
+     "add_plain": 1
+    },
+    "depth": 21,
+    "xdepth": 8,
+    "max_abs_error": 1.35799e-07,
+    "times_ms": [
+     184.169,
+     184.14,
+     184.135,
+     184.45,
+     183.987
+    ],
+    "median_ms": 184.14,
+    "min_ms": 183.987,
+    "max_ms": 184.45,
+    "speedup": 1.0
+   },
+   "cheb_u": {
+    "status": "ok",
+    "correct": true,
+    "message": "",
+    "static": {
+     "levels": 5,
+     "ct_ct_mul": 4,
+     "ct_pt_mul": 4,
+     "align_mul": 1,
+     "rotate": 0,
+     "mod_switch": 3,
+     "rescale": 9,
+     "add": 9,
+     "add_plain": 7
+    },
+    "depth": 17,
+    "xdepth": 5,
+    "max_abs_error": 1.53075e-07,
+    "times_ms": [
+     142.134,
+     142.324,
+     142.176,
+     142.535,
+     142.237
+    ],
+    "median_ms": 142.237,
+    "min_ms": 142.134,
+    "max_ms": 142.535,
+    "speedup": 1.2945998579835063
+   },
+   "power_ps": {
+    "status": "ok",
+    "correct": true,
+    "message": "",
+    "static": {
+     "levels": 4,
+     "ct_ct_mul": 5,
+     "ct_pt_mul": 5,
+     "align_mul": 3,
+     "rotate": 0,
+     "mod_switch": 0,
+     "rescale": 13,
+     "add": 30,
+     "add_plain": 0
+    },
+    "depth": 13,
+    "xdepth": 4,
+    "max_abs_error": 1.46374e-07,
+    "times_ms": [
+     188.836,
+     188.868,
+     188.674,
+     189.081,
+     188.758
+    ],
+    "median_ms": 188.836,
+    "min_ms": 188.674,
+    "max_ms": 189.081,
+    "speedup": 0.9751318604503377
+   }
+  }
+ },
+ {
+  "task": "chebyshev_elu_d7",
+  "rounds": 5,
+  "repeats": 10,
+  "kernels": {
+   "baseline": {
+    "status": "ok",
+    "correct": true,
+    "message": "",
+    "static": {
+     "levels": 8,
+     "ct_ct_mul": 6,
+     "ct_pt_mul": 8,
+     "align_mul": 11,
+     "rotate": 0,
+     "mod_switch": 10,
+     "rescale": 25,
+     "add": 17,
+     "add_plain": 2
+    },
+    "depth": 22,
+    "xdepth": 8,
+    "max_abs_error": 1.43881e-07,
+    "times_ms": [
+     206.219,
+     206.054,
+     205.922,
+     205.866,
+     205.831
+    ],
+    "median_ms": 205.922,
+    "min_ms": 205.831,
+    "max_ms": 206.219,
+    "speedup": 1.0
+   },
+   "cheb_u": {
+    "status": "ok",
+    "correct": true,
+    "message": "",
+    "static": {
+     "levels": 5,
+     "ct_ct_mul": 5,
+     "ct_pt_mul": 6,
+     "align_mul": 3,
+     "rotate": 0,
+     "mod_switch": 3,
+     "rescale": 14,
+     "add": 15,
+     "add_plain": 10
+    },
+    "depth": 18,
+    "xdepth": 5,
+    "max_abs_error": 2.28347e-07,
+    "times_ms": [
+     188.188,
+     188.171,
+     188.213,
+     188.147,
+     188.223
+    ],
+    "median_ms": 188.188,
+    "min_ms": 188.147,
+    "max_ms": 188.223,
+    "speedup": 1.0942355516823603
+   },
+   "mixed_ps": {
+    "status": "chehab_error",
+    "correct": false,
+    "message": "CHEHAB rejected the kernel (case dense):\nFile copied successfully.\nlibc++abi: terminating due to uncaught exception of type std::logic_error: CKKS scale mismatch: ciphertext operands of '+' (term 70) are at the same level 4 with different scales; aligning them would need an extra level\n==> greedy TRS part : \nRun simplification TRS ===> \n",
+    "static": {},
+    "depth": null,
+    "xdepth": null,
+    "max_abs_error": null,
+    "times_ms": []
+   }
+  }
+ },
+ {
+  "task": "chebyshev_selu_d7",
+  "rounds": 5,
+  "repeats": 10,
+  "kernels": {
+   "baseline": {
+    "status": "ok",
+    "correct": true,
+    "message": "",
+    "static": {
+     "levels": 8,
+     "ct_ct_mul": 6,
+     "ct_pt_mul": 8,
+     "align_mul": 11,
+     "rotate": 0,
+     "mod_switch": 10,
+     "rescale": 25,
+     "add": 17,
+     "add_plain": 2
+    },
+    "depth": 22,
+    "xdepth": 8,
+    "max_abs_error": 1.39781e-07,
+    "times_ms": [
+     206.377,
+     206.025,
+     205.926,
+     206.004,
+     205.777
+    ],
+    "median_ms": 206.004,
+    "min_ms": 205.777,
+    "max_ms": 206.377,
+    "speedup": 1.0
+   },
+   "cheb_u": {
+    "status": "ok",
+    "correct": true,
+    "message": "",
+    "static": {
+     "levels": 5,
+     "ct_ct_mul": 5,
+     "ct_pt_mul": 6,
+     "align_mul": 3,
+     "rotate": 0,
+     "mod_switch": 3,
+     "rescale": 14,
+     "add": 15,
+     "add_plain": 10
+    },
+    "depth": 18,
+    "xdepth": 5,
+    "max_abs_error": 1.57561e-07,
+    "times_ms": [
+     188.307,
+     188.147,
+     188.25,
+     188.259,
+     188.129
+    ],
+    "median_ms": 188.25,
+    "min_ms": 188.129,
+    "max_ms": 188.307,
+    "speedup": 1.0943107569721116
+   },
+   "mixed_ps": {
+    "status": "chehab_error",
+    "correct": false,
+    "message": "CHEHAB rejected the kernel (case dense):\nFile copied successfully.\nlibc++abi: terminating due to uncaught exception of type std::logic_error: CKKS scale mismatch: ciphertext operands of '+' (term 70) are at the same level 4 with different scales; aligning them would need an extra level\n==> greedy TRS part : \nRun simplification TRS ===> \n",
+    "static": {},
+    "depth": null,
+    "xdepth": null,
+    "max_abs_error": null,
+    "times_ms": []
+   }
+  }
+ },
+ {
+  "task": "chebyshev_mish_d7",
+  "rounds": 5,
+  "repeats": 10,
+  "kernels": {
+   "baseline": {
+    "status": "ok",
+    "correct": true,
+    "message": "",
+    "static": {
+     "levels": 8,
+     "ct_ct_mul": 6,
+     "ct_pt_mul": 8,
+     "align_mul": 11,
+     "rotate": 0,
+     "mod_switch": 10,
+     "rescale": 25,
+     "add": 17,
+     "add_plain": 2
+    },
+    "depth": 22,
+    "xdepth": 8,
+    "max_abs_error": 1.38437e-07,
+    "times_ms": [
+     206.196,
+     205.723,
+     205.783,
+     205.878,
+     205.874
+    ],
+    "median_ms": 205.874,
+    "min_ms": 205.723,
+    "max_ms": 206.196,
+    "speedup": 1.0
+   },
+   "cheb_u": {
+    "status": "ok",
+    "correct": true,
+    "message": "",
+    "static": {
+     "levels": 5,
+     "ct_ct_mul": 5,
+     "ct_pt_mul": 6,
+     "align_mul": 3,
+     "rotate": 0,
+     "mod_switch": 3,
+     "rescale": 14,
+     "add": 15,
+     "add_plain": 10
+    },
+    "depth": 18,
+    "xdepth": 5,
+    "max_abs_error": 1.37369e-07,
+    "times_ms": [
+     188.224,
+     188.101,
+     187.934,
+     188.217,
+     188.257
+    ],
+    "median_ms": 188.217,
+    "min_ms": 187.934,
+    "max_ms": 188.257,
+    "speedup": 1.093811929846932
+   },
+   "mixed_ps": {
+    "status": "chehab_error",
+    "correct": false,
+    "message": "CHEHAB rejected the kernel (case dense):\nFile copied successfully.\nlibc++abi: terminating due to uncaught exception of type std::logic_error: CKKS scale mismatch: ciphertext operands of '+' (term 70) are at the same level 4 with different scales; aligning them would need an extra level\n==> greedy TRS part : \nRun simplification TRS ===> \n",
+    "static": {},
+    "depth": null,
+    "xdepth": null,
+    "max_abs_error": null,
+    "times_ms": []
+   }
+  }
+ },
+ {
+  "task": "chebyshev_sigmoid_d5",
+  "rounds": 5,
+  "repeats": 10,
+  "kernels": {
+   "baseline": {
+    "status": "ok",
+    "correct": true,
+    "message": "",
+    "static": {
+     "levels": 6,
+     "ct_ct_mul": 4,
+     "ct_pt_mul": 4,
+     "align_mul": 5,
+     "rotate": 0,
+     "mod_switch": 8,
+     "rescale": 13,
+     "add": 9,
+     "add_plain": 2
+    },
+    "depth": 16,
+    "xdepth": 6,
+    "max_abs_error": 7.83093e-08,
+    "times_ms": [
+     147.092,
+     147.004,
+     147.073,
+     146.974,
+     146.903
+    ],
+    "median_ms": 147.004,
+    "min_ms": 146.903,
+    "max_ms": 147.092,
+    "speedup": 1.0
+   },
+   "power": {
+    "status": "ok",
+    "correct": true,
+    "message": "",
+    "static": {
+     "levels": 4,
+     "ct_ct_mul": 3,
+     "ct_pt_mul": 4,
+     "align_mul": 2,
+     "rotate": 0,
+     "mod_switch": 2,
+     "rescale": 9,
+     "add": 14,
+     "add_plain": 1
+    },
+    "depth": 12,
+    "xdepth": 4,
+    "max_abs_error": 2.17036e-07,
+    "times_ms": [
+     121.549,
+     121.463,
+     121.443,
+     121.481,
+     121.544
+    ],
+    "median_ms": 121.481,
+    "min_ms": 121.443,
+    "max_ms": 121.549,
+    "speedup": 1.210098698561915
+   }
+  }
+ },
+ {
+  "task": "extract_sparse",
+  "rounds": 5,
+  "repeats": 10,
+  "kernels": {
+   "baseline": {
+    "status": "ok",
+    "correct": true,
+    "message": "",
+    "static": {
+     "levels": 1,
+     "ct_ct_mul": 0,
+     "ct_pt_mul": 3,
+     "align_mul": 0,
+     "rotate": 3,
+     "mod_switch": 0,
+     "rescale": 3,
+     "add": 1,
+     "add_plain": 0
+    },
+    "depth": 3,
+    "xdepth": 1,
+    "max_abs_error": 1.605e-05,
+    "times_ms": [
+     100.927,
+     100.899,
+     100.93,
+     100.889,
+     100.888
+    ],
+    "median_ms": 100.899,
+    "min_ms": 100.888,
+    "max_ms": 100.93,
+    "speedup": 1.0
+   },
+   "shared_rotation": {
+    "status": "ok",
+    "correct": true,
+    "message": "",
+    "static": {
+     "levels": 1,
+     "ct_ct_mul": 0,
+     "ct_pt_mul": 3,
+     "align_mul": 0,
+     "rotate": 2,
+     "mod_switch": 0,
+     "rescale": 3,
+     "add": 1,
+     "add_plain": 0
+    },
+    "depth": 3,
+    "xdepth": 1,
+    "max_abs_error": 6.89304e-06,
+    "times_ms": [
+     74.9379,
+     74.8933,
+     74.8595,
+     74.8769,
+     74.8901
+    ],
+    "median_ms": 74.8901,
+    "min_ms": 74.8595,
+    "max_ms": 74.9379,
+    "speedup": 1.347294235152577
+   }
+  }
+ }
+]
