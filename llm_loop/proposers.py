@@ -62,11 +62,13 @@ class ClaudeCodeProposer:
         except json.JSONDecodeError:
             return Reply("", seconds, error=f"claude exited {out.returncode}: {(out.stderr or out.stdout)[-1000:]}")
         text = data.get("result") or ""
+        usage = dict(data.get("usage", {}))
+        usage["models"] = sorted(data.get("modelUsage", {}))  # the model(s) that actually served the call
         if data.get("is_error") or out.returncode != 0:
             if "limit" in text.lower():
                 raise UsageLimitReached(text)
-            return Reply(text, seconds, data.get("usage", {}), data.get("total_cost_usd"), error=text or "error")
-        return Reply(text, seconds, data.get("usage", {}), data.get("total_cost_usd"))
+            return Reply(text, seconds, usage, data.get("total_cost_usd"), error=text or "error")
+        return Reply(text, seconds, usage, data.get("total_cost_usd"))
 
 
 class ReplayProposer:

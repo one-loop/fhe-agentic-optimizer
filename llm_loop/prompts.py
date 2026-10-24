@@ -166,6 +166,10 @@ def failure(ev, show_trace: bool = True) -> str:
             "chehab_error": "Illegal code (rejected by CHEHAB):\n", "build_error": "The generated SEAL code did not build:\n",
             "run_error": "The encrypted program failed:\n", "heldout_fail": "",
             "predicted_slower": ""}.get(ev.status, "") + msg
+    if "transparent" in msg:
+        text += ("\nSEAL rejects a 'transparent' ciphertext: some ciphertext subtraction or sum cancels exactly "
+                 "(for example (a + p) - a, which leaves only the plaintext p). CHEHAB does not catch this. Add "
+                 "plaintext constants directly to a ciphertext instead of cancelling ciphertext terms.")
     if show_trace and "scale mismatch" in msg:
         text += ("\nThis is CKKS rule 4: two operands added at the same level have different scales because "
                  "they were produced by different multiplication patterns. Restructure so they meet at "

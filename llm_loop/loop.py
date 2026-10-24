@@ -49,7 +49,7 @@ from llm_loop.score import score
 from llm_loop.tasks import TASKS, Task
 
 RUNS = Path(__file__).resolve().parent / "runs"
-REPAIRABLE = {"rejected", "compile_error", "chehab_error", "build_error"}
+REPAIRABLE = {"rejected", "compile_error", "chehab_error", "build_error", "run_error"}
 THOMPSON_C = 20.0  # REx's recommended exploration constant
 
 
@@ -86,6 +86,7 @@ class TaskRun:
         self.entries: List[Entry] = [Entry(0, None, task.baseline(), "baseline", baseline, "baseline")]
         self.seen = {normalize(task.baseline()): 0}
         self.calls, self.model_seconds, self.cost_usd = 0, 0.0, 0.0
+        self.models_used = set()
         self.dialogue: List[tuple] = []  # linear strategy: (role, text)
 
     # ---------------------------------------------------------------- helpers
@@ -148,6 +149,10 @@ class TaskRun:
         self.calls += 1
         self.model_seconds += reply.seconds
         self.cost_usd += reply.cost_usd or 0.0
+        self.models_used.update(reply.usage.get("models", []))
+        with open(self.out / "calls.jsonl", "a") as f:
+            f.write(json.dumps({"iteration": it, "seconds": reply.seconds, "usage": reply.usage,
+                                "estimated_cost_usd": reply.cost_usd, "error": reply.error}) + "\n")
         (self.out / f"answer_{it:02d}.md").write_text(reply.text if not reply.error else f"ERROR: {reply.error}")
         return reply.text if not reply.error else ""
 
@@ -261,7 +266,7 @@ class TaskRun:
         return {
             "task": self.task.name, "owner": self.task.owner, "run": self.run, "strategy": self.args.strategy,
             "feedback": self.args.feedback, "hints": self.args.hints, "iterations": self.args.iterations,
-            "proposer": self.proposer.describe(), "calls": self.calls, "model_seconds": self.model_seconds,
+            "proposer": self.proposer.describe(), "models_used": sorted(self.models_used), "calls": self.calls, "model_seconds": self.model_seconds,
             "estimated_cost_usd": self.cost_usd, "wall_seconds": time.time() - start,
             "best_id": best.id, "best_is_repair": best.is_repair,
             "baseline": self.baseline.ev.to_dict(), "best": best.ev.to_dict(),
