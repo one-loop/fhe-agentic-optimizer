@@ -29,10 +29,12 @@ is re-timed against the baseline with the neutral scorer (score.py).
 """
 import argparse
 import csv
+import hashlib
 import json
 import re
 import shutil
 import statistics
+import subprocess
 import sys
 import time
 from dataclasses import dataclass
@@ -46,7 +48,7 @@ from llm_loop import prompts
 from llm_loop.evaluate import WORK, Evaluation, Evaluator
 from llm_loop.proposers import ClaudeCodeProposer, ReplayProposer, UsageLimitReached
 from llm_loop.score import score
-from llm_loop.tasks import TASKS, Task
+from llm_loop.tasks import REPO, TASKS, Task
 
 RUNS = Path(__file__).resolve().parent / "runs"
 REPAIRABLE = {"rejected", "compile_error", "chehab_error", "build_error", "run_error"}
@@ -87,6 +89,7 @@ class TaskRun:
         self.seen = {normalize(task.baseline()): 0}
         self.calls, self.model_seconds, self.cost_usd = 0, 0.0, 0.0
         self.models_used = set()
+        self.tokens = {"input": 0, "output": 0, "thinking": 0}
         self.dialogue: List[tuple] = []  # linear strategy: (role, text)
 
     # ---------------------------------------------------------------- helpers
@@ -150,6 +153,11 @@ class TaskRun:
         self.model_seconds += reply.seconds
         self.cost_usd += reply.cost_usd or 0.0
         self.models_used.update(reply.usage.get("models", []))
+        u = reply.usage
+        self.tokens["input"] += (u.get("input_tokens") or 0) + (u.get("cache_creation_input_tokens") or 0) \
+            + (u.get("cache_read_input_tokens") or 0)
+        self.tokens["output"] += u.get("output_tokens") or 0
+        self.tokens["thinking"] += (u.get("output_tokens_details") or {}).get("thinking_tokens") or 0
         with open(self.out / "calls.jsonl", "a") as f:
             f.write(json.dumps({"iteration": it, "seconds": reply.seconds, "usage": reply.usage,
                                 "estimated_cost_usd": reply.cost_usd, "error": reply.error}) + "\n")
@@ -255,24 +263,35 @@ class TaskRun:
 
     # -------------------------------------------------------------------- run
     def execute(self) -> dict:
+        started_at = datetime.now().isoformat(timespec="seconds")
         start = time.time()
         (self.run_linear if self.args.strategy == "linear" else self.run_archive)()
-        best = self.best
+        search_seconds = time.time() - start
+        if self.calls != self.args.iterations:  # every invocation counts; no free calls
+            raise RuntimeError(f"{self.task.name} run {self.run}: {self.calls} calls, budget {self.args.iterations}")
+        best = self.best  # the strategy's own selection; re-scoring measures it, never re-selects
         (self.out / "best.cpp").write_text(best.source)
         rescored = None
         if best.id != 0 and self.args.final_rounds > 0:
             rescored = score(self.task, {"best": best.source}, self.evaluator, rounds=self.args.final_rounds)
         outcomes = [e.outcome for e in self.entries[1:]]
+        failures = {k: outcomes.count(k) for k in ("rejected", "compile_error", "chehab_error", "build_error",
+                                                   "run_error", "wrong_output", "heldout_fail", "no_code")}
         return {
             "task": self.task.name, "owner": self.task.owner, "run": self.run, "strategy": self.args.strategy,
+            "started_at": started_at,
             "feedback": self.args.feedback, "hints": self.args.hints, "iterations": self.args.iterations,
             "proposer": self.proposer.describe(), "models_used": sorted(self.models_used), "calls": self.calls, "model_seconds": self.model_seconds,
-            "estimated_cost_usd": self.cost_usd, "wall_seconds": time.time() - start,
+            "estimated_cost_usd": self.cost_usd, "tokens": self.tokens, "search_seconds": search_seconds,
+            "wall_seconds": time.time() - start, "git": self.args.git,
             "best_id": best.id, "best_is_repair": best.is_repair,
             "baseline": self.baseline.ev.to_dict(), "best": best.ev.to_dict(),
             "speedup_in_loop": self.baseline.ev.eval_time_ms / best.ev.eval_time_ms,
             "rescored": rescored,
             "outcomes": {o: outcomes.count(o) for o in sorted(set(outcomes))},
+            "duplicates": sum(o.startswith("duplicate") for o in outcomes),
+            "predicted_slower": outcomes.count("predicted_slower"), "failures": failures,
+            "best_source_sha1": hashlib.sha1(best.source.encode()).hexdigest(),
             "correct_attempts": sum(e.correct for e in self.entries[1:]),
         }
 
@@ -283,14 +302,15 @@ def summarize(out: Path, results: List[dict]) -> None:
     for r in results:
         b, best = r["baseline"], r["best"]
         k = (r.get("rescored") or {}).get("kernels", {})
-        speedup = k.get("best", {}).get("speedup") if k else 1.0
+        speedup = k.get("best", {}).get("speedup") if k else r["speedup_in_loop"]
         rows.append({
             "task": r["task"], "owner": r["owner"], "run": r["run"], "strategy": r["strategy"],
             "feedback": r["feedback"], "hints": r["hints"], "calls": r["calls"],
             "correct_attempts": r["correct_attempts"], "best_attempt": r["best_id"],
             "L_baseline_ms": k.get("baseline", {}).get("median_ms", b["eval_time_ms"]) if k else b["eval_time_ms"],
             "L_best_ms": k.get("best", {}).get("median_ms", best["eval_time_ms"]) if k else best["eval_time_ms"],
-            "speedup": speedup, "D_baseline": b["xdepth"], "D_best": best["xdepth"],
+            "speedup": speedup, "speedup_source": "re-timed" if k else "in-loop (not neutral)",
+            "D_baseline": b["xdepth"], "D_best": best["xdepth"],
             "levels_baseline": b["static"]["levels"], "levels_best": best["static"]["levels"],
             "C_baseline_ms": b["compile_time_ms"], "C_best_ms": best["compile_time_ms"],
             "ctct_baseline": b["static"]["ct_ct_mul"], "ctct_best": best["static"]["ct_ct_mul"],
@@ -302,7 +322,9 @@ def summarize(out: Path, results: List[dict]) -> None:
         w.writeheader()
         w.writerows(rows)
     lines = ["# LLM loop results", "",
-             "L = fhe() latency (median, neutral scorer re-timing of the best kernel against the baseline), "
+             "Speedups are " + ("in-loop measurements, NOT neutral re-timing (run rescore.py)"
+                                if rows[0]["speedup_source"] != "re-timed" else "neutral re-timing") + ".",
+             "L = fhe() latency (median), "
              "D = multiplicative depth (Quantifier xdepth), C = CHEHAB compilation time.", "",
              "| task | owner | run | calls | correct | best | L base (ms) | L best (ms) | speedup | D | levels | "
              "C (ms) | ct x ct | rot |", "|---|---|---:|---:|---:|---:|---:|---:|---:|---|---|---|---|---|"]
@@ -320,6 +342,13 @@ def summarize(out: Path, results: List[dict]) -> None:
         for t, v in by_task.items():
             lines.append(f"| {t} | {len(v)} | x{statistics.mean(v):.2f} | x{max(v):.2f} |")
     (out / "summary.md").write_text("\n".join(lines) + "\n")
+
+
+def git_state() -> dict:
+    def git(*a):
+        return subprocess.run(["git", *a], cwd=REPO, capture_output=True, text=True).stdout.strip()
+    return {"commit": git("rev-parse", "HEAD"), "branch": git("rev-parse", "--abbrev-ref", "HEAD"),
+            "dirty": bool(git("status", "--porcelain", "--untracked-files=no"))}
 
 
 def make_proposer(args, task: Task):
@@ -367,7 +396,10 @@ def main():
             p.error(f"unknown task {t}; known: {sorted(TASKS)}")
     out = args.out or RUNS / datetime.now().strftime("%Y%m%d-%H%M%S")
     out.mkdir(parents=True, exist_ok=True)
-    (out / "config.json").write_text(json.dumps({k: str(v) for k, v in vars(args).items()}, indent=1) + "\n")
+    args.git = git_state()
+    with open(out / "invocations.jsonl", "a") as f:  # one line per invocation (resumed runs append)
+        f.write(json.dumps({"time": datetime.now().isoformat(timespec="seconds"), "argv": sys.argv[1:],
+                            **{k: str(v) for k, v in vars(args).items()}}) + "\n")
 
     evaluator = Evaluator(work=args.work)
     results = []
@@ -392,8 +424,9 @@ def main():
                 result = TaskRun(task, args, make_proposer(args, task), evaluator, baseline, run, run_dir).execute()
                 (run_dir / "result.json").write_text(json.dumps(result, indent=1) + "\n")
                 results.append(result)
-                sp = (result.get("rescored") or {}).get("kernels", {}).get("best", {}).get("speedup") or 1.0
-                print(f"== {name} run {run}: best #{result['best_id']}, x{sp:.2f} (re-timed), "
+                re_timed = (result.get("rescored") or {}).get("kernels", {}).get("best", {}).get("speedup")
+                sp = f"x{re_timed:.2f} (re-timed)" if re_timed else f"x{result['speedup_in_loop']:.2f} (in-loop, not neutral)"
+                print(f"== {name} run {run}: best #{result['best_id']}, {sp}, "
                       f"{result['correct_attempts']}/{result['calls']} correct", flush=True)
     except UsageLimitReached as e:
         print(f"\nStopped: Claude usage limit reached ({str(e)[:200]}). Completed runs are saved; rerun the same "

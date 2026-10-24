@@ -114,7 +114,8 @@ class Evaluator:
     def __init__(self, seal_prefix: Optional[str] = None, work: Path = WORK, repeats: int = 10,
                  timeout: float = 900):
         self.seal_prefix = seal_prefix or os.environ.get("CMAKE_PREFIX_PATH", str(Path.home() / ".local"))
-        self.work, self.repeats, self.timeout = Path(work), repeats, timeout
+        # absolute: the driver and programs are launched from inside case directories
+        self.work, self.repeats, self.timeout = Path(work).resolve(), repeats, timeout
         self.kernel_dir = self.work / "kernel"
         self.driver_build = self.work / "driver"
         self.env = _env()
@@ -223,6 +224,18 @@ class Evaluator:
                            f"error {case.max_abs_error:.3g} > tolerance {task.tolerance:g}\n" + out[-1500:])
 
     # ------------------------------------------------------------------- entry
+    def compile_times(self, task: Task, tag: str, runs: int = 3, case: str = "dense") -> List[float]:
+        """CHEHAB compile time of the kernel evaluated last, `runs` times (run_benchmarks.py takes the
+        median of 3). Call right after evaluate(), while the driver still holds that kernel."""
+        slot = int((self.case_dir(task, case) / "slot_count").read_text())
+        times = []
+        for _ in range(runs):
+            ev = Evaluation("ok")
+            if err := self._compile_case(self.program_dir(task, tag, case), slot, ev, quantify=True):
+                raise RuntimeError(f"{task.name}/{tag}: compile failed while timing\n{err}")
+            times.append(ev.compile_time_ms)
+        return times
+
     def program_dir(self, task: Task, tag: str, case: str) -> Path:
         """Where a kernel's generated program for one case is built (he/build/main)."""
         return self.work / "eval" / task.name / tag / case

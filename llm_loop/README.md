@@ -143,6 +143,37 @@ mode always uses (and bills) a key when one is present. Haiku 5.5 needs Claude
 Code 2.1.293 or newer (`claude update`). If a usage limit is reached, the loop
 stops and the same command resumes it.
 
+## Phase-2 pilot protocol
+
+`experiments/phase2_pilot.sh` runs the approved pilot: `archive` vs `linear`, both
+with `--hints none` and measured feedback, on `chebyshev_gelu_d7`,
+`chebyshev_sigmoid_d7` and `chebyshev_elu_d7`; Claude Haiku 5.5 (effort medium)
+through Claude Code headless mode for both strategies; 8 model calls per run;
+3 independent runs per task and strategy (144 calls).
+
+- **Budget.** Every model invocation (proposal, repair, duplicate, invalid or
+  empty answer) uses one of the 8 calls; a run that does not make exactly 8 calls
+  is an error. Nothing is called after the budget.
+- **Order.** Task order rotates across runs (run 1: GELU, Sigmoid, ELU; run 2:
+  Sigmoid, ELU, GELU; run 3: ELU, GELU, Sigmoid) and strategy order alternates
+  (archive first in runs 1 and 3, linear first in run 2).
+- **Final kernel.** Each run's final kernel is the one its strategy selected
+  within the budget (`best.cpp`). Neutral re-scoring measures it and never picks
+  another attempt.
+- **Neutral re-scoring** (`rescore.py`), per task in one session: correctness on
+  fixed, dense and held-out cases; 3 compiles (median compile time, reported
+  only); 1 warmup + 10 measured processes of `./main --repeats 10`, interleaved
+  across the baseline and every final kernel. Speedup = baseline eval-only median
+  / kernel eval-only median from that session. Identical kernels are measured
+  once (a final equal to the baseline scores x1.000).
+- **Reporting.** Every run is kept and reported; per task and strategy the
+  median, mean, min, max and standard deviation; across tasks only the geometric
+  mean of per-task means. Approximation error (polynomial vs activation) is a task
+  property reported apart from FHE error.
+- **Outputs.** Runs: `runs/phase2-pilot/<strategy>/<task>/run<k>/` (git-ignored).
+  Results: `results/phase2_pilot/` (`phase2_pilot.md`, `runs.csv`, `rescore.csv`,
+  `rescore.meta.json`).
+
 ## Caveats
 
 - Not a sandbox: kernels are C++ compiled and run on this machine. The token
