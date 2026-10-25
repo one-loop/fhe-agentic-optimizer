@@ -1,0 +1,641 @@
+{
+ "task": "chebyshev_elu_d7",
+ "model": "claude-sonnet-5-5",
+ "effort": "medium",
+ "iterations": 8,
+ "timestamp": "20261024-151205",
+ "wall_time_s": 431.0710799694061,
+ "baseline": {
+  "status": "ok",
+  "correct": true,
+  "message": "kernel 9f1aed3320",
+  "compile_time_ms": 0.920375,
+  "depth": 22,
+  "mult_depth": 8,
+  "terms": 85,
+  "ops": {
+   "ct_ct_mul": 6,
+   "square": 0,
+   "ct_pt_mul": 8,
+   "relin": 6,
+   "rotate": 0,
+   "rescale": 14,
+   "mod_switch": 10,
+   "match_scale": 11,
+   "add": 19
+  },
+  "cases": [
+   {
+    "name": "fixed",
+    "slot_count": 9,
+    "passed": true,
+    "max_abs_error": 2.15246e-08,
+    "levels_consumed": 8,
+    "exec_time_ms": 418.473,
+    "eval_time_ms": 359.345,
+    "output": "output y: max_abs_error=2.15246e-08 (ok), chain_index 10 -> 2 (levels consumed 8), log2_scale=40.0000802\nexecution_time_(ms): 418.473\nfhe_eval_median_(ms): 359.345 (1 warmup + 1 runs)\nPASS (tolerance 1e-06)\n"
+   },
+   {
+    "name": "dense",
+    "slot_count": 256,
+    "passed": true,
+    "max_abs_error": 1.14844e-07,
+    "levels_consumed": 8,
+    "exec_time_ms": 417.761,
+    "eval_time_ms": 358.283,
+    "output": "output y: max_abs_error=1.14844e-07 (ok), chain_index 10 -> 2 (levels consumed 8), log2_scale=40.0000802\nexecution_time_(ms): 417.761\nfhe_eval_median_(ms): 358.283 (1 warmup + 10 runs)\nPASS (tolerance 1e-06)\n"
+   }
+  ],
+  "timing_skipped": false,
+  "eval_time_ms": 358.283,
+  "levels": 8,
+  "max_abs_error": 1.14844e-07
+ },
+ "best": {
+  "status": "ok",
+  "correct": true,
+  "message": "kernel f3e3013746",
+  "compile_time_ms": 0.891,
+  "depth": 27,
+  "mult_depth": 8,
+  "terms": 67,
+  "ops": {
+   "ct_ct_mul": 6,
+   "square": 0,
+   "ct_pt_mul": 2,
+   "relin": 6,
+   "rotate": 0,
+   "rescale": 8,
+   "mod_switch": 11,
+   "match_scale": 5,
+   "add": 19
+  },
+  "cases": [
+   {
+    "name": "fixed",
+    "slot_count": 9,
+    "passed": true,
+    "max_abs_error": 4.24392e-08,
+    "levels_consumed": 8,
+    "exec_time_ms": 304.836,
+    "eval_time_ms": 252.102,
+    "output": "output y: max_abs_error=4.24392e-08 (ok), chain_index 10 -> 2 (levels consumed 8), log2_scale=40.0000802\nexecution_time_(ms): 304.836\nfhe_eval_median_(ms): 252.102 (1 warmup + 1 runs)\nPASS (tolerance 1e-06)\n"
+   },
+   {
+    "name": "dense",
+    "slot_count": 256,
+    "passed": true,
+    "max_abs_error": 1.04062e-07,
+    "levels_consumed": 8,
+    "exec_time_ms": 325.709,
+    "eval_time_ms": 254.666,
+    "output": "output y: max_abs_error=1.04062e-07 (ok), chain_index 10 -> 2 (levels consumed 8), log2_scale=40.0000802\nexecution_time_(ms): 325.709\nfhe_eval_median_(ms): 254.666 (1 warmup + 10 runs)\nPASS (tolerance 1e-06)\n"
+   }
+  ],
+  "timing_skipped": false,
+  "eval_time_ms": 254.666,
+  "levels": 8,
+  "max_abs_error": 1.04062e-07
+ },
+ "best_iteration": 4,
+ "speedup": 1.4205803909080053,
+ "final_remeasure": {
+  "candidate_ms": 251.4,
+  "reference_ms": 356.997,
+  "ratios": [
+   0.7051,
+   0.6777,
+   0.7039,
+   0.7035,
+   0.7073,
+   0.7047,
+   0.7039
+  ],
+  "wins": 7,
+  "batches": 7,
+  "median_ratio": 0.7039376345050216,
+  "speedup": 1.4205803909080053,
+  "confirmed": true
+ },
+ "single_run_speedup": 1.4068741017646644,
+ "structural_change": true,
+ "usage": {
+  "input_tokens": 32,
+  "output_tokens": 17517,
+  "cache_creation_input_tokens": 19896,
+  "cache_read_input_tokens": 75116
+ },
+ "approx_cost_usd": 0.0,
+ "attempts": [
+  {
+   "iteration": 0,
+   "kind": "baseline",
+   "evaluation": {
+    "status": "ok",
+    "correct": true,
+    "message": "kernel 9f1aed3320",
+    "compile_time_ms": 0.920375,
+    "depth": 22,
+    "mult_depth": 8,
+    "terms": 85,
+    "ops": {
+     "ct_ct_mul": 6,
+     "square": 0,
+     "ct_pt_mul": 8,
+     "relin": 6,
+     "rotate": 0,
+     "rescale": 14,
+     "mod_switch": 10,
+     "match_scale": 11,
+     "add": 19
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 9,
+      "passed": true,
+      "max_abs_error": 2.15246e-08,
+      "levels_consumed": 8,
+      "exec_time_ms": 418.473,
+      "eval_time_ms": 359.345,
+      "output": "output y: max_abs_error=2.15246e-08 (ok), chain_index 10 -> 2 (levels consumed 8), log2_scale=40.0000802\nexecution_time_(ms): 418.473\nfhe_eval_median_(ms): 359.345 (1 warmup + 1 runs)\nPASS (tolerance 1e-06)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 256,
+      "passed": true,
+      "max_abs_error": 1.14844e-07,
+      "levels_consumed": 8,
+      "exec_time_ms": 417.761,
+      "eval_time_ms": 358.283,
+      "output": "output y: max_abs_error=1.14844e-07 (ok), chain_index 10 -> 2 (levels consumed 8), log2_scale=40.0000802\nexecution_time_(ms): 417.761\nfhe_eval_median_(ms): 358.283 (1 warmup + 10 runs)\nPASS (tolerance 1e-06)\n"
+     }
+    ],
+    "timing_skipped": false,
+    "eval_time_ms": 358.283,
+    "levels": 8,
+    "max_abs_error": 1.14844e-07
+   },
+   "seconds": 15.139498949050903
+  },
+  {
+   "iteration": 1,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "chehab_error",
+    "correct": false,
+    "message": "CHEHAB rejected the kernel (case fixed, 9 slots):\nCKKS scale mismatch: ciphertext operands of '+' (term 37) are at the same level 4 with different scales; aligning them would need an extra level\n  left operand:  level 4, scale D^7/(q0^3*q1*q2*q3): +(*(c3, -(+(..., ...), *(x, alpha))), +(*(c2, -(..., one)), *(c1, *(x, alpha))))\n  right operand: level 4, scale D^9/(q0^4*q1^2*q2*q3): *(c4, -(+(square(...), square(...)), one))\nHow to read this: each operand is CHEHAB's expression for that value over your kernel's inputs, after its own rewrites. The rescale, relinearize, mod_switch and match_scale steps CHEHAB inserts are omitted, and `...` hides deeper subterms. D^k is the nominal scale to the power of the number of multiplications behind the value; /qL marks a rescale at level L. Find the `+` or `-` in your kernel that combines these two values. Restructure it so that they either meet at different levels (CHEHAB then aligns them for free) or have the same multiplication history at that level.",
+    "compile_time_ms": null,
+    "depth": null,
+    "mult_depth": null,
+    "terms": null,
+    "ops": {},
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 9,
+      "passed": false,
+      "max_abs_error": null,
+      "levels_consumed": null,
+      "exec_time_ms": null,
+      "eval_time_ms": null,
+      "output": ""
+     }
+    ],
+    "timing_skipped": false,
+    "eval_time_ms": null,
+    "levels": null,
+    "max_abs_error": null
+   },
+   "verdict": "failed",
+   "same_as": null,
+   "remeasure": null,
+   "new_best": false,
+   "seconds": 12.549962997436523
+  },
+  {
+   "iteration": 2,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "chehab_error",
+    "correct": false,
+    "message": "CHEHAB rejected the kernel (case fixed, 9 slots):\nCKKS scale mismatch: ciphertext operands of '+' (term 43) are at the same level 6 with different scales; aligning them would need an extra level\n  left operand:  level 6, scale D^11/(q0^5*q1*q2*q3*q4*q5): +(+(*(c5, -(..., ...)), +(*(c4, ...), +(..., ...))), *(c6, -(+(..., ...), one)))\n  right operand: level 6, scale D^15/(q0^7*q1^2*q2^2*q3*q4*q5): *(c7, -(+(*(..., ...), *(..., ...)), *(x, alpha)))\nHow to read this: each operand is CHEHAB's expression for that value over your kernel's inputs, after its own rewrites. The rescale, relinearize, mod_switch and match_scale steps CHEHAB inserts are omitted, and `...` hides deeper subterms. D^k is the nominal scale to the power of the number of multiplications behind the value; /qL marks a rescale at level L. Find the `+` or `-` in your kernel that combines these two values. Restructure it so that they either meet at different levels (CHEHAB then aligns them for free) or have the same multiplication history at that level.",
+    "compile_time_ms": null,
+    "depth": null,
+    "mult_depth": null,
+    "terms": null,
+    "ops": {},
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 9,
+      "passed": false,
+      "max_abs_error": null,
+      "levels_consumed": null,
+      "exec_time_ms": null,
+      "eval_time_ms": null,
+      "output": ""
+     }
+    ],
+    "timing_skipped": false,
+    "eval_time_ms": null,
+    "levels": null,
+    "max_abs_error": null
+   },
+   "verdict": "failed",
+   "same_as": null,
+   "remeasure": null,
+   "new_best": false,
+   "seconds": 33.378586769104004
+  },
+  {
+   "iteration": 3,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "ok",
+    "correct": true,
+    "message": "kernel 29b2bbc99f",
+    "compile_time_ms": 0.935375,
+    "depth": 19,
+    "mult_depth": 7,
+    "terms": 85,
+    "ops": {
+     "ct_ct_mul": 6,
+     "square": 2,
+     "ct_pt_mul": 8,
+     "relin": 6,
+     "rotate": 0,
+     "rescale": 14,
+     "mod_switch": 11,
+     "match_scale": 10,
+     "add": 19
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 9,
+      "passed": true,
+      "max_abs_error": 4.90791e-08,
+      "levels_consumed": 7,
+      "exec_time_ms": 439.142,
+      "eval_time_ms": 380.346,
+      "output": "output y: max_abs_error=4.90791e-08 (ok), chain_index 10 -> 3 (levels consumed 7), log2_scale=40.0000734\nexecution_time_(ms): 439.142\nfhe_eval_median_(ms): 380.346 (1 warmup + 1 runs)\nPASS (tolerance 1e-06)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 256,
+      "passed": true,
+      "max_abs_error": 1.13753e-07,
+      "levels_consumed": 7,
+      "exec_time_ms": 439.453,
+      "eval_time_ms": 386.605,
+      "output": "output y: max_abs_error=1.13753e-07 (ok), chain_index 10 -> 3 (levels consumed 7), log2_scale=40.0000734\nexecution_time_(ms): 439.453\nfhe_eval_median_(ms): 386.605 (1 warmup + 10 runs)\nPASS (tolerance 1e-06)\n"
+     }
+    ],
+    "timing_skipped": false,
+    "eval_time_ms": 386.605,
+    "levels": 7,
+    "max_abs_error": 1.13753e-07
+   },
+   "verdict": "slower",
+   "same_as": null,
+   "remeasure": null,
+   "new_best": false,
+   "seconds": 24.51631999015808
+  },
+  {
+   "iteration": 4,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "ok",
+    "correct": true,
+    "message": "kernel f3e3013746",
+    "compile_time_ms": 0.891,
+    "depth": 27,
+    "mult_depth": 8,
+    "terms": 67,
+    "ops": {
+     "ct_ct_mul": 6,
+     "square": 0,
+     "ct_pt_mul": 2,
+     "relin": 6,
+     "rotate": 0,
+     "rescale": 8,
+     "mod_switch": 11,
+     "match_scale": 5,
+     "add": 19
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 9,
+      "passed": true,
+      "max_abs_error": 4.24392e-08,
+      "levels_consumed": 8,
+      "exec_time_ms": 304.836,
+      "eval_time_ms": 252.102,
+      "output": "output y: max_abs_error=4.24392e-08 (ok), chain_index 10 -> 2 (levels consumed 8), log2_scale=40.0000802\nexecution_time_(ms): 304.836\nfhe_eval_median_(ms): 252.102 (1 warmup + 1 runs)\nPASS (tolerance 1e-06)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 256,
+      "passed": true,
+      "max_abs_error": 1.04062e-07,
+      "levels_consumed": 8,
+      "exec_time_ms": 325.709,
+      "eval_time_ms": 254.666,
+      "output": "output y: max_abs_error=1.04062e-07 (ok), chain_index 10 -> 2 (levels consumed 8), log2_scale=40.0000802\nexecution_time_(ms): 325.709\nfhe_eval_median_(ms): 254.666 (1 warmup + 10 runs)\nPASS (tolerance 1e-06)\n"
+     }
+    ],
+    "timing_skipped": false,
+    "eval_time_ms": 254.666,
+    "levels": 8,
+    "max_abs_error": 1.04062e-07
+   },
+   "verdict": "new_best",
+   "same_as": null,
+   "remeasure": {
+    "candidate_ms": 251.705,
+    "reference_ms": 358.343,
+    "ratios": [
+     0.7019,
+     0.7022,
+     0.706,
+     0.6483,
+     0.7053
+    ],
+    "wins": 5,
+    "batches": 5,
+    "median_ratio": 0.7021819876487053,
+    "speedup": 1.4241322300911685,
+    "confirmed": true,
+    "against": 0
+   },
+   "new_best": true,
+   "seconds": 73.22592520713806
+  },
+  {
+   "iteration": 5,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "ok",
+    "correct": true,
+    "message": "kernel 38cd4b0b2a",
+    "compile_time_ms": 0.856083,
+    "depth": 14,
+    "mult_depth": 5,
+    "terms": 67,
+    "ops": {
+     "ct_ct_mul": 4,
+     "square": 2,
+     "ct_pt_mul": 9,
+     "relin": 4,
+     "rotate": 0,
+     "rescale": 13,
+     "mod_switch": 3,
+     "match_scale": 6,
+     "add": 17
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 9,
+      "passed": true,
+      "max_abs_error": 3.21044e-08,
+      "levels_consumed": 5,
+      "exec_time_ms": 390.021,
+      "eval_time_ms": 330.238,
+      "output": "output y: max_abs_error=3.21044e-08 (ok), chain_index 10 -> 5 (levels consumed 5), log2_scale=40.0000628\nexecution_time_(ms): 390.021\nfhe_eval_median_(ms): 330.238 (1 warmup + 1 runs)\nPASS (tolerance 1e-06)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 256,
+      "passed": true,
+      "max_abs_error": 1.19648e-07,
+      "levels_consumed": 5,
+      "exec_time_ms": 389.537,
+      "eval_time_ms": 329.918,
+      "output": "output y: max_abs_error=1.19648e-07 (ok), chain_index 10 -> 5 (levels consumed 5), log2_scale=40.0000628\nexecution_time_(ms): 389.537\nfhe_eval_median_(ms): 329.918 (1 warmup + 10 runs)\nPASS (tolerance 1e-06)\n"
+     }
+    ],
+    "timing_skipped": false,
+    "eval_time_ms": 329.918,
+    "levels": 5,
+    "max_abs_error": 1.19648e-07
+   },
+   "verdict": "slower",
+   "same_as": null,
+   "remeasure": null,
+   "new_best": false,
+   "seconds": 40.49824380874634
+  },
+  {
+   "iteration": 6,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "ok",
+    "correct": true,
+    "message": "kernel 0ce99a47e1",
+    "compile_time_ms": 0.940875,
+    "depth": 22,
+    "mult_depth": 8,
+    "terms": 67,
+    "ops": {
+     "ct_ct_mul": 6,
+     "square": 0,
+     "ct_pt_mul": 2,
+     "relin": 6,
+     "rotate": 0,
+     "rescale": 8,
+     "mod_switch": 16,
+     "match_scale": 5,
+     "add": 14
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 9,
+      "passed": true,
+      "max_abs_error": 2.66599e-08,
+      "levels_consumed": 8,
+      "exec_time_ms": 306.868,
+      "eval_time_ms": 250.886,
+      "output": "output y: max_abs_error=2.66599e-08 (ok), chain_index 10 -> 2 (levels consumed 8), log2_scale=40.0000802\nexecution_time_(ms): 306.868\nfhe_eval_median_(ms): 250.886 (1 warmup + 1 runs)\nPASS (tolerance 1e-06)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 256,
+      "passed": true,
+      "max_abs_error": 6.97162e-08,
+      "levels_consumed": 8,
+      "exec_time_ms": 309.48,
+      "eval_time_ms": 251.495,
+      "output": "output y: max_abs_error=6.97162e-08 (ok), chain_index 10 -> 2 (levels consumed 8), log2_scale=40.0000802\nexecution_time_(ms): 309.48\nfhe_eval_median_(ms): 251.495 (1 warmup + 10 runs)\nPASS (tolerance 1e-06)\n"
+     }
+    ],
+    "timing_skipped": false,
+    "eval_time_ms": 251.495,
+    "levels": 8,
+    "max_abs_error": 6.97162e-08
+   },
+   "verdict": "not_confirmed",
+   "same_as": null,
+   "remeasure": {
+    "candidate_ms": 250.767,
+    "reference_ms": 251.314,
+    "ratios": [
+     0.9936,
+     1.001,
+     0.9981,
+     0.9968,
+     1.0019
+    ],
+    "wins": 3,
+    "batches": 5,
+    "median_ratio": 0.9981370835804617,
+    "speedup": 1.0018663933543634,
+    "confirmed": false,
+    "against": 4
+   },
+   "new_best": false,
+   "seconds": 57.039700984954834
+  },
+  {
+   "iteration": 7,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "ok",
+    "correct": true,
+    "message": "kernel 61d03f8746",
+    "compile_time_ms": 1.133,
+    "depth": 16,
+    "mult_depth": 6,
+    "terms": 64,
+    "ops": {
+     "ct_ct_mul": 6,
+     "square": 1,
+     "ct_pt_mul": 3,
+     "relin": 6,
+     "rotate": 0,
+     "rescale": 9,
+     "mod_switch": 10,
+     "match_scale": 4,
+     "add": 15
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 9,
+      "passed": true,
+      "max_abs_error": 1.84075e-08,
+      "levels_consumed": 6,
+      "exec_time_ms": 361.64,
+      "eval_time_ms": 305.294,
+      "output": "output y: max_abs_error=1.84075e-08 (ok), chain_index 10 -> 4 (levels consumed 6), log2_scale=40.0000669\nexecution_time_(ms): 361.64\nfhe_eval_median_(ms): 305.294 (1 warmup + 1 runs)\nPASS (tolerance 1e-06)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 256,
+      "passed": true,
+      "max_abs_error": 1.15372e-07,
+      "levels_consumed": 6,
+      "exec_time_ms": 358.567,
+      "eval_time_ms": 306.242,
+      "output": "output y: max_abs_error=1.15372e-07 (ok), chain_index 10 -> 4 (levels consumed 6), log2_scale=40.0000669\nexecution_time_(ms): 358.567\nfhe_eval_median_(ms): 306.242 (1 warmup + 10 runs)\nPASS (tolerance 1e-06)\n"
+     }
+    ],
+    "timing_skipped": false,
+    "eval_time_ms": 306.242,
+    "levels": 6,
+    "max_abs_error": 1.15372e-07
+   },
+   "verdict": "slower",
+   "same_as": null,
+   "remeasure": null,
+   "new_best": false,
+   "seconds": 43.12010383605957
+  },
+  {
+   "iteration": 8,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "ok",
+    "correct": true,
+    "message": "kernel c356eb4901",
+    "compile_time_ms": 1.06817,
+    "depth": 22,
+    "mult_depth": 8,
+    "terms": 68,
+    "ops": {
+     "ct_ct_mul": 6,
+     "square": 0,
+     "ct_pt_mul": 2,
+     "relin": 6,
+     "rotate": 0,
+     "rescale": 8,
+     "mod_switch": 16,
+     "match_scale": 5,
+     "add": 15
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 9,
+      "passed": true,
+      "max_abs_error": 1.71753e-08,
+      "levels_consumed": 8,
+      "exec_time_ms": 308.854,
+      "eval_time_ms": 251.871,
+      "output": "output y: max_abs_error=1.71753e-08 (ok), chain_index 10 -> 2 (levels consumed 8), log2_scale=40.0000802\nexecution_time_(ms): 308.854\nfhe_eval_median_(ms): 251.871 (1 warmup + 1 runs)\nPASS (tolerance 1e-06)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 256,
+      "passed": true,
+      "max_abs_error": 9.19858e-08,
+      "levels_consumed": 8,
+      "exec_time_ms": 305.698,
+      "eval_time_ms": 252.999,
+      "output": "output y: max_abs_error=9.19858e-08 (ok), chain_index 10 -> 2 (levels consumed 8), log2_scale=40.0000802\nexecution_time_(ms): 305.698\nfhe_eval_median_(ms): 252.999 (1 warmup + 10 runs)\nPASS (tolerance 1e-06)\n"
+     }
+    ],
+    "timing_skipped": false,
+    "eval_time_ms": 252.999,
+    "levels": 8,
+    "max_abs_error": 9.19858e-08
+   },
+   "verdict": "not_confirmed",
+   "same_as": null,
+   "remeasure": {
+    "candidate_ms": 251.23,
+    "reference_ms": 251.489,
+    "ratios": [
+     1.0003,
+     0.9922,
+     1.0037,
+     0.9988,
+     0.999
+    ],
+    "wins": 3,
+    "batches": 5,
+    "median_ratio": 0.9989612519103412,
+    "speedup": 1.0010398282092248,
+    "confirmed": false,
+    "against": 4
+   },
+   "new_best": false,
+   "seconds": 74.08131814002991
+  }
+ ],
+ "proposer": "cli",
+ "equivalent_api_cost_usd": 0.6764940000000002,
+ "cli_session_id": "d30c2b82-8ce8-47f7-8fdd-edd76f3e6cc4"
+}

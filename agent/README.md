@@ -8,10 +8,11 @@ baseline kernel ──> LLM proposes a kernel ──> CHEHAB compiles it, runs i
                          └──────────── result + metrics ────────────┘
 ```
 
-- **Agent:** Claude Haiku 5.5 (`claude-haiku-5-5`) through the Anthropic API. It gets a system prompt that explains CHEHAB's DSL, the CKKS rules and measured operation costs, then the task and the baseline kernel.
+- **Agent:** Claude Sonnet 5.5 (`claude-sonnet-5-5`) through the Claude Code CLI (`claude -p`), on the logged-in claude.ai subscription; no API key is used. It gets a system prompt that explains CHEHAB's DSL, the CKKS rules and measured operation costs, then the task and the baseline kernel.
 - **Environment:** CHEHAB itself. Each proposed kernel is compiled by `Compiler::compile` and `Compiler::gen_he_code`, with the same settings as the benchmarks. The generated SEAL program is built and run on encrypted inputs, and the decrypted outputs are checked against independently computed expected outputs.
-- **Feedback:** compile errors, CHEHAB errors (such as a CKKS scale mismatch), wrong results, or, for a correct kernel, its `fhe()` time, levels used, depth and operation counts.
-- The model keeps the whole conversation, so it sees every earlier attempt. Only correct kernels count. The fastest correct one is kept.
+- **Feedback:** compile errors, CHEHAB errors, wrong results, or, for a correct kernel, its `fhe()` time, levels used, depth and operation counts. A CKKS scale mismatch names both operands with their level, symbolic scale and expression over the kernel's inputs. Every turn also gets a verdict (identical to the baseline, the best or attempt *k*; new but slower; not confirmed; new best) and the baseline's and best's circuit shapes.
+- The model keeps the whole conversation, so it sees every earlier attempt. Only correct kernels count.
+- **Selection** (`selection.py`): a correct kernel replaces the best only if its circuit (CHEHAB depth plus all operation counts) is new, and it is then confirmed faster than the best in 5 alternating timing batches (at least 3% in the median ratio, winning at least 4 of 5). The reported speedup comes from baseline and best timed in 7 alternating batches at the end; it is 1.00 when nothing was confirmed. A circuit seen before is not timed again.
 
 The model only writes CHEHAB DSL code. Kernels that contain preprocessor lines, I/O or compiler internals are rejected before compiling.
 
@@ -54,10 +55,10 @@ cmake -S . -B build -DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH -DCMAKE_BUILD_TYPE=Re
 cmake --build build -j8
 python3 -m venv agent/.venv
 agent/.venv/bin/pip install -r agent/requirements.txt
-export ANTHROPIC_API_KEY=sk-ant-...
+claude auth login    # once; `claude auth status` should show authMethod "claude.ai"
 ```
 
-`requirements.txt` pins the SDK below 1.0 because the 1.x SDK needs Python 3.10 or newer.
+The loop runs `claude -p` with no tools, our system prompt in place of the CLI's, no settings or MCP servers, and a working directory outside the repository, so no `CLAUDE.md` is read. It never passes `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN` or `ANTHROPIC_BASE_URL` to the CLI, so calls always count against the subscription even if a key is exported. Each task's conversation is one CLI session that every attempt resumes.
 
 ## Run
 
@@ -77,16 +78,16 @@ for t in extract extract_linear extract_sparse table_mult embedding; do agent/.v
 
 Options:
 
-- `--model`: default `claude-haiku-5-5`.
+- `--model`: default `claude-sonnet-5-5`.
 - `--effort`: default `medium`.
 - `--iterations`: default 8.
 - `--eval-repeats`: timed `fhe()` runs per evaluation, default 10.
 
-An evaluation takes about 6 to 20 seconds, so a task takes a few minutes and all 26 take one to two hours. With Haiku 5.5, a task costs about one to two cents, so the whole set costs roughly half a dollar. If a baseline is not correct, the loop reports the task as SKIPPED and goes on.
+An evaluation takes about 6 to 20 seconds, so a task takes a few minutes and all 26 take about two hours (about 73% of it CHEHAB compiling, building and timing). Run one loop at a time: concurrent runs share the CPU and the `build/` directory, which corrupts both timings and builds. Calls use the subscription's limits, so a run's `approx_cost_usd` is 0; `equivalent_api_cost_usd` is what the CLI reports the calls would have cost at API prices (about $11 for all 26 tasks with Sonnet 5.5). If a baseline is not correct, the loop reports the task as SKIPPED and goes on.
 
-`collect.py` takes the latest run of each task and writes `agent/results/summary.md` and `summary.csv`. A run whose model calls all failed, for example with an invalid API key, is listed separately and not counted.
+`collect.py` takes the latest run of each task and writes `agent/results/summary.md` and `summary.csv`, or another directory with `--out`; `--since`/`--until` restrict it to a window of run timestamps (for example one full run). `remeasure_runs.py` re-times several runs' best kernels against the baseline in one session, so runs made at different times can be compared on equal terms (no model calls). Unit tests of the selection rule: `agent/.venv/bin/python -m unittest agent/test_selection.py`. A run whose model calls all failed, for example because the CLI is not logged in, is listed separately and not counted.
 
-Offline check, with no API calls, which replays hand-written kernels covering every kind of feedback:
+Offline check, with no model calls, which replays hand-written kernels covering every kind of feedback:
 
 ```bash
 agent/.venv/bin/python agent/loop.py --task chebyshev_sigmoid_d7 --iterations 6 --proposer files:agent/examples/chebyshev_sigmoid_d7
@@ -101,14 +102,15 @@ Each run writes to `agent/runs/<task>/<timestamp>/`:
 - `summary.md`: a baseline and best comparison table, plus one line per attempt.
 - `results.json`: every evaluation, token usage, approximate cost, wall time and best attempt. It is the record to compare across team members.
 - `baseline.cpp`, `attempt_NN.cpp`, `attempt_NN_answer.md`, `best.cpp`, and `transcript.json` holding the full conversation.
+- `programs/`: the built baseline and best programs, kept for re-timing (Git-ignored).
 
 The metrics follow section 4.1 of the proposal:
 
-- **Execution latency:** `fhe()` evaluation time on the dense case, median of 10 runs.
+- **Execution latency:** `fhe()` evaluation time on the dense case, median of 10 runs; the speedup from alternating batches as above.
 - **Rotation count**, plus the other operation counts and the levels used.
 - **Time to converge:** wall time, and the attempt that produced the best kernel.
 
-Timing noise is about 2 to 3%. Gains smaller than 3% are kept, but the console does not mark them as a new best.
+Timing noise of one median is several percent, and up to ~40% on sub-millisecond tasks, which is why a single faster median never counts on its own.
 
 ## Limits of this basic version
 
