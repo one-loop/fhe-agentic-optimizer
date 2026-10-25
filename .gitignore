@@ -56,3 +56,7 @@ __pycache__/
 
 # LLM optimization loop
 agent/.venv/
+.env
+
+# Built programs the agent keeps for re-timing
+agent/runs/*/*/programs/

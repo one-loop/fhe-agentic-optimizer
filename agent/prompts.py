@@ -10,7 +10,7 @@ SYSTEM_PROMPT = """You optimize Fully Homomorphic Encryption (FHE) programs writ
 A kernel is C++ code that defines `void fhe()` with no parameters, plus any helper functions or classes it needs. It is compiled after `using namespace std; using namespace fheco;`, so `vector`, `to_string` and the DSL types are available without prefixes.
 - `Ciphertext x("x");` declares an encrypted input named "x"; `Plaintext p("p");` declares an unencrypted input. Use exactly the input labels of the task; an input you do not need may be left out.
 - `y.set_output("y");` marks an output. Produce exactly the task's outputs, with the same labels.
-- Operators: `+`, `-`, `*` between two Ciphertexts or a Ciphertext and a Plaintext; unary `-c`; `square(c)`; rotations `c << k` (slot i takes slot i+k) and `c >> k`, cyclic over slots() slots; `+=`, `-=`, `*=`. `slots()` returns the number of slots of the function.
+- Operators: `+`, `-`, `*` between two Ciphertexts or a Ciphertext and a Plaintext; unary `-c`; `square(c)` (counted as a ciphertext-ciphertext multiplication); rotations `c << k` (slot i takes slot i+k) and `c >> k`, cyclic over slots() slots; `+=`, `-=`, `*=`. `slots()` returns the number of slots of the function.
 - Plain C++ (loops, ints, vectors, lambdas, recursion) runs at compile time and only builds the computation graph.
 - Not allowed: preprocessor lines, I/O, compiler internals (`Compiler::`, `util::`, `operators::`).
 
@@ -47,18 +47,58 @@ Correctness: every output must be within {task.tolerance:g} (absolute) of the ex
 # Baseline result
 {baseline_summary}
 
+# How a kernel is judged
+One timing is too noisy to rank kernels: the same circuit can measure several percent faster or slower from run to run. So a correct kernel becomes the new best only if
+1. its circuit differs from the baseline's, the current best's and every earlier attempt's (circuit = CHEHAB's depth and complete operation counts), and
+2. it is then confirmed faster than the best when both are timed in alternating batches (at least 3% faster, winning most batches).
+Rewrites that leave the circuit unchanged (renaming, reordering, regrouping that CHEHAB normalizes away) cannot win. Aim for fewer ciphertext multiplications (including square), rotations, plaintext multiplications, rescales and scale alignments, or fewer levels.
+
 You have {iterations} attempts. Propose a faster kernel that computes the same outputs."""
 
 
-def feedback_turn(iteration: int, iterations: int, result_summary: str, baseline_time: float,
-                  best_time: float, best_iteration: int) -> str:
-    left = iterations - iteration
+def circuit_line(ev) -> str:
+    ops = ev.ops
+    return (f"levels {ev.levels}, depth ({ev.depth}, {ev.mult_depth}), ct-ct mul {ops.get('ct_ct_mul')}, "
+            f"ct-pt mul {ops.get('ct_pt_mul')}, rotations {ops.get('rotate')}, rescale {ops.get('rescale')}, "
+            f"match_scale {ops.get('match_scale')}, mod_switch {ops.get('mod_switch')}")
+
+
+def verdict_note(verdict: str, earlier, remeasure, best_iteration: int) -> str:
     best = "the baseline" if best_iteration == 0 else f"attempt {best_iteration}"
+    if verdict == "same_as_baseline":
+        return ("Verdict: the circuit is identical to the baseline's (same depth and operation counts), so it "
+                "cannot be faster; any timing difference is noise. Change the structure of the computation.")
+    if verdict == "same_as_best":
+        return (f"Verdict: the circuit is identical to the current best ({best}); any timing difference is noise. "
+                "Change the structure of the computation.")
+    if verdict == "duplicate":
+        return (f"Verdict: the circuit is identical to attempt {earlier}'s, which was already evaluated. Try a "
+                "structurally different idea.")
+    if verdict == "slower":
+        return f"Verdict: a new circuit, but not faster than the best ({best}) in its single timing."
+    if verdict in ("new_best", "not_confirmed"):
+        r = remeasure
+        against = "the baseline" if r["against"] == 0 else f"attempt {r['against']}"
+        how = (f"Timed against {against} in {r['batches']} alternating batches: "
+               f"{r['candidate_ms']:.2f} ms vs {r['reference_ms']:.2f} ms (x{r['speedup']:.2f}, faster in "
+               f"{r['wins']}/{r['batches']} batches).")
+        return (f"Verdict: new best. {how}" if verdict == "new_best"
+                else f"Verdict: not confirmed faster, so the best is unchanged. {how}")
+    return "Verdict: failed, so it does not count. Fix the reported problem, or go back to the best kernel."
+
+
+def feedback_turn(iteration: int, iterations: int, result_summary: str, verdict: str, earlier, remeasure,
+                  baseline, best, best_iteration: int) -> str:
+    left = iterations - iteration
+    name = "the baseline" if best_iteration == 0 else f"attempt {best_iteration}"
     return f"""# Result of attempt {iteration}
 {result_summary}
 
-Baseline time: {baseline_time:.2f} ms. Best so far: {best_time:.2f} ms ({best}).
-{f"{left} attempt(s) left. Propose an improved kernel (start from the best one if this attempt was worse or failed)." if left else "That was the last attempt."}"""
+{verdict_note(verdict, earlier, remeasure, best_iteration)}
+
+Baseline: {baseline.eval_time_ms:.2f} ms; {circuit_line(baseline)}.
+Best so far ({name}): {best.eval_time_ms:.2f} ms; {circuit_line(best)}.
+{f"{left} attempt(s) left. Propose a kernel with a different, cheaper circuit than the best (start from the best one if this attempt was worse or failed)." if left else "That was the last attempt."}"""
 
 
 def no_code_turn(iteration: int, iterations: int) -> str:

@@ -20,7 +20,9 @@ import statistics
 import subprocess
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, FrozenSet, List, Optional
+
+from selection import fingerprint
 
 REPO = Path(__file__).resolve().parent.parent
 BUILD = REPO / "build"
@@ -33,7 +35,7 @@ FORBIDDEN = ["#", "Compiler::", "util::", "std::system", "system(", "fopen", "fs
              "FILE", "asm", "__", "main(", "getenv", "exec", "popen", "operators::"]
 
 QUANTIFIER_TOTALS = {
-    "mul": "ct_ct_mul", "mul_plain": "ct_pt_mul", "relin": "relin", "rotate": "rotate",
+    "mul": "ct_ct_mul", "square": "square", "mul_plain": "ct_pt_mul", "relin": "relin", "rotate": "rotate",
     "rescale": "rescale", "mod_switch": "mod_switch", "match_scale": "match_scale", "he_add": "add",
 }
 
@@ -61,10 +63,13 @@ class Evaluation:
     terms: Optional[int] = None
     ops: Dict[str, int] = field(default_factory=dict)
     cases: List[CaseResult] = field(default_factory=list)
+    timing_skipped: bool = False  # the circuit was already timed earlier in the run
 
     @property
     def eval_time_ms(self) -> Optional[float]:
         """Primary objective: fhe() time on the task's timing case."""
+        if self.timing_skipped:
+            return None
         timed = [c.eval_time_ms for c in self.cases if c.eval_time_ms is not None and c.name == "dense"]
         timed = timed or [c.eval_time_ms for c in self.cases if c.eval_time_ms is not None]
         return timed[0] if timed else None
@@ -91,9 +96,11 @@ class Evaluation:
         if not self.correct:
             return f"status: {self.status}\n{self.message}"
         ops = ", ".join(f"{k}={v}" for k, v in self.ops.items())
+        timing = ("not timed: the circuit is identical to one timed earlier" if self.timing_skipped
+                  else f"{self.eval_time_ms:.2f} ms")
         lines = [
             "status: ok (correct on every case)",
-            f"fhe() evaluation time (dense case, median): {self.eval_time_ms:.2f} ms",
+            f"fhe() evaluation time (dense case, median): {timing}",
             f"CKKS levels consumed: {self.levels}",
             f"CHEHAB depth (total, multiplicative): ({self.depth}, {self.mult_depth}); IR terms: {self.terms}",
             f"operations: {ops}",
@@ -156,6 +163,45 @@ def _quantifier(stdout: str, ev: Evaluation):
         m = re.search(r"^\|" + re.escape(name) + r"\|[^\n]*\n(?:[^\n]*\n)*?total: (\d+)", stdout, re.M)
         if m:
             ev.ops[key] = int(m.group(1))
+    # square(c) is a ciphertext-ciphertext multiplication too.
+    if "ct_ct_mul" in ev.ops:
+        ev.ops["ct_ct_mul"] += ev.ops.get("square", 0)
+
+
+SCALE_HINT = """
+How to read this: each operand is CHEHAB's expression for that value over your kernel's inputs, after its own rewrites. The rescale, relinearize, mod_switch and match_scale steps CHEHAB inserts are omitted, and `...` hides deeper subterms. D^k is the nominal scale to the power of the number of multiplications behind the value; /qL marks a rescale at level L. Find the `+` or `-` in your kernel that combines these two values. Restructure it so that they either meet at different levels (CHEHAB then aligns them for free) or have the same multiplication history at that level."""
+PLAIN_HINT = """
+An operation in the kernel has two plaintext operands (CKKS rule 2). Every arithmetic operation needs a ciphertext operand, for example `(ct * p1) * p2` instead of `ct * (p1 * p2)`."""
+
+
+def _chehab_error(stdout: str) -> str:
+    """CHEHAB's exception message without the compile log before it, plus a reading hint."""
+    marker = "exception of type std::logic_error: "
+    text = stdout[stdout.index(marker) + len(marker):].strip() if marker in stdout else stdout[-3000:]
+    text = "\n".join(l for l in text.splitlines() if not l.startswith(("==>", "Run simplification")))
+    if "CKKS scale mismatch" in text:
+        text += SCALE_HINT
+    elif "plain plain" in text:
+        text += PLAIN_HINT
+    return text[-4000:]
+
+
+def snapshot(task, dest: Path):
+    """Keep the built program of the task's timing case so that it can be re-timed later."""
+    case = next((c for c in task.cases if c.name == "dense"), task.cases[0])
+    he = WORK / task.name / case.name / "he"
+    (dest / "build").mkdir(parents=True, exist_ok=True)
+    shutil.copy2(he / "build" / "main", dest / "build" / "main")
+    shutil.copy2(he / "fhe_io_example_adapted.txt", dest / "fhe_io_example_adapted.txt")
+
+
+def time_program(dest: Path, tolerance: float, repeats: int = 10, timeout: float = 900) -> float:
+    """fhe() median (ms) of `repeats` runs of a program kept by snapshot()."""
+    run = _run(["./main", "--tol", repr(tolerance), "--repeats", str(repeats)], dest / "build", timeout)
+    m = re.search(r"fhe_eval_median_\(ms\):\s*([0-9.eE+-]+)", run.stdout)
+    if run.returncode != 0 or not m:
+        raise RuntimeError(f"re-timing {dest} failed:\n{run.stdout[-1000:]}")
+    return float(m.group(1))
 
 
 def _prepare_case(task, case, case_dir: Path) -> int:
@@ -188,7 +234,10 @@ def _parse_run(out: str, cr: CaseResult):
         cr.eval_time_ms = float(m.group(1))
 
 
-def evaluate(task, source: str, seal_prefix: str, repeats: int = 10, timeout: float = 900) -> Evaluation:
+def evaluate(task, source: str, seal_prefix: str, repeats: int = 10, timeout: float = 900,
+             skip_timing: FrozenSet = frozenset()) -> Evaluation:
+    """Only the timing case ("dense") is timed with `repeats` runs, and not at all when its
+    circuit fingerprint is in skip_timing; the other cases only check correctness."""
     if reason := check_kernel(source):
         return Evaluation("rejected", message=reason)
 
@@ -216,12 +265,15 @@ def evaluate(task, source: str, seal_prefix: str, repeats: int = 10, timeout: fl
         comp = _run([str(DRIVER), str(slot)], case_dir, timeout)
         if comp.returncode != 0:
             ev.status = "chehab_error"
-            ev.message = f"CHEHAB rejected the kernel (case {case.name}, {slot} slots):\n" + comp.stdout[-3000:]
+            ev.message = f"CHEHAB rejected the kernel (case {case.name}, {slot} slots):\n" + _chehab_error(comp.stdout)
             return ev
         # Depth and operation counts are reported for the timing case ("dense").
+        timed = case.name == "dense" or len(task.cases) == 1
         if case.name == "dense" or case is task.cases[0]:
             ev.ops = {}
             _quantifier(comp.stdout, ev)
+        if timed and fingerprint({"depth": ev.depth, "mult_depth": ev.mult_depth, "ops": ev.ops}) in skip_timing:
+            ev.timing_skipped, timed = True, False
         (case_dir / "compile_output.txt").write_text(comp.stdout)
 
         he = case_dir / "he"
@@ -233,7 +285,8 @@ def evaluate(task, source: str, seal_prefix: str, repeats: int = 10, timeout: fl
             ev.message = "the SEAL code generated by CHEHAB did not build:\n" + bld.stdout[-3000:]
             return ev
 
-        run = _run(["./main", "--tol", repr(task.tolerance), "--repeats", str(repeats)], he / "build", timeout)
+        run = _run(["./main", "--tol", repr(task.tolerance), "--repeats", str(repeats if timed else 1)],
+                   he / "build", timeout)
         cr.output = run.stdout
         _parse_run(run.stdout, cr)
         cr.passed = run.returncode == 0 and cr.max_abs_error is not None

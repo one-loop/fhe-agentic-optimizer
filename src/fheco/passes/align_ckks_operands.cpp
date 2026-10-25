@@ -2,6 +2,8 @@
 #include "fheco/ir/term.hpp"
 #include "fheco/passes/align_ckks_operands.hpp"
 #include <algorithm>
+#include <cstdlib>
+#include <functional>
 #include <map>
 #include <stdexcept>
 #include <string>
@@ -50,6 +52,19 @@ namespace
   };
 
   const SymbolicScale delta{1, {}};
+
+  // "D^3/(q1*q2)": D is the nominal scale, q_l the prime dropped by a rescale at level l.
+  string scale_str(const SymbolicScale &scale)
+  {
+    string num = "D^" + to_string(scale.delta_exp), den;
+    for (const auto &[level, exp] : scale.q_exps)
+    {
+      string factor = "q" + to_string(level) + (abs(exp) == 1 ? "" : "^" + to_string(abs(exp)));
+      string &side = exp < 0 ? den : num;
+      side += (side.empty() ? "" : "*") + factor;
+    }
+    return den.empty() ? num : num + "/(" + den + ")";
+  }
 } // namespace
 
 size_t align_ckks_operands(const shared_ptr<ir::Func> &func)
@@ -76,6 +91,32 @@ size_t align_ckks_operands(const shared_ptr<ir::Func> &func)
       term = insert(ir::OpCode::mod_switch, {term}, move(info));
     }
     return term;
+  };
+
+  // The operand's expression over the function's input labels, for error messages. The
+  // relin, rescale, mod_switch and match_scale terms CHEHAB inserted itself are skipped.
+  function<string(const ir::Term *, int)> describe = [&](const ir::Term *term, int depth) -> string {
+    if (term->is_leaf())
+    {
+      auto info = func->data_flow().get_input_info(term);
+      return info ? info->label_ : "const";
+    }
+    const auto type = term->op_code().type();
+    if (type == ir::OpCode::Type::relin || type == ir::OpCode::Type::rescale ||
+        type == ir::OpCode::Type::mod_switch || type == ir::OpCode::Type::match_scale)
+      return describe(term->operands()[0], depth);
+    if (depth == 0)
+      return "...";
+    string args;
+    for (auto operand : term->operands())
+      args += (args.empty() ? "" : ", ") + describe(operand, depth - 1);
+    return term->op_code().str_repr() + "(" + args + ")";
+  };
+  auto operand_str = [&](const ir::Term *term, const CtxtInfo &info) {
+    string expr = describe(term, 4);
+    if (expr.size() > 400)
+      expr = expr.substr(0, 400) + "...";
+    return "level " + to_string(info.level) + ", scale " + scale_str(info.scale) + ": " + expr;
   };
 
   // Copy: the pass inserts and replaces terms.
@@ -161,7 +202,8 @@ size_t align_ckks_operands(const shared_ptr<ir::Func> &func)
           throw logic_error(
             "CKKS scale mismatch: ciphertext operands of '" + term->op_code().str_repr() + "' (term " +
             to_string(term->id()) + ") are at the same level " + to_string(lhs_info.level) +
-            " with different scales; aligning them would need an extra level");
+            " with different scales; aligning them would need an extra level\n  left operand:  " +
+            operand_str(lhs, lhs_info) + "\n  right operand: " + operand_str(rhs, rhs_info));
 
         // hi: the operand with more levels left (fewer consumed)
         const bool lhs_is_hi = lhs_info.level < rhs_info.level;

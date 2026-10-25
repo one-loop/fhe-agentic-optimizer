@@ -1,0 +1,32 @@
+Idea: nothing so far has moved the time beyond noise, so I go back to attempt 1, the best kernel. I rebuild it with the low-order terms (`z`, `T2`, `T3`) summed first and added to `P` last. Those low-order terms are shallower than `P`, so CHEHAB can align them with cheap mod-switches instead of extra rescales.
+
+```cpp
+void fhe()
+{
+  Ciphertext x("x");
+  Plaintext alpha("alpha");
+  Plaintext one("one");
+  Plaintext c0("c0"), c1("c1"), c2("c2"), c3("c3"), c4("c4"), c5("c5"), c6("c6"), c7("c7");
+  Ciphertext z = x * alpha;
+  Ciphertext z2 = z * z;
+  Ciphertext T2 = z2 + z2 - one;
+  Ciphertext zT2 = z * T2;
+  Ciphertext T3 = zT2 + zT2 - z;
+  Ciphertext s2 = T2 * T2;
+  Ciphertext T4 = s2 + s2 - one;
+
+  Ciphertext a5 = z * c5;
+  Ciphertext a6 = T2 * c6;
+  Ciphertext a7 = T3 * c7;
+  Ciphertext inner = a5 + a6 + a7;
+  Ciphertext Q = inner + inner + c4;
+  Ciphertext P = T4 * Q;
+
+  Ciphertext lowz = z * c1 - z * c7;
+  Ciphertext low2 = T2 * c2 - a6;
+  Ciphertext low3 = T3 * c3 - T3 * c5;
+  Ciphertext low = (lowz + low2) + c0;
+  Ciphertext r = (low + low3) + P;
+  r.set_output("y");
+}
+```
