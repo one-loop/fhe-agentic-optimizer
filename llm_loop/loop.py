@@ -46,7 +46,7 @@ import numpy as np
 
 from llm_loop import prompts
 from llm_loop.evaluate import WORK, Evaluation, Evaluator
-from llm_loop.proposers import ClaudeCodeProposer, ReplayProposer, UsageLimitReached
+from llm_loop.proposers import ClaudeCodeProposer, ProposerUnavailable, ReplayProposer, UsageLimitReached
 from llm_loop.score import score
 from llm_loop.tasks import REPO, TASKS, Task
 
@@ -429,8 +429,11 @@ def main():
                 print(f"== {name} run {run}: best #{result['best_id']}, {sp}, "
                       f"{result['correct_attempts']}/{result['calls']} correct", flush=True)
     except UsageLimitReached as e:
-        print(f"\nStopped: Claude usage limit reached ({str(e)[:200]}). Completed runs are saved; rerun the same "
-              f"command with --out {out} to resume.", file=sys.stderr)
+        print(f"\nSTOPPED_USAGE_LIMIT: Claude usage limit reached ({str(e)[:200]}). Completed runs are saved; rerun "
+              f"the same command with --out {out} to resume.", file=sys.stderr)
+    except ProposerUnavailable as e:
+        print(f"\nSTOPPED_PROPOSER_UNAVAILABLE: the model could not be reached ({str(e)[:300]}). Completed runs "
+              f"are saved; rerun the same command with --out {out} to resume.", file=sys.stderr)
     if results:
         summarize(out, results)
         print(f"\nsummary: {out / 'summary.md'}")

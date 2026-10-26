@@ -35,6 +35,11 @@ class UsageLimitReached(RuntimeError):
     """The subscription's session or weekly limit is reached: stop and resume later."""
 
 
+class ProposerUnavailable(RuntimeError):
+    """Infrastructure failure (sign-in, network, CLI crash): the model never answered. The run is
+    stopped and redone later instead of spending one of its calls on a non-answer."""
+
+
 class ClaudeCodeProposer:
     name = "claude-code"
 
@@ -54,20 +59,23 @@ class ClaudeCodeProposer:
                "--system-prompt", system, "--tools", "", "--safe-mode", "--no-session-persistence",
                "--output-format", "json"]
         start = time.time()
-        out = subprocess.run(cmd, input=prompt, capture_output=True, text=True, timeout=self.timeout,
-                             cwd=self.workdir, env=env)
+        try:
+            out = subprocess.run(cmd, input=prompt, capture_output=True, text=True, timeout=self.timeout,
+                                 cwd=self.workdir, env=env)
+        except subprocess.TimeoutExpired:
+            raise ProposerUnavailable(f"claude did not answer within {self.timeout:.0f} s")
         seconds = time.time() - start
         try:
             data = json.loads(out.stdout)
         except json.JSONDecodeError:
-            return Reply("", seconds, error=f"claude exited {out.returncode}: {(out.stderr or out.stdout)[-1000:]}")
+            raise ProposerUnavailable(f"claude exited {out.returncode}: {(out.stderr or out.stdout)[-1000:]}")
         text = data.get("result") or ""
         usage = dict(data.get("usage", {}))
         usage["models"] = sorted(data.get("modelUsage", {}))  # the model(s) that actually served the call
         if data.get("is_error") or out.returncode != 0:
             if "limit" in text.lower():
                 raise UsageLimitReached(text)
-            return Reply(text, seconds, usage, data.get("total_cost_usd"), error=text or "error")
+            raise ProposerUnavailable(text or f"claude exited {out.returncode}")
         return Reply(text, seconds, usage, data.get("total_cost_usd"))
 
 
