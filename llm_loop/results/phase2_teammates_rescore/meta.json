@@ -1,0 +1,74 @@
+{
+ "started": "2026-11-01T02:17:08",
+ "finished": "2026-11-01T03:31:50",
+ "git": {
+  "commit": "d1ccac7b28fba3b15e821cc73468f3b2524d4408",
+  "branch": "umair/llm-loop",
+  "dirty": false
+ },
+ "team_branch": "shared/llm-feedback-loop",
+ "team_commit": "7bdb7c2b292f2596021a60d482d8d95ab186bab9",
+ "team_runs": {
+  "chebyshev_gelu_d7": {
+   "api_haiku": "20261013-153104",
+   "sonnet_v1": "20261024-120321",
+   "sonnet_v2": "20261024-151916"
+  },
+  "chebyshev_silu_d7": {
+   "api_haiku": "20261013-160122",
+   "sonnet_v1": "20261024-123429",
+   "sonnet_v2": "20261024-161427"
+  },
+  "chebyshev_sigmoid_d7": {
+   "api_haiku": "20261013-155720",
+   "sonnet_v1": "20261024-123023",
+   "sonnet_v2": "20261024-160823"
+  },
+  "chebyshev_elu_d7": {
+   "api_haiku": "20261013-152635",
+   "sonnet_v1": "20261024-115933",
+   "sonnet_v2": "20261024-151205"
+  },
+  "chebyshev_selu_d7": {
+   "api_haiku": "20261013-154916",
+   "sonnet_v1": "20261024-122223",
+   "sonnet_v2": "20261024-155202"
+  },
+  "chebyshev_softplus_d7": {
+   "api_haiku": "20261013-160435",
+   "sonnet_v1": "20261024-123831",
+   "sonnet_v2": "20261024-162113"
+  },
+  "chebyshev_mish_d7": {
+   "api_haiku": "20261013-153812",
+   "sonnet_v1": "20261024-121104",
+   "sonnet_v2": "20261024-153427"
+  },
+  "chebyshev_hardshrink_d7": {
+   "api_haiku": "20261013-153421",
+   "sonnet_v1": "20261024-120659",
+   "sonnet_v2": "20261024-152523"
+  },
+  "chebyshev_sigmoid_d5": {
+   "api_haiku": "20261013-155303",
+   "sonnet_v1": "20261024-122610",
+   "sonnet_v2": "20261024-155954"
+  },
+  "quad": {
+   "api_haiku": "20261013-163614",
+   "sonnet_v1": "20261024-131501",
+   "sonnet_v2": "20261024-165838"
+  },
+  "batchnorm1d": {
+   "api_haiku": "20261013-152256",
+   "sonnet_v1": "20261024-115451",
+   "sonnet_v2": "20261024-150653"
+  },
+  "batchnorm2d": {
+   "api_haiku": "20261013-152452",
+   "sonnet_v1": "20261024-115722",
+   "sonnet_v2": "20261024-150930"
+  }
+ },
+ "machine": "Darwin arm64"
+}

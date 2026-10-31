@@ -1,0 +1,30 @@
+{
+ "started": "2026-10-24T23:22:09",
+ "finished": "2026-10-24T23:37:14",
+ "git": {
+  "commit": "33fc1da13c3ec2d29b405d0c8890a7abf8415883",
+  "branch": "umair/llm-loop",
+  "dirty": false
+ },
+ "machine": "Darwin arm64 arm",
+ "compiler": "Apple clang version 17.0.0 (clang-1700.3.19.1)",
+ "seal": "4.1",
+ "protocol": {
+  "warmup_processes": 1,
+  "measured_processes": 10,
+  "fhe_runs_per_process": 10,
+  "compile_runs": 3,
+  "interleaved": true,
+  "heldout_correctness": true
+ },
+ "proposers": [
+  "{\"claude_code\": \"2.1.310 (Claude Code)\", \"effort\": \"medium\", \"model\": \"claude-haiku-5-5\", \"proposer\": \"claude-code\"}"
+ ],
+ "baselines": {
+  "chebyshev_elu_d7": "533088cfd28e0abe38baba2f933eec339d5b03b8",
+  "chebyshev_gelu_d7": "93a33268674430a9cd1b3de7348eb705ad6376cd",
+  "chebyshev_sigmoid_d7": "5c2cebb84f1aa34cc11e72e688918fa7397c22a9"
+ },
+ "runs_root": "llm_loop/runs/phase2-pilot",
+ "runs": 18
+}

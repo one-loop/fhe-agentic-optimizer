@@ -1,0 +1,33 @@
+{
+ "started": "2026-10-26T18:39:51",
+ "finished": "2026-10-26T19:11:08",
+ "git": {
+  "commit": "af0dad4ecf07b1a2fd885ab60b122f977097e978",
+  "branch": "umair/llm-loop",
+  "dirty": false
+ },
+ "machine": "Darwin arm64 arm",
+ "compiler": "Apple clang version 17.0.0 (clang-1700.3.19.1)",
+ "seal": "4.1",
+ "protocol": {
+  "warmup_processes": 1,
+  "measured_processes": 10,
+  "fhe_runs_per_process": 10,
+  "compile_runs": 3,
+  "interleaved": true,
+  "heldout_correctness": true
+ },
+ "proposers": [
+  "{\"claude_code\": \"2.1.310 (Claude Code)\", \"effort\": \"medium\", \"model\": \"claude-haiku-5-5\", \"proposer\": \"claude-code\"}"
+ ],
+ "baselines": {
+  "chebyshev_silu_d7": "93a33268674430a9cd1b3de7348eb705ad6376cd",
+  "chebyshev_selu_d7": "533088cfd28e0abe38baba2f933eec339d5b03b8",
+  "chebyshev_softplus_d7": "93a33268674430a9cd1b3de7348eb705ad6376cd",
+  "chebyshev_mish_d7": "533088cfd28e0abe38baba2f933eec339d5b03b8",
+  "chebyshev_hardshrink_d7": "e54d69fbe95e9e49a544ec344dcab4ac997452da",
+  "chebyshev_sigmoid_d5": "9cc97fabca4a623ef93e2301b3753e14e8b55204"
+ },
+ "runs_root": "/Users/umee/Downloads/CHEHAB/llm_loop/runs/phase2-chebyshev-rest",
+ "runs": 36
+}
