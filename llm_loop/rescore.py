@@ -110,7 +110,7 @@ def rescore_task(task: Task, runs: List[dict], evaluator: Evaluator) -> List[dic
         errors = [e for x in s for e in x["err"]] + [c.max_abs_error for c in ev.cases if c.max_abs_error is not None]
         row = {
             "task": task.name, "kernel": k["label"], "sha1": key, "runs": " ".join(k["runs"]),
-            "status": ev.status, "correct": ev.correct, "all_timing_runs_pass": all(x["pass"] for x in s) if s else "",
+            "status": ev.status, "message": ev.message.split("\n")[0][:200], "correct": ev.correct, "all_timing_runs_pass": all(x["pass"] for x in s) if s else "",
             "tolerance": task.tolerance, "fhe_max_abs_error": max(errors) if errors else "",
             "eval_median_ms": statistics.median(evals) if evals else "",
             "eval_min_ms": min(evals) if evals else "", "eval_max_ms": max(evals) if evals else "",
