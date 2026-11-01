@@ -12,6 +12,8 @@ Experiments, in priority order:
   4. static_feedback  the 3 pilot tasks with --feedback static (cost-model latency only)
   5. quad_batchnorm   Quad, BatchNorm1d/2d, 1 run each: does the agent leave optimal kernels intact?
   6. sonnet_archive   the 9 Chebyshev tasks with Claude Sonnet 5.5, archive only, hints none, 3 runs
+  7. nn_haiku, nn_sonnet, sonnet_quad_batchnorm  the BFV nn_* tasks (3 runs) and Quad, BatchNorm (1 run), archive only
+  8. opus_chebyshev, opus_quad_batchnorm, opus_nn  the same tasks with Claude Opus 5.5
 
 Unattended behaviour: if Claude's usage limit is reached, or the model cannot be
 reached, the campaign waits and retries (an interrupted run is redone from
@@ -31,6 +33,8 @@ from datetime import datetime
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
+NN = ["nn_linear", "nn_avgpool2d", "nn_conv2d"]
+QUAD_BN = ["quad", "batchnorm1d", "batchnorm2d"]
 PILOT = ["chebyshev_gelu_d7", "chebyshev_sigmoid_d7", "chebyshev_elu_d7"]
 REST = ["chebyshev_silu_d7", "chebyshev_selu_d7", "chebyshev_softplus_d7", "chebyshev_mish_d7",
         "chebyshev_hardshrink_d7", "chebyshev_sigmoid_d5"]
@@ -47,6 +51,20 @@ EXPERIMENTS = [
      "feedback": "execution", "out": "phase2-quad-batchnorm", "results": "phase2_quad_batchnorm"},
     {"name": "sonnet_archive", "tasks": PILOT + REST, "runs": [1, 2, 3], "hints": "none", "feedback": "execution",
      "out": "phase2-sonnet", "results": "phase2_sonnet", "model": "claude-sonnet-5-5", "strategies": ["archive"]},
+    {"name": "nn_haiku", "tasks": NN, "runs": [1, 2, 3], "hints": "none", "feedback": "execution",
+     "out": "phase2-nn-haiku", "results": "phase2_nn_haiku", "strategies": ["archive"]},
+    {"name": "nn_sonnet", "tasks": NN, "runs": [1, 2, 3], "hints": "none", "feedback": "execution",
+     "out": "phase2-nn-sonnet", "results": "phase2_nn_sonnet", "model": "claude-sonnet-5-5", "strategies": ["archive"]},
+    {"name": "sonnet_quad_batchnorm", "tasks": QUAD_BN, "runs": [1], "hints": "none", "feedback": "execution",
+     "out": "phase2-sonnet-quad-batchnorm", "results": "phase2_sonnet_quad_batchnorm", "model": "claude-sonnet-5-5",
+     "strategies": ["archive"]},
+    {"name": "opus_chebyshev", "tasks": PILOT + REST, "runs": [1, 2, 3], "hints": "none", "feedback": "execution",
+     "out": "phase2-opus", "results": "phase2_opus", "model": "claude-opus-5-5", "strategies": ["archive"]},
+    {"name": "opus_quad_batchnorm", "tasks": QUAD_BN, "runs": [1], "hints": "none", "feedback": "execution",
+     "out": "phase2-opus-quad-batchnorm", "results": "phase2_opus_quad_batchnorm", "model": "claude-opus-5-5",
+     "strategies": ["archive"]},
+    {"name": "opus_nn", "tasks": NN, "runs": [1, 2, 3], "hints": "none", "feedback": "execution",
+     "out": "phase2-nn-opus", "results": "phase2_nn_opus", "model": "claude-opus-5-5", "strategies": ["archive"]},
 ]
 WAIT_LIMIT_S = 30 * 60      # after a usage limit
 WAIT_ERROR_S = 10 * 60      # after the model could not be reached or a crash
@@ -100,7 +118,8 @@ class Campaign:
         (self.dir / "status.md").write_text("\n".join(lines) + "\n")
 
     def selected(self):
-        return [e for e in EXPERIMENTS if not self.args.only or e["name"] in self.args.only]
+        """Without --only: the original campaign, not the later single-model experiments."""
+        return [e for e in EXPERIMENTS if (e["name"] in self.args.only if self.args.only else "model" not in e and "strategies" not in e)]
 
     def step(self, e, run, strategy):
         tasks = task_order(e["tasks"], run)

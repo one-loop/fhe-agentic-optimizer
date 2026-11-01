@@ -12,7 +12,7 @@ tested offline). Step 4 (runs with a model) has not started.
 | Path | What it is |
 |---|---|
 | `driver/` | Standalone CMake project: compiles one kernel through CHEHAB (`create_ckks_func`, `Compiler::compile` with the simplification ruleset, `gen_he_code`), with the benchmarks' settings and CKKS parameters (N = 32768, {60, 40 x 10, 60}, scale 2^40). Links `build/libfheco.a`. |
-| `tasks.py` | The 26 tasks (every CKKS benchmark in `run_benchmarks.py`): generator commands for the fixed and dense cases, an independent NumPy oracle, a held-out input randomizer, tolerance, owner. |
+| `tasks.py` | The 29 tasks (every CKKS benchmark in `run_benchmarks.py`, and the BFV `nn_linear`, `nn_conv2d`, `nn_avgpool2d`): generator commands for the fixed and dense cases, an independent NumPy oracle, a held-out input randomizer, tolerance, owner. |
 | `baselines/` | One baseline kernel per task, a port of the benchmark's `fhe()`. Written by `gen_baselines.py`. |
 | `evaluate.py` | The environment: kernel check, compile, static analysis, build and run on encrypted inputs, correctness. |
 | `static_analysis.py` | Reads the generated SEAL code: operation counts (same fields as `run_benchmarks.py`), scale-alignment multiplies, per-output levels, an annotated level trace. |
@@ -58,6 +58,12 @@ for extract, table_mult and embedding, as their owners chose):
 
 Each oracle is validated against the generators' expected outputs (max
 relative difference 1e-15).
+
+BFV tasks are exact: every output must equal the expected integer. They follow the
+benchmarks' scalar path (`create_func`, 20-bit plaintext modulus) with the records'
+parameters fixed (N = 16384, BFVDefault) through `driver/bfv_he/main.cpp`, on the
+untouched `benchmarks/utils.cpp`. Latency is timed at width 6; width 4 is the recorded
+configuration. There is no cost model for BFV, so no pre-screen and no static feedback.
 
 ## Usage
 

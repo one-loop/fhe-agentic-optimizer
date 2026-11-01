@@ -1,8 +1,9 @@
-// Compiles one CKKS kernel through CHEHAB exactly like benchmarks/*_ckks:
-// create_ckks_func, the kernel's fhe(), Compiler::compile (simplification
-// ruleset, bottom-up), Compiler::gen_he_code, then the Quantifier report.
+// Compiles one kernel through CHEHAB exactly like benchmarks/*_ckks (or, with
+// bfv, the scalar path of benchmarks/nn_*): create_ckks_func (create_func), the
+// kernel's fhe(), Compiler::compile (simplification ruleset, bottom-up),
+// Compiler::gen_he_code, then the Quantifier report.
 //
-//   ./llm_driver <slot_count>
+//   ./llm_driver <slot_count> [ckks|bfv]
 //
 // Run it in a directory holding fhe_io_example.txt and an he/ subdirectory;
 // it writes he/_gen_he_fhe.{hpp,cpp} and he/main.cpp. The kernel (kernel.inc)
@@ -34,12 +35,13 @@ inline size_t slots()
 
 int main(int argc, char **argv)
 {
-  if (argc != 2)
+  if (argc != 2 && argc != 3)
   {
-    cerr << "usage: " << argv[0] << " <slot_count>\n";
+    cerr << "usage: " << argv[0] << " <slot_count> [ckks|bfv]\n";
     return 2;
   }
   llm_loop::slot_count = stoul(argv[1]);
+  const bool bfv = argc == 3 && string(argv[2]) == "bfv";
 
   // Settings of run_benchmarks.py's default CKKS runs (cse = 1, const_folding = 1).
   Compiler::enable_cse();
@@ -50,7 +52,13 @@ int main(int argc, char **argv)
   CkksParams params{32768, {60, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 60}, 40};
 
   const auto start = chrono::high_resolution_clock::now();
-  const auto &func = Compiler::create_ckks_func("fhe", llm_loop::slot_count, params);
+  // BFV: the benchmarks' 20-bit plaintext modulus, signed values. slots() is the operator's width;
+  // CHEHAB needs a power of two here, and nothing in the scalar path's generated code depends on it.
+  size_t bfv_slots = 1;
+  while (bfv && bfv_slots < llm_loop::slot_count)
+    bfv_slots *= 2;
+  const auto &func = bfv ? Compiler::create_func("fhe", bfv_slots, 20, false, true)
+                         : Compiler::create_ckks_func("fhe", llm_loop::slot_count, params);
   util::copyFile("fhe_io_example.txt", "fhe_io_example_adapted.txt");
   fhe();
   ofstream header_os("he/_gen_he_fhe.hpp");

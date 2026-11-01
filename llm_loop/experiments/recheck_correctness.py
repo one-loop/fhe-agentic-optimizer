@@ -22,7 +22,8 @@ from llm_loop.rescore import discover, sha1
 from llm_loop.tasks import HELDOUT_SEEDS, REPO, TASKS
 
 RUN_SETS = ["phase2-pilot", "phase2-chebyshev-rest", "phase2-hints-full", "phase2-static-feedback",
-            "phase2-quad-batchnorm", "phase2-sonnet"]
+            "phase2-quad-batchnorm", "phase2-sonnet", "phase2-nn-haiku", "phase2-nn-sonnet",
+            "phase2-sonnet-quad-batchnorm", "phase2-opus", "phase2-opus-quad-batchnorm", "phase2-nn-opus"]
 FIELDS = ["task", "owner", "kernel", "sha1", "used_by", "status", "correct", "tolerance", "max_abs_error",
           "worst_case", "cases_passed", "message"]
 

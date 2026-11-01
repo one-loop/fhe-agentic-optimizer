@@ -50,6 +50,23 @@ The kernel must compute the same function for ANY input values. It is checked on
 # Answer format
 State the idea of your change in at most three sentences, then give the complete kernel in exactly one ```cpp code block. Always return a full kernel, never a diff."""
 
+BFV_SYSTEM_PROMPT = (SYSTEM_PROMPT.split("# CKKS rules")[0].replace(
+    "compiled for the CKKS scheme", "compiled for the BFV scheme") + """# BFV rules
+1. Integer constants are allowed (`c * 2`, `c + 1`). Arithmetic is exact, modulo a 20-bit plaintext modulus.
+2. There are no levels or scales. The noise budget must stay positive, or decryption gives wrong results.
+3. No plaintext-plaintext operations. Every operation needs a Ciphertext operand.
+4. CHEHAB applies simplification rewrites, common-subexpression elimination and relinearization automatically; do not emit those yourself.
+
+# Costs (N = 16384)
+- ciphertext x ciphertext multiply (+ relinearize): ~28 ms
+- ciphertext addition: ~0.2 ms
+Fewer ciphertext multiplications are what make a kernel faster, even at the price of many more additions. Every input value is repeated in all slots, so rotations are not useful here.
+
+# Correctness
+The kernel must compute the same function for ANY integer inputs: outputs must be exactly equal to the expected values. It is checked on the task's test inputs and on hidden random inputs, so never rely on properties of particular test values.
+
+""" + SYSTEM_PROMPT[SYSTEM_PROMPT.index("# Answer format"):])
+
 IDENTITIES = """
 # Useful identities and techniques
 - Factoring: a*b + a*c = a*(b + c) saves a multiplication (b, c ciphertexts); c*p1 + c*p2 needs two ct x pt multiplies because p1 + p2 is not allowed.
@@ -114,37 +131,48 @@ HINTS = {
         "Check whether any operation can be removed or made cheaper.",
         "Reduce ciphertext x plaintext multiplications and plaintext encodings.",
     ],
+    "bilinear": [
+        "Reduce the number of ciphertext x ciphertext multiplications.",
+        "Reuse partial results that several outputs have in common.",
+        "Restructure the computation, trading multiplications for additions when that pays off.",
+    ],
 }
 FAMILY_HINTS = {"chebyshev": "polynomial", "relu_composite": "polynomial", "extract": "rotation",
-                "reduction": "rotation", "quad": "simple", "batchnorm": "simple", "elementwise": "simple"}
+                "reduction": "rotation", "quad": "simple", "batchnorm": "simple", "elementwise": "simple", "nn": "bilinear"}
 
 
-def system_prompt(hints: str) -> str:
-    return SYSTEM_PROMPT + {"none": "", "identities": IDENTITIES, "full": IDENTITIES + EXAMPLES}[hints]
+def system_prompt(hints: str, scheme: str = "ckks") -> str:
+    return (BFV_SYSTEM_PROMPT if scheme == "bfv" else SYSTEM_PROMPT) + {"none": "", "identities": IDENTITIES, "full": IDENTITIES + EXAMPLES}[hints]
 
 
 def task_header(task) -> str:
+    if task.scheme == "bfv":
+        return (f"# Task: {task.name}\n{task.description}\n\nCorrectness: every output exactly equal to the "
+                "expected value, on the test inputs and on hidden random inputs. Latency is measured on the "
+                "dense test case (W = 6).")
     return (f"# Task: {task.name}\n{task.description}\n\nCorrectness: every output within {task.tolerance:g} "
             "(absolute) of the expected values, on the test inputs and on hidden random inputs. "
             "Latency is measured on the dense test case (256 slots or the task's largest case).")
 
 
-def metrics(ev, baseline, best=None, latency_source: str = "measured") -> str:
+def metrics(ev, baseline, best=None, latency_source: str = "measured", scheme: str = "ckks") -> str:
     """The feedback block for a correct kernel, in the proposal's terms (C, L, D)."""
     s, b = ev.static, baseline.static
+    bfv = scheme == "bfv"
     lat, base_lat = _latency(ev, latency_source), _latency(baseline, latency_source)
     label = "fhe() latency" if latency_source == "measured" else "estimated fhe() latency (static cost model)"
     lines = [f"Valid code (correct on every test case).",
              f"L: {label} {lat:.2f} ms (baseline {base_lat:.2f} ms, x{base_lat / lat:.2f})"
              + (f"; best so far {_latency(best, latency_source):.2f} ms" if best is not None else "") + ".",
-             f"D: multiplicative depth {ev.xdepth} (baseline {baseline.xdepth}); CKKS levels used {s['levels']} of 10 "
-             f"(baseline {b['levels']}).",
+             f"D: multiplicative depth {ev.xdepth} (baseline {baseline.xdepth})" + ("." if bfv else
+             f"; CKKS levels used {s['levels']} of 10 (baseline {b['levels']})."),
              f"C: compilation time {ev.compile_time_ms:.2f} ms (baseline {baseline.compile_time_ms:.2f} ms).",
              "Operations (baseline in parentheses): " + ", ".join(
                  f"{name} {s[key]} ({b[key]})" for name, key in (
                      ("ct x ct multiply", "ct_ct_mul"), ("ct x pt multiply", "ct_pt_mul"),
                      ("scale alignments", "align_mul"), ("mod switches", "mod_switch"), ("rotations", "rotate"),
-                     ("additions", "add"), ("plaintext additions", "add_plain"))) + "."]
+                     ("additions", "add"), ("plaintext additions", "add_plain"))
+                 if not (bfv and key in ("align_mul", "mod_switch"))) + "."]
     if ev.cost_breakdown:
         total = sum(ev.cost_breakdown.values()) or 1.0
         top = max(ev.cost_breakdown.items(), key=lambda kv: kv[1])

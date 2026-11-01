@@ -83,7 +83,7 @@ class TaskRun:
         self.task, self.args, self.proposer, self.evaluator = task, args, proposer, evaluator
         self.out, self.run = out, run
         self.rng = np.random.default_rng(args.seed + 1000 * run)
-        self.system = prompts.system_prompt(args.hints)
+        self.system = prompts.system_prompt(args.hints, task.scheme)
         self.hints = prompts.HINTS[prompts.FAMILY_HINTS[task.family]]
         self.entries: List[Entry] = [Entry(0, None, task.baseline(), "baseline", baseline, "baseline")]
         self.seen = {normalize(task.baseline()): 0}
@@ -112,7 +112,7 @@ class TaskRun:
 
     def describe(self, e: Entry) -> str:
         if e.correct:
-            return prompts.metrics(e.ev, self.baseline.ev, self.best.ev, self.args.feedback_label)
+            return prompts.metrics(e.ev, self.baseline.ev, self.best.ev, self.args.feedback_label, self.task.scheme)
         return prompts.failure(e.ev) if e.ev is not None else e.outcome
 
     def history(self, limit: int = 10) -> str:

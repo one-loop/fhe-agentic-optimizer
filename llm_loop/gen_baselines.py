@@ -189,7 +189,124 @@ def baseline_source(name: str) -> str:
         return elementwise(name[len("elementwise_"):])
     return {"relu_composite": RELU_COMPOSITE, "quad": QUAD, "batchnorm1d": BATCHNORM, "batchnorm2d": BATCHNORM,
             "extract": EXTRACT, "extract_linear": EXTRACT, "extract_sparse": EXTRACT_SPARSE,
-            "table_mult": TABLE_MULT, "embedding": EMBEDDING}[name]
+            "table_mult": TABLE_MULT, "embedding": EMBEDDING, "nn_linear": NN_LINEAR, "nn_conv2d": NN_CONV2D,
+            "nn_avgpool2d": NN_AVGPOOL2D}[name]
+
+
+NN_LINEAR = HEADER.format(source="benchmarks/nn_linear/nn_linear.cpp") + """void fhe()
+{
+  size_t in_features = slots();
+  size_t out_features = slots();
+
+  std::vector<Ciphertext> x(in_features);
+  for (size_t j = 0; j < in_features; ++j)
+  {
+    x[j] = Ciphertext("x_" + std::to_string(j));
+  }
+
+  std::vector<std::vector<Ciphertext>> w(out_features, std::vector<Ciphertext>(in_features));
+  std::vector<Ciphertext> b(out_features);
+  std::vector<Ciphertext> y(out_features);
+
+  for (size_t i = 0; i < out_features; ++i)
+  {
+    b[i] = Ciphertext("b_" + std::to_string(i));
+    for (size_t j = 0; j < in_features; ++j)
+    {
+      w[i][j] = Ciphertext("w_" + std::to_string(i) + "_" + std::to_string(j));
+    }
+  }
+
+  for (size_t i = 0; i < out_features; ++i)
+  {
+    y[i] = b[i] + (w[i][0] * x[0]);
+    for (size_t j = 1; j < in_features; ++j)
+    {
+      y[i] += (w[i][j] * x[j]);
+    }
+    y[i].set_output("y_" + std::to_string(i));
+  }
+}
+"""
+
+NN_AVGPOOL2D = HEADER.format(source="benchmarks/nn_avgpool2d/nn_avgpool2d.cpp") + """void fhe()
+{
+  size_t in_h = slots();
+  size_t in_w = slots();
+  size_t stride = 2;
+  size_t out_h = in_h / stride;
+  size_t out_w = in_w / stride;
+
+  vector<vector<Ciphertext>> x(in_h, vector<Ciphertext>(in_w));
+  for (size_t r = 0; r < in_h; ++r)
+  {
+    for (size_t c = 0; c < in_w; ++c)
+    {
+      x[r][c] = Ciphertext("x_" + to_string(r) + "_" + to_string(c));
+    }
+  }
+
+  for (size_t r = 0; r < out_h; ++r)
+  {
+    for (size_t c = 0; c < out_w; ++c)
+    {
+      Ciphertext patch_sum = x[r * stride][c * stride];
+      patch_sum += x[r * stride][c * stride + 1];
+      patch_sum += x[r * stride + 1][c * stride];
+      patch_sum += x[r * stride + 1][c * stride + 1];
+
+      patch_sum.set_output("y_" + to_string(r) + "_" + to_string(c));
+    }
+  }
+}
+"""
+
+NN_CONV2D = HEADER.format(source="benchmarks/nn_conv2d/nn_conv2d.cpp") + """void fhe()
+{
+  size_t in_h = slots();
+  size_t in_w = slots();
+  size_t k_h = 3, k_w = 3;
+  size_t out_h = in_h - k_h + 1;
+  size_t out_w = in_w - k_w + 1;
+
+  vector<vector<Ciphertext>> x(in_h, vector<Ciphertext>(in_w));
+  for (size_t r = 0; r < in_h; ++r)
+  {
+    for (size_t c = 0; c < in_w; ++c)
+    {
+      x[r][c] = Ciphertext("x_" + to_string(r) + "_" + to_string(c));
+    }
+  }
+
+  vector<vector<Ciphertext>> k(k_h, vector<Ciphertext>(k_w));
+  for (size_t r = 0; r < k_h; ++r)
+  {
+    for (size_t c = 0; c < k_w; ++c)
+    {
+      k[r][c] = Ciphertext("k_" + to_string(r) + "_" + to_string(c));
+    }
+  }
+
+  Ciphertext b("b");
+
+  for (size_t r = 0; r < out_h; ++r)
+  {
+    for (size_t c = 0; c < out_w; ++c)
+    {
+      Ciphertext sum = b + (k[0][0] * x[r][c]);
+      for (size_t ki = 0; ki < k_h; ++ki)
+      {
+        for (size_t kj = 0; kj < k_w; ++kj)
+        {
+          if (ki == 0 && kj == 0) continue;
+          sum += (k[ki][kj] * x[r + ki][c + kj]);
+        }
+      }
+      sum.set_output("y_" + to_string(r) + "_" + to_string(c));
+    }
+  }
+}
+"""
 
 
 def main() -> None:

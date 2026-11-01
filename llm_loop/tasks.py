@@ -1,4 +1,5 @@
-"""The 26 optimization tasks: every CKKS benchmark that run_benchmarks.py runs.
+"""The 29 optimization tasks: every CKKS benchmark that run_benchmarks.py runs, and the
+three BFV neural-network operators (benchmarks/nn_*).
 
 Each task has
   - the benchmark's own input generators for the "fixed" and "dense" cases
@@ -17,7 +18,7 @@ Each task has
     and, for Chebyshev, flip coefficient signs.
 
 Tolerances follow each operator's owner: 1e-6 absolute, 1e-4 for the rotation
-and reduction operators (extract, table_mult, embedding).
+and reduction operators (extract, table_mult, embedding). BFV results are exact.
 """
 import json
 from dataclasses import dataclass, field
@@ -61,6 +62,7 @@ class Task:
     description: str = ""
     expected_levels: Optional[int] = None
     edge: Optional[Callable[[IoExample, np.random.Generator], None]] = None  # in place, after randomize
+    scheme: str = "ckks"
 
     @property
     def baseline_path(self) -> Path:
@@ -362,4 +364,75 @@ TASKS["embedding"] = Task(
     description=("Embedding lookup: output[i] = sum over slots j of indicator[j] * table_i[j] for i = 0, 1, 2, "
                  "and 0 in every other slot; first_slot = (1, 0, ..., 0)."))
 
-assert len(TASKS) == 26, len(TASKS)
+
+# ---------------------------------------------------------------------------
+# Neural-network operators (benchmarks/nn_*), BFV, scalar path: every value is its own
+# ciphertext. Width 4 is the recorded configuration; width 6 is the latency case.
+# ---------------------------------------------------------------------------
+BFV_INPUT_BOUND = 64  # keeps every expected output far below the plaintext modulus / 2
+
+
+def _bfv_scalar(io: IoExample, label: str) -> int:
+    return int(io.inputs[label][1][0])
+
+
+def _bfv_width(io: IoExample) -> int:
+    return int(round(sum(label.startswith("x_") for label in io.inputs) ** 0.5))
+
+
+def _linear_oracle(io: IoExample) -> Dict[str, np.ndarray]:
+    width = sum(label.startswith("x_") for label in io.inputs)
+    return {f"y_{i}": np.array([_bfv_scalar(io, f"b_{i}") + sum(
+        _bfv_scalar(io, f"w_{i}_{j}") * _bfv_scalar(io, f"x_{j}") for j in range(width))], dtype=float)
+        for i in range(width)}
+
+
+def _conv2d_oracle(io: IoExample) -> Dict[str, np.ndarray]:
+    width = _bfv_width(io)
+    return {f"y_{r}_{c}": np.array([_bfv_scalar(io, "b") + sum(
+        _bfv_scalar(io, f"k_{ki}_{kj}") * _bfv_scalar(io, f"x_{r + ki}_{c + kj}")
+        for ki in range(3) for kj in range(3))], dtype=float)
+        for r in range(width - 2) for c in range(width - 2)}
+
+
+def _avgpool2d_oracle(io: IoExample) -> Dict[str, np.ndarray]:
+    width = _bfv_width(io)
+    return {f"y_{r}_{c}": np.array([sum(
+        _bfv_scalar(io, f"x_{2 * r + ki}_{2 * c + kj}") for ki in range(2) for kj in range(2))], dtype=float)
+        for r in range(width // 2) for c in range(width // 2)}
+
+
+def _bfv_randomize(io: IoExample, rng: np.random.Generator) -> None:
+    for label in io.inputs:
+        _set(io, label, [rng.integers(-BFV_INPUT_BOUND, BFV_INPUT_BOUND + 1)])
+
+
+def _bfv_edge(io: IoExample, rng: np.random.Generator) -> None:
+    """Three of every four inputs at the ends of the range and at 0; the rest stay random."""
+    for i, label in enumerate(io.inputs):
+        if i % 4 < 3:
+            _set(io, label, [(-BFV_INPUT_BOUND, BFV_INPUT_BOUND, 0)[i % 4]])
+
+
+_BFV_RULES = (" W = slots() is the width: 4 in the fixed case, 6 in the dense case. Every input is its own "
+              "ciphertext holding one integer, and each output must hold its integer exactly.")
+
+for _name, _oracle, _description in (
+        ("nn_linear", _linear_oracle, (
+            "nn.Linear with in_features = out_features = W: y_i = b_i + sum_j w_i_j * x_j. Inputs: ciphertexts "
+            "`x_j`, `w_i_j` and `b_i` (i, j in 0..W-1). Outputs: `y_i`.")),
+        ("nn_conv2d", _conv2d_oracle, (
+            "nn.Conv2d with one W x W channel, one 3 x 3 kernel, no padding, stride 1: y_r_c = b + sum over ki, kj "
+            "in 0..2 of k_ki_kj * x_(r+ki)_(c+kj). Inputs: ciphertexts `x_r_c` (r, c in 0..W-1), `k_ki_kj` and "
+            "`b`. Outputs: `y_r_c` (r, c in 0..W-3).")),
+        ("nn_avgpool2d", _avgpool2d_oracle, (
+            "nn.AvgPool2d without the division, 2 x 2 window, stride 2: y_r_c = x_(2r)_(2c) + x_(2r)_(2c+1) + "
+            "x_(2r+1)_(2c) + x_(2r+1)_(2c+1). Inputs: ciphertexts `x_r_c` (r, c in 0..W-1). Outputs: `y_r_c` "
+            "(r, c in 0..W/2-1)."))):
+    TASKS[_name] = Task(
+        name=_name, family="nn", owner="Umair", record=f"{_name}_4", tolerance=0.0, scheme="bfv",
+        cases=[Case(case, ["python3", str(SRC_BENCH / _name / f"generate_{_name}.py"), "--slot_count", str(width)], width)
+               for case, width in (("fixed", 4), ("dense", 6))],
+        oracle=_oracle, randomize=_bfv_randomize, edge=_bfv_edge, description=_description + _BFV_RULES)
+
+assert len(TASKS) == 29, len(TASKS)
