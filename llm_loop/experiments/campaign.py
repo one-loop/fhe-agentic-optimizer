@@ -11,6 +11,7 @@ Experiments, in priority order:
   3. hints_full       the 3 pilot tasks with --hints full (identities + worked examples)
   4. static_feedback  the 3 pilot tasks with --feedback static (cost-model latency only)
   5. quad_batchnorm   Quad, BatchNorm1d/2d, 1 run each: does the agent leave optimal kernels intact?
+  6. sonnet_archive   the 9 Chebyshev tasks with Claude Sonnet 5.5, archive only, hints none, 3 runs
 
 Unattended behaviour: if Claude's usage limit is reached, or the model cannot be
 reached, the campaign waits and retries (an interrupted run is redone from
@@ -44,6 +45,8 @@ EXPERIMENTS = [
      "out": "phase2-static-feedback", "results": "phase2_static_feedback"},
     {"name": "quad_batchnorm", "tasks": ["quad", "batchnorm1d", "batchnorm2d"], "runs": [1], "hints": "none",
      "feedback": "execution", "out": "phase2-quad-batchnorm", "results": "phase2_quad_batchnorm"},
+    {"name": "sonnet_archive", "tasks": PILOT + REST, "runs": [1, 2, 3], "hints": "none", "feedback": "execution",
+     "out": "phase2-sonnet", "results": "phase2_sonnet", "model": "claude-sonnet-5-5", "strategies": ["archive"]},
 ]
 WAIT_LIMIT_S = 30 * 60      # after a usage limit
 WAIT_ERROR_S = 10 * 60      # after the model could not be reached or a crash
@@ -58,6 +61,10 @@ def task_order(tasks, run):
 
 def strategy_order(run):
     return ["archive", "linear"] if run % 2 else ["linear", "archive"]
+
+
+def strategies(e, run):
+    return [s for s in strategy_order(run) if s in e.get("strategies", ("archive", "linear"))]
 
 
 class Campaign:
@@ -82,9 +89,9 @@ class Campaign:
                  f"Now: {current}", "", "| experiment | completed runs | planned runs | results |",
                  "|---|---:|---:|---|"]
         for e in self.selected():
-            planned = len(e["tasks"]) * len(e["runs"]) * 2
+            planned = len(e["tasks"]) * len(e["runs"]) * len(e.get("strategies", ("archive", "linear")))
             completed = sum((self.runs_root / e["out"] / s / t / f"run{r}" / "result.json").exists()
-                            for t in e["tasks"] for r in e["runs"] for s in ("archive", "linear"))
+                            for t in e["tasks"] for r in e["runs"] for s in e.get("strategies", ("archive", "linear")))
             res = self.results_root / e["results"] / "phase2_pilot.md"
             lines.append(f"| {e['name']} | {completed} | {planned} | {res if res.exists() else '-'} |")
             done, total = done + completed, total + planned
@@ -101,7 +108,7 @@ class Campaign:
         expected = [out / t / f"run{run}" / "result.json" for t in tasks]
         cmd = [sys.executable, "-m", "llm_loop.loop", "--tasks", *tasks, "--strategy", strategy,
                "--hints", e["hints"], "--feedback", e["feedback"], "--iterations", "8", "--runs", str(run),
-               "--final-rounds", "0", "--proposer", self.args.proposer, "--out", str(out),
+               "--final-rounds", "0", "--proposer", self.args.proposer, "--model", e.get("model", "claude-haiku-5-5"), "--out", str(out),
                "--work", str(REPO / "build" / "llm_loop" / "campaign")]
         waited = 0
         while not all(p.exists() for p in expected):
@@ -144,7 +151,7 @@ class Campaign:
         self.log(f"campaign start: {[e['name'] for e in self.selected()]}, proposer {self.args.proposer}")
         for e in self.selected():
             for run in e["runs"]:
-                for strategy in strategy_order(run):
+                for strategy in strategies(e, run):
                     self.step(e, run, strategy)
             self.rescore(e)
         self.log("campaign finished")

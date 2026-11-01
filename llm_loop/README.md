@@ -42,7 +42,7 @@ A kernel is correct when it passes, within the task's tolerance (1e-6, or 1e-4
 for extract, table_mult and embedding, as their owners chose):
 
 - **fixed** and **dense**: the benchmark's own generated inputs and expected outputs;
-- **heldout101**, **heldout202**: fresh random inputs with the dense layout,
+- **heldout101** to **heldout606**: fresh random inputs with the dense layout,
   expected outputs from the oracle in `tasks.py`. Ciphertext data, table
   columns and BatchNorm vectors are redrawn and polynomial coefficients are
   perturbed (x U(0.5, 1.5) for Chebyshev, x U(0.999, 1.001) for the composite
@@ -50,7 +50,11 @@ for extract, table_mult and embedding, as their owners chose):
   the constants `one`, `half`, `alpha`) is kept. This catches kernels that
   exploit coincidences of the committed inputs: table columns that are multiples
   of each other, or c1 = 2 exactly in gelu/silu/softplus/relu (the offline replay
-  test checks both).
+  test checks both). heldout505 and heldout606 also pin three of every four
+  slots of the ciphertext input to the ends of its range and to 0 and, for
+  Chebyshev, flip coefficient signs (Chebyshev, Quad and BatchNorm only).
+  The first 864 model calls searched with heldout101 and heldout202 only;
+  `experiments/recheck_correctness.py` re-checks their final kernels with all six.
 
 Each oracle is validated against the generators' expected outputs (max
 relative difference 1e-15).

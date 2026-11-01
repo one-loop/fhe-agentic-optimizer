@@ -13,6 +13,8 @@ Each task has
     are non-negligible, masks, the constants `one` and `half`), so a kernel
     cannot pass by exploiting coincidences of the committed inputs, such as
     table columns that are multiples of each other or c1 = 2 exactly.
+    The edge seeds also pin ciphertext inputs to the ends of their range and to 0
+    and, for Chebyshev, flip coefficient signs.
 
 Tolerances follow each operator's owner: 1e-6 absolute, 1e-4 for the rotation
 and reduction operators (extract, table_mult, embedding).
@@ -35,7 +37,8 @@ COEFFS = SRC_BENCH / "dl_operators_ckks" / "chebyshev_coeffs.json"
 EPS = 1e-14  # coefficients at or below it get no term (same threshold as the benchmarks)
 TOL = 1e-6
 TOL_ROTATIONS = 1e-4
-HELDOUT_SEEDS = (101, 202)
+HELDOUT_SEEDS = (101, 202, 303, 404, 505, 606)
+EDGE_SEEDS = (505, 606)  # also apply the task's edge transform
 
 
 @dataclass
@@ -57,6 +60,7 @@ class Task:
     randomize: Callable[[IoExample, np.random.Generator], None]  # in place, on a copy of the dense case
     description: str = ""
     expected_levels: Optional[int] = None
+    edge: Optional[Callable[[IoExample, np.random.Generator], None]] = None  # in place, after randomize
 
     @property
     def baseline_path(self) -> Path:
@@ -68,7 +72,10 @@ class Task:
     def heldout(self, dense: IoExample, seed: int) -> IoExample:
         """Fresh inputs with the dense case's layout, expected outputs from the oracle."""
         io = IoExample(dense.slot_count, {k: (c, v.copy()) for k, (c, v) in dense.inputs.items()})
-        self.randomize(io, np.random.default_rng(seed))
+        rng = np.random.default_rng(seed)
+        self.randomize(io, rng)
+        if seed in EDGE_SEEDS and self.edge:
+            self.edge(io, rng)
         io.outputs = self.oracle(io)
         return io
 
@@ -82,6 +89,17 @@ def _perturb(io: IoExample, rng: np.random.Generator, labels, lo: float, hi: flo
 def _set(io: IoExample, label: str, values) -> None:
     is_cipher = io.inputs[label][0]
     io.inputs[label] = (is_cipher, np.asarray(values, dtype=float))
+
+
+def _pin_range(io: IoExample, label: str, lo: float, hi: float) -> None:
+    """Pin three of every four slots to the ends of the range and to 0; the rest stay random."""
+    values = io.inputs[label][1].copy()
+    values[0::4], values[1::4], values[2::4] = lo, hi, 0.0
+    _set(io, label, values)
+
+
+def _pinned(label: str, lo: float, hi: float):
+    return lambda io, rng: _pin_range(io, label, lo, hi)
 
 
 def _uniform(lo: float, hi: float, *labels: str):
@@ -131,6 +149,14 @@ def _chebyshev_randomize(terms: List[int]):
     return randomize
 
 
+def _chebyshev_edge(terms: List[int]):
+    def edge(io: IoExample, rng: np.random.Generator) -> None:
+        _pin_range(io, "x", -4.0, 4.0)  # |z| = 1, where every T_k reaches its largest magnitude
+        for k in terms:
+            _set(io, f"c{k}", io.inputs[f"c{k}"][1] * rng.choice([-1.0, 1.0]))
+    return edge
+
+
 def _chebyshev(activation: str, degree: int, owner: str) -> Task:
     terms = chebyshev_terms(activation, degree)
     return Task(
@@ -140,7 +166,7 @@ def _chebyshev(activation: str, degree: int, owner: str) -> Task:
                            activation, str(degree)])
                for case, points in (("fixed", "points9"), ("dense", "dense"))],
         oracle=_chebyshev_oracle(activation, degree),
-        randomize=_chebyshev_randomize(terms),
+        randomize=_chebyshev_randomize(terms), edge=_chebyshev_edge(terms),
         description=(
             f"Degree-{degree} Chebyshev approximation of {activation} on [-4, 4]. Inputs: ciphertext `x` in [-4, 4]; "
             "plaintexts `alpha` (= 0.25, so z = x * alpha is in [-1, 1]), `one` (= 1) and the coefficients "
@@ -285,7 +311,7 @@ TASKS["quad"] = Task(
     cases=[Case(case, ["python3", str(SRC_BENCH / "quad_ckks" / "generate_quad_ckks.py"), "--slot_count", str(slot),
                        "--seed", str(seed)], slot)
            for case, slot, seed in (("fixed", 8, 0), ("dense", 256, 1))],
-    oracle=lambda io: {"y": io.value("x") ** 2}, randomize=_uniform(-2.0, 2.0, "x"),
+    oracle=lambda io: {"y": io.value("x") ** 2}, randomize=_uniform(-2.0, 2.0, "x"), edge=_pinned("x", -2.0, 2.0),
     description="Quadratic activation y = x * x.", expected_levels=1,
 )
 
@@ -299,7 +325,7 @@ for _name, _fixed, _dense in (("batchnorm1d", "bn1d", "bn1d_rand"), ("batchnorm2
         name=_name, family="batchnorm", owner="Umair", record=f"{_name}_ckks", tolerance=TOL,
         cases=[Case(case, [str(BUILD_BENCH / "batchnorm_ckks" / "generate_batchnorm_ckks"), gen])
                for case, gen in (("fixed", _fixed), ("dense", _dense))],
-        oracle=lambda io: {"y": io.value("x") * io.value("A") + io.value("B")}, randomize=_bn_randomize,
+        oracle=lambda io: {"y": io.value("x") * io.value("A") + io.value("B")}, randomize=_bn_randomize, edge=_pinned("x", -3.0, 3.0),
         description=f"Inference BatchNorm ({_name[-2:]}) folded offline: y = x * A + B, A and B plaintext vectors.",
         expected_levels=1,
     )
