@@ -17,6 +17,7 @@ Experiments, in priority order:
   8. opus_chebyshev, opus_quad_batchnorm, opus_nn  the same tasks with Claude Opus 5.5
   9. opus_focus_chebyshev, opus_focus_conv2d  the cut-down Opus version: the 3 pilot tasks and nn_conv2d, 3 runs each,
      re-scored apart because the schemes differ
+ 10. others_haiku, others_sonnet, others_opus  the other 14 operators, 1 run per model, archive only
 
 Unattended behaviour: if Claude's usage limit is reached, or the model cannot be
 reached, the campaign waits and retries (an interrupted run is redone from
@@ -42,6 +43,9 @@ QUAD_BN = ["quad", "batchnorm1d", "batchnorm2d"]
 PILOT = ["chebyshev_gelu_d7", "chebyshev_sigmoid_d7", "chebyshev_elu_d7"]
 REST = ["chebyshev_silu_d7", "chebyshev_selu_d7", "chebyshev_softplus_d7", "chebyshev_mish_d7",
         "chebyshev_hardshrink_d7", "chebyshev_sigmoid_d5"]
+OTHERS = ["chebyshev_relu_d7", "chebyshev_relu_d2", "relu_composite", "elementwise_add", "elementwise_add_plain",
+          "elementwise_add_scalar", "elementwise_mul", "elementwise_mul_plain", "elementwise_mul_scalar", "extract",
+          "extract_linear", "extract_sparse", "table_mult", "embedding"]  # the teammates' operators in tasks.py
 EXPERIMENTS = [
     {"name": "chebyshev_rest", "tasks": REST, "runs": [1, 2, 3], "hints": "none", "feedback": "execution",
      "out": "phase2-chebyshev-rest", "results": "phase2_chebyshev_rest"},
@@ -75,6 +79,14 @@ EXPERIMENTS = [
      "out": "phase2-opus-focus", "results": "phase2_opus_focus", "model": "claude-opus-5-5", "strategies": ["archive"]},
     {"name": "opus_focus_conv2d", "tasks": ["nn_conv2d"], "runs": [1, 2, 3], "hints": "none", "feedback": "execution",
      "out": "phase2-nn-opus-focus", "results": "phase2_nn_opus_focus", "model": "claude-opus-5-5",
+     "strategies": ["archive"]},
+    {"name": "others_haiku", "tasks": OTHERS, "runs": [1], "hints": "none", "feedback": "execution",
+     "out": "phase2-others-haiku", "results": "phase2_others_haiku", "strategies": ["archive"]},
+    {"name": "others_sonnet", "tasks": OTHERS, "runs": [1], "hints": "none", "feedback": "execution",
+     "out": "phase2-others-sonnet", "results": "phase2_others_sonnet", "model": "claude-sonnet-5-5",
+     "strategies": ["archive"]},
+    {"name": "others_opus", "tasks": OTHERS, "runs": [1], "hints": "none", "feedback": "execution",
+     "out": "phase2-others-opus", "results": "phase2_others_opus", "model": "claude-opus-5-5",
      "strategies": ["archive"]},
 ]
 WAIT_LIMIT_S = 30 * 60      # after a usage limit
