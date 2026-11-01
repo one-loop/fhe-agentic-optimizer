@@ -1,0 +1,650 @@
+{
+ "task": "table_mult",
+ "scheme": "ckks",
+ "model": "claude-opus-5-5",
+ "effort": "medium",
+ "iterations": 8,
+ "timestamp": "20261101-143203",
+ "wall_time_s": 493.4167580604553,
+ "baseline": {
+  "status": "ok",
+  "correct": true,
+  "message": "kernel 373b4b96ec",
+  "compile_time_ms": 0.352334,
+  "depth": 17,
+  "mult_depth": 1,
+  "terms": 58,
+  "ops": {
+   "ct_ct_mul": 0,
+   "square": 0,
+   "ct_pt_mul": 3,
+   "relin": 0,
+   "rotate": 24,
+   "rescale": 3,
+   "mod_switch": 0,
+   "match_scale": 0,
+   "add": 24
+  },
+  "cases": [
+   {
+    "name": "fixed",
+    "slot_count": 8,
+    "passed": true,
+    "max_abs_error": 1.417e-05,
+    "levels_consumed": 1,
+    "exec_time_ms": 255.771,
+    "eval_time_ms": 224.642,
+    "noise_budget_bits": null,
+    "output": "output output_2: max_abs_error=1.417e-05 (ok), chain_index 10 -> 9 (levels consumed 1), log2_scale=40.0000021\noutput output_1: max_abs_error=1.37291e-05 (ok), chain_index 10 -> 9 (levels consumed 1), log2_scale=40.0000021\noutput output_0: max_abs_error=1.38564e-05 (ok), chain_index 10 -> 9 (levels consumed 1), log2_scale=40.0000021\nexecution_time_(ms): 255.771\nfhe_eval_median_(ms): 224.642 (1 warmup + 1 runs)\nPASS (tolerance 0.0001)\n"
+   },
+   {
+    "name": "dense",
+    "slot_count": 256,
+    "passed": true,
+    "max_abs_error": 2.65588e-05,
+    "levels_consumed": 1,
+    "exec_time_ms": 625.979,
+    "eval_time_ms": 569.634,
+    "noise_budget_bits": null,
+    "output": "output output_2: max_abs_error=2.65588e-05 (ok), chain_index 10 -> 9 (levels consumed 1), log2_scale=40.0000021\noutput output_1: max_abs_error=2.6491e-05 (ok), chain_index 10 -> 9 (levels consumed 1), log2_scale=40.0000021\noutput output_0: max_abs_error=1.32813e-05 (ok), chain_index 10 -> 9 (levels consumed 1), log2_scale=40.0000021\nexecution_time_(ms): 625.979\nfhe_eval_median_(ms): 569.634 (1 warmup + 10 runs)\nPASS (tolerance 0.0001)\n"
+   }
+  ],
+  "timing_skipped": false,
+  "eval_time_ms": 569.634,
+  "levels": 1,
+  "max_abs_error": 2.65588e-05
+ },
+ "best": {
+  "status": "ok",
+  "correct": true,
+  "message": "kernel 8b78b09708",
+  "compile_time_ms": 0.388042,
+  "depth": 18,
+  "mult_depth": 2,
+  "terms": 69,
+  "ops": {
+   "ct_ct_mul": 0,
+   "square": 0,
+   "ct_pt_mul": 5,
+   "relin": 0,
+   "rotate": 24,
+   "rescale": 5,
+   "mod_switch": 0,
+   "match_scale": 3,
+   "add": 28
+  },
+  "cases": [
+   {
+    "name": "fixed",
+    "slot_count": 8,
+    "passed": true,
+    "max_abs_error": 5.61315e-06,
+    "levels_consumed": 2,
+    "exec_time_ms": 273.319,
+    "eval_time_ms": 242.271,
+    "noise_budget_bits": null,
+    "output": "output output_2: max_abs_error=4.70459e-06 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\noutput output_1: max_abs_error=5.61315e-06 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\noutput output_0: max_abs_error=5.35182e-06 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\nexecution_time_(ms): 273.319\nfhe_eval_median_(ms): 242.271 (1 warmup + 1 runs)\nPASS (tolerance 0.0001)\n"
+   },
+   {
+    "name": "dense",
+    "slot_count": 256,
+    "passed": true,
+    "max_abs_error": 4.21273e-05,
+    "levels_consumed": 2,
+    "exec_time_ms": 588.177,
+    "eval_time_ms": 525.925,
+    "noise_budget_bits": null,
+    "output": "output output_2: max_abs_error=4.21273e-05 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\noutput output_1: max_abs_error=3.80838e-05 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\noutput output_0: max_abs_error=3.15188e-05 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\nexecution_time_(ms): 588.177\nfhe_eval_median_(ms): 525.925 (1 warmup + 10 runs)\nPASS (tolerance 0.0001)\n"
+   }
+  ],
+  "timing_skipped": false,
+  "eval_time_ms": 525.925,
+  "levels": 2,
+  "max_abs_error": 4.21273e-05
+ },
+ "best_iteration": 5,
+ "speedup": 1.0692734604788587,
+ "final_remeasure": {
+  "candidate_ms": 525.959,
+  "reference_ms": 563.542,
+  "ratios": [
+   0.9173,
+   0.939,
+   0.9494,
+   0.9504,
+   0.9334,
+   0.9352,
+   0.9131
+  ],
+  "wins": 7,
+  "batches": 7,
+  "median_ratio": 0.9352144581912324,
+  "speedup": 1.0692734604788587,
+  "confirmed": true
+ },
+ "single_run_speedup": 1.0831088082901557,
+ "structural_change": true,
+ "usage": {
+  "input_tokens": 30,
+  "output_tokens": 17388,
+  "cache_creation_input_tokens": 19834,
+  "cache_read_input_tokens": 86691
+ },
+ "approx_cost_usd": 0.0,
+ "attempts": [
+  {
+   "iteration": 0,
+   "kind": "baseline",
+   "evaluation": {
+    "status": "ok",
+    "correct": true,
+    "message": "kernel 373b4b96ec",
+    "compile_time_ms": 0.352334,
+    "depth": 17,
+    "mult_depth": 1,
+    "terms": 58,
+    "ops": {
+     "ct_ct_mul": 0,
+     "square": 0,
+     "ct_pt_mul": 3,
+     "relin": 0,
+     "rotate": 24,
+     "rescale": 3,
+     "mod_switch": 0,
+     "match_scale": 0,
+     "add": 24
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 8,
+      "passed": true,
+      "max_abs_error": 1.417e-05,
+      "levels_consumed": 1,
+      "exec_time_ms": 255.771,
+      "eval_time_ms": 224.642,
+      "noise_budget_bits": null,
+      "output": "output output_2: max_abs_error=1.417e-05 (ok), chain_index 10 -> 9 (levels consumed 1), log2_scale=40.0000021\noutput output_1: max_abs_error=1.37291e-05 (ok), chain_index 10 -> 9 (levels consumed 1), log2_scale=40.0000021\noutput output_0: max_abs_error=1.38564e-05 (ok), chain_index 10 -> 9 (levels consumed 1), log2_scale=40.0000021\nexecution_time_(ms): 255.771\nfhe_eval_median_(ms): 224.642 (1 warmup + 1 runs)\nPASS (tolerance 0.0001)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 256,
+      "passed": true,
+      "max_abs_error": 2.65588e-05,
+      "levels_consumed": 1,
+      "exec_time_ms": 625.979,
+      "eval_time_ms": 569.634,
+      "noise_budget_bits": null,
+      "output": "output output_2: max_abs_error=2.65588e-05 (ok), chain_index 10 -> 9 (levels consumed 1), log2_scale=40.0000021\noutput output_1: max_abs_error=2.6491e-05 (ok), chain_index 10 -> 9 (levels consumed 1), log2_scale=40.0000021\noutput output_0: max_abs_error=1.32813e-05 (ok), chain_index 10 -> 9 (levels consumed 1), log2_scale=40.0000021\nexecution_time_(ms): 625.979\nfhe_eval_median_(ms): 569.634 (1 warmup + 10 runs)\nPASS (tolerance 0.0001)\n"
+     }
+    ],
+    "timing_skipped": false,
+    "eval_time_ms": 569.634,
+    "levels": 1,
+    "max_abs_error": 2.65588e-05
+   },
+   "seconds": 14.940525770187378
+  },
+  {
+   "iteration": 1,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "wrong_output",
+    "correct": false,
+    "message": "wrong result on case fixed (8 slots): max abs error 0.0336 > tolerance 0.0001. The kernel does not compute the same function as the original.\noutput output_2: max_abs_error=0.0336109 (exceeds tolerance), chain_index 10 -> 2 (levels consumed 8), log2_scale=40.0000678\noutput output_1: max_abs_error=0.0336111 (exceeds tolerance), chain_index 10 -> 2 (levels consumed 8), log2_scale=40.0000678\noutput output_0: max_abs_error=0.0336111 (exceeds tolerance), chain_index 10 -> 2 (levels consumed 8), log2_scale=40.0000678\nexecution_time_(ms): 158.338\nfhe_eval_median_(ms): 127.598 (1 warmup + 1 runs)\nFAIL (tolerance 0.0001)\n",
+    "compile_time_ms": 1.50633,
+    "depth": 16,
+    "mult_depth": 8,
+    "terms": 81,
+    "ops": {
+     "ct_ct_mul": 0,
+     "square": 0,
+     "ct_pt_mul": 17,
+     "relin": 0,
+     "rotate": 9,
+     "rescale": 17,
+     "mod_switch": 18,
+     "match_scale": 3,
+     "add": 13
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 8,
+      "passed": false,
+      "max_abs_error": 0.0336111,
+      "levels_consumed": 8,
+      "exec_time_ms": 158.338,
+      "eval_time_ms": 127.598,
+      "noise_budget_bits": null,
+      "output": "output output_2: max_abs_error=0.0336109 (exceeds tolerance), chain_index 10 -> 2 (levels consumed 8), log2_scale=40.0000678\noutput output_1: max_abs_error=0.0336111 (exceeds tolerance), chain_index 10 -> 2 (levels consumed 8), log2_scale=40.0000678\noutput output_0: max_abs_error=0.0336111 (exceeds tolerance), chain_index 10 -> 2 (levels consumed 8), log2_scale=40.0000678\nexecution_time_(ms): 158.338\nfhe_eval_median_(ms): 127.598 (1 warmup + 1 runs)\nFAIL (tolerance 0.0001)\n"
+     }
+    ],
+    "timing_skipped": false,
+    "eval_time_ms": 127.598,
+    "levels": 8,
+    "max_abs_error": 0.0336111
+   },
+   "verdict": "failed",
+   "same_as": null,
+   "remeasure": null,
+   "new_best": false,
+   "seconds": 57.839375019073486
+  },
+  {
+   "iteration": 2,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "wrong_output",
+    "correct": false,
+    "message": "wrong result on case dense (256 slots): max abs error 1.21 > tolerance 0.0001. The kernel does not compute the same function as the original.\noutput output_2: max_abs_error=1.20544 (exceeds tolerance), chain_index 10 -> 6 (levels consumed 4), log2_scale=40.0000232\noutput output_1: max_abs_error=1.20542 (exceeds tolerance), chain_index 10 -> 6 (levels consumed 4), log2_scale=40.0000232\noutput output_0: max_abs_error=1.20542 (exceeds tolerance), chain_index 10 -> 6 (levels consumed 4), log2_scale=40.0000232\nexecution_time_(ms): 417.494\nfhe_eval_median_(ms): 370.381 (1 warmup + 10 runs)\nFAIL (tolerance 0.0001)\n",
+    "compile_time_ms": 0.415958,
+    "depth": 22,
+    "mult_depth": 4,
+    "terms": 83,
+    "ops": {
+     "ct_ct_mul": 0,
+     "square": 0,
+     "ct_pt_mul": 9,
+     "relin": 0,
+     "rotate": 24,
+     "rescale": 9,
+     "mod_switch": 6,
+     "match_scale": 3,
+     "add": 28
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 8,
+      "passed": true,
+      "max_abs_error": 1.78294e-05,
+      "levels_consumed": 4,
+      "exec_time_ms": 212.201,
+      "eval_time_ms": 180.053,
+      "noise_budget_bits": null,
+      "output": "output output_2: max_abs_error=1.78294e-05 (ok), chain_index 10 -> 6 (levels consumed 4), log2_scale=40.0000232\noutput output_1: max_abs_error=1.76142e-05 (ok), chain_index 10 -> 6 (levels consumed 4), log2_scale=40.0000232\noutput output_0: max_abs_error=1.76815e-05 (ok), chain_index 10 -> 6 (levels consumed 4), log2_scale=40.0000232\nexecution_time_(ms): 212.201\nfhe_eval_median_(ms): 180.053 (1 warmup + 1 runs)\nPASS (tolerance 0.0001)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 256,
+      "passed": false,
+      "max_abs_error": 1.20544,
+      "levels_consumed": 4,
+      "exec_time_ms": 417.494,
+      "eval_time_ms": 370.381,
+      "noise_budget_bits": null,
+      "output": "output output_2: max_abs_error=1.20544 (exceeds tolerance), chain_index 10 -> 6 (levels consumed 4), log2_scale=40.0000232\noutput output_1: max_abs_error=1.20542 (exceeds tolerance), chain_index 10 -> 6 (levels consumed 4), log2_scale=40.0000232\noutput output_0: max_abs_error=1.20542 (exceeds tolerance), chain_index 10 -> 6 (levels consumed 4), log2_scale=40.0000232\nexecution_time_(ms): 417.494\nfhe_eval_median_(ms): 370.381 (1 warmup + 10 runs)\nFAIL (tolerance 0.0001)\n"
+     }
+    ],
+    "timing_skipped": false,
+    "eval_time_ms": 370.381,
+    "levels": 4,
+    "max_abs_error": 1.20544
+   },
+   "verdict": "failed",
+   "same_as": null,
+   "remeasure": null,
+   "new_best": false,
+   "seconds": 31.906082153320312
+  },
+  {
+   "iteration": 3,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "wrong_output",
+    "correct": false,
+    "message": "wrong result on case dense (256 slots): max abs error 0.0001 > tolerance 0.0001. The kernel does not compute the same function as the original.\noutput output_2: max_abs_error=7.45235e-05 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\noutput output_1: max_abs_error=0.000100006 (exceeds tolerance), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\noutput output_0: max_abs_error=8.64253e-05 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\nexecution_time_(ms): 588.636\nfhe_eval_median_(ms): 502.303 (1 warmup + 10 runs)\nFAIL (tolerance 0.0001)\n",
+    "compile_time_ms": 0.396667,
+    "depth": 20,
+    "mult_depth": 2,
+    "terms": 69,
+    "ops": {
+     "ct_ct_mul": 0,
+     "square": 0,
+     "ct_pt_mul": 5,
+     "relin": 0,
+     "rotate": 24,
+     "rescale": 5,
+     "mod_switch": 0,
+     "match_scale": 3,
+     "add": 28
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 8,
+      "passed": true,
+      "max_abs_error": 1.11643e-05,
+      "levels_consumed": 2,
+      "exec_time_ms": 249.634,
+      "eval_time_ms": 216.588,
+      "noise_budget_bits": null,
+      "output": "output output_2: max_abs_error=1.11643e-05 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\noutput output_1: max_abs_error=1.09303e-05 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\noutput output_0: max_abs_error=1.09237e-05 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\nexecution_time_(ms): 249.634\nfhe_eval_median_(ms): 216.588 (1 warmup + 1 runs)\nPASS (tolerance 0.0001)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 256,
+      "passed": false,
+      "max_abs_error": 0.000100006,
+      "levels_consumed": 2,
+      "exec_time_ms": 588.636,
+      "eval_time_ms": 502.303,
+      "noise_budget_bits": null,
+      "output": "output output_2: max_abs_error=7.45235e-05 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\noutput output_1: max_abs_error=0.000100006 (exceeds tolerance), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\noutput output_0: max_abs_error=8.64253e-05 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\nexecution_time_(ms): 588.636\nfhe_eval_median_(ms): 502.303 (1 warmup + 10 runs)\nFAIL (tolerance 0.0001)\n"
+     }
+    ],
+    "timing_skipped": false,
+    "eval_time_ms": 502.303,
+    "levels": 2,
+    "max_abs_error": 0.000100006
+   },
+   "verdict": "failed",
+   "same_as": null,
+   "remeasure": null,
+   "new_best": false,
+   "seconds": 35.02326488494873
+  },
+  {
+   "iteration": 4,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "run_error",
+    "correct": false,
+    "message": "the encrypted program failed (case fixed):\nlibc++abi: terminating due to uncaught exception of type std::logic_error: result ciphertext is transparent\n",
+    "compile_time_ms": 1.51667,
+    "depth": 10,
+    "mult_depth": 2,
+    "terms": 39,
+    "ops": {
+     "ct_ct_mul": 0,
+     "square": 0,
+     "ct_pt_mul": 5,
+     "relin": 0,
+     "rotate": 9,
+     "rescale": 5,
+     "mod_switch": 0,
+     "match_scale": 3,
+     "add": 13
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 8,
+      "passed": false,
+      "max_abs_error": null,
+      "levels_consumed": null,
+      "exec_time_ms": null,
+      "eval_time_ms": null,
+      "noise_budget_bits": null,
+      "output": "libc++abi: terminating due to uncaught exception of type std::logic_error: result ciphertext is transparent\n"
+     }
+    ],
+    "timing_skipped": false,
+    "eval_time_ms": null,
+    "levels": null,
+    "max_abs_error": null
+   },
+   "verdict": "failed",
+   "same_as": null,
+   "remeasure": null,
+   "new_best": false,
+   "seconds": 22.189077138900757
+  },
+  {
+   "iteration": 5,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "ok",
+    "correct": true,
+    "message": "kernel 8b78b09708",
+    "compile_time_ms": 0.388042,
+    "depth": 18,
+    "mult_depth": 2,
+    "terms": 69,
+    "ops": {
+     "ct_ct_mul": 0,
+     "square": 0,
+     "ct_pt_mul": 5,
+     "relin": 0,
+     "rotate": 24,
+     "rescale": 5,
+     "mod_switch": 0,
+     "match_scale": 3,
+     "add": 28
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 8,
+      "passed": true,
+      "max_abs_error": 5.61315e-06,
+      "levels_consumed": 2,
+      "exec_time_ms": 273.319,
+      "eval_time_ms": 242.271,
+      "noise_budget_bits": null,
+      "output": "output output_2: max_abs_error=4.70459e-06 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\noutput output_1: max_abs_error=5.61315e-06 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\noutput output_0: max_abs_error=5.35182e-06 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\nexecution_time_(ms): 273.319\nfhe_eval_median_(ms): 242.271 (1 warmup + 1 runs)\nPASS (tolerance 0.0001)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 256,
+      "passed": true,
+      "max_abs_error": 4.21273e-05,
+      "levels_consumed": 2,
+      "exec_time_ms": 588.177,
+      "eval_time_ms": 525.925,
+      "noise_budget_bits": null,
+      "output": "output output_2: max_abs_error=4.21273e-05 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\noutput output_1: max_abs_error=3.80838e-05 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\noutput output_0: max_abs_error=3.15188e-05 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\nexecution_time_(ms): 588.177\nfhe_eval_median_(ms): 525.925 (1 warmup + 10 runs)\nPASS (tolerance 0.0001)\n"
+     }
+    ],
+    "timing_skipped": false,
+    "eval_time_ms": 525.925,
+    "levels": 2,
+    "max_abs_error": 4.21273e-05
+   },
+   "verdict": "new_best",
+   "same_as": null,
+   "remeasure": {
+    "candidate_ms": 536.168,
+    "reference_ms": 565.579,
+    "ratios": [
+     0.9317,
+     0.9445,
+     0.9432,
+     0.96,
+     1.0077
+    ],
+    "wins": 4,
+    "batches": 5,
+    "median_ratio": 0.944538251950656,
+    "speedup": 1.058718371579769,
+    "confirmed": true,
+    "against": 0
+   },
+   "new_best": true,
+   "seconds": 113.99247002601624
+  },
+  {
+   "iteration": 6,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "ok",
+    "correct": true,
+    "message": "kernel aaf77171fb",
+    "compile_time_ms": 0.449833,
+    "depth": 18,
+    "mult_depth": 2,
+    "terms": 69,
+    "ops": {
+     "ct_ct_mul": 0,
+     "square": 0,
+     "ct_pt_mul": 5,
+     "relin": 0,
+     "rotate": 24,
+     "rescale": 5,
+     "mod_switch": 0,
+     "match_scale": 3,
+     "add": 28
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 8,
+      "passed": true,
+      "max_abs_error": 4.35966e-06,
+      "levels_consumed": 2,
+      "exec_time_ms": 259.349,
+      "eval_time_ms": 229.072,
+      "noise_budget_bits": null,
+      "output": "output output_2: max_abs_error=4.08126e-06 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\noutput output_1: max_abs_error=4.35966e-06 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\noutput output_0: max_abs_error=4.27667e-06 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\nexecution_time_(ms): 259.349\nfhe_eval_median_(ms): 229.072 (1 warmup + 1 runs)\nPASS (tolerance 0.0001)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 256,
+      "passed": true,
+      "max_abs_error": 5.39765e-05,
+      "levels_consumed": 2,
+      "exec_time_ms": 554.219,
+      "eval_time_ms": 514.038,
+      "noise_budget_bits": null,
+      "output": "output output_2: max_abs_error=4.35254e-05 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\noutput output_1: max_abs_error=5.39765e-05 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\noutput output_0: max_abs_error=2.28002e-05 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\nexecution_time_(ms): 554.219\nfhe_eval_median_(ms): 514.038 (1 warmup + 1 runs)\nPASS (tolerance 0.0001)\n"
+     }
+    ],
+    "timing_skipped": true,
+    "eval_time_ms": null,
+    "levels": 2,
+    "max_abs_error": 5.39765e-05
+   },
+   "verdict": "same_as_best",
+   "same_as": 5,
+   "remeasure": null,
+   "new_best": false,
+   "seconds": 19.77556300163269
+  },
+  {
+   "iteration": 7,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "ok",
+    "correct": true,
+    "message": "kernel 8b78b09708",
+    "compile_time_ms": 0.407625,
+    "depth": 18,
+    "mult_depth": 2,
+    "terms": 69,
+    "ops": {
+     "ct_ct_mul": 0,
+     "square": 0,
+     "ct_pt_mul": 5,
+     "relin": 0,
+     "rotate": 24,
+     "rescale": 5,
+     "mod_switch": 0,
+     "match_scale": 3,
+     "add": 28
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 8,
+      "passed": true,
+      "max_abs_error": 2.81804e-06,
+      "levels_consumed": 2,
+      "exec_time_ms": 327.502,
+      "eval_time_ms": 241.1,
+      "noise_budget_bits": null,
+      "output": "output output_2: max_abs_error=2.69636e-06 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\noutput output_1: max_abs_error=2.67598e-06 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\noutput output_0: max_abs_error=2.81804e-06 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\nexecution_time_(ms): 327.502\nfhe_eval_median_(ms): 241.1 (1 warmup + 1 runs)\nPASS (tolerance 0.0001)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 256,
+      "passed": true,
+      "max_abs_error": 3.29006e-05,
+      "levels_consumed": 2,
+      "exec_time_ms": 580.038,
+      "eval_time_ms": 526.894,
+      "noise_budget_bits": null,
+      "output": "output output_2: max_abs_error=2.74716e-05 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\noutput output_1: max_abs_error=3.29006e-05 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\noutput output_0: max_abs_error=2.27463e-05 (ok), chain_index 10 -> 8 (levels consumed 2), log2_scale=40.0000072\nexecution_time_(ms): 580.038\nfhe_eval_median_(ms): 526.894 (1 warmup + 1 runs)\nPASS (tolerance 0.0001)\n"
+     }
+    ],
+    "timing_skipped": true,
+    "eval_time_ms": null,
+    "levels": 2,
+    "max_abs_error": 3.29006e-05
+   },
+   "verdict": "same_as_best",
+   "same_as": 5,
+   "remeasure": null,
+   "new_best": false,
+   "seconds": 47.45319604873657
+  },
+  {
+   "iteration": 8,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "wrong_output",
+    "correct": false,
+    "message": "wrong result on case dense (256 slots): max abs error 0.00309 > tolerance 0.0001. The kernel does not compute the same function as the original.\noutput output_2: max_abs_error=0.00309467 (exceeds tolerance), chain_index 10 -> 7 (levels consumed 3), log2_scale=40.0000139\noutput output_1: max_abs_error=0.00305142 (exceeds tolerance), chain_index 10 -> 7 (levels consumed 3), log2_scale=40.0000139\noutput output_0: max_abs_error=0.00306574 (exceeds tolerance), chain_index 10 -> 7 (levels consumed 3), log2_scale=40.0000139\nexecution_time_(ms): 585.913\nfhe_eval_median_(ms): 530.193 (1 warmup + 10 runs)\nFAIL (tolerance 0.0001)\n",
+    "compile_time_ms": 0.479458,
+    "depth": 19,
+    "mult_depth": 3,
+    "terms": 77,
+    "ops": {
+     "ct_ct_mul": 0,
+     "square": 0,
+     "ct_pt_mul": 6,
+     "relin": 0,
+     "rotate": 24,
+     "rescale": 6,
+     "mod_switch": 0,
+     "match_scale": 6,
+     "add": 31
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 8,
+      "passed": true,
+      "max_abs_error": 1.7298e-06,
+      "levels_consumed": 3,
+      "exec_time_ms": 307.182,
+      "eval_time_ms": 260.773,
+      "noise_budget_bits": null,
+      "output": "output output_2: max_abs_error=1.47971e-06 (ok), chain_index 10 -> 7 (levels consumed 3), log2_scale=40.0000139\noutput output_1: max_abs_error=1.59889e-06 (ok), chain_index 10 -> 7 (levels consumed 3), log2_scale=40.0000139\noutput output_0: max_abs_error=1.7298e-06 (ok), chain_index 10 -> 7 (levels consumed 3), log2_scale=40.0000139\nexecution_time_(ms): 307.182\nfhe_eval_median_(ms): 260.773 (1 warmup + 1 runs)\nPASS (tolerance 0.0001)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 256,
+      "passed": false,
+      "max_abs_error": 0.00309467,
+      "levels_consumed": 3,
+      "exec_time_ms": 585.913,
+      "eval_time_ms": 530.193,
+      "noise_budget_bits": null,
+      "output": "output output_2: max_abs_error=0.00309467 (exceeds tolerance), chain_index 10 -> 7 (levels consumed 3), log2_scale=40.0000139\noutput output_1: max_abs_error=0.00305142 (exceeds tolerance), chain_index 10 -> 7 (levels consumed 3), log2_scale=40.0000139\noutput output_0: max_abs_error=0.00306574 (exceeds tolerance), chain_index 10 -> 7 (levels consumed 3), log2_scale=40.0000139\nexecution_time_(ms): 585.913\nfhe_eval_median_(ms): 530.193 (1 warmup + 10 runs)\nFAIL (tolerance 0.0001)\n"
+     }
+    ],
+    "timing_skipped": false,
+    "eval_time_ms": 530.193,
+    "levels": 3,
+    "max_abs_error": 0.00309467
+   },
+   "verdict": "failed",
+   "same_as": null,
+   "remeasure": null,
+   "new_best": false,
+   "seconds": 41.972081899642944
+  }
+ ],
+ "proposer": "cli",
+ "equivalent_api_cost_usd": 2.4678532000000004,
+ "cli_session_id": "de276270-aed0-4795-9580-858b58ad30c8"
+}

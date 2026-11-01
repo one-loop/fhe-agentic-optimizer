@@ -1,0 +1,161 @@
+{
+ "task": "chebyshev_sigmoid_d7",
+ "model": "claude-haiku-5-5",
+ "effort": "medium",
+ "iterations": 8,
+ "timestamp": "20261012-133130",
+ "wall_time_s": 9.494848012924194,
+ "baseline": {
+  "status": "ok",
+  "correct": true,
+  "message": "kernel fbb0afbe8c",
+  "compile_time_ms": 0.483625,
+  "depth": 22,
+  "mult_depth": 8,
+  "terms": 73,
+  "ops": {
+   "ct_ct_mul": 6,
+   "ct_pt_mul": 5,
+   "relin": 6,
+   "rotate": 0,
+   "rescale": 11,
+   "mod_switch": 13,
+   "match_scale": 8,
+   "add": 16
+  },
+  "cases": [
+   {
+    "name": "fixed",
+    "slot_count": 9,
+    "passed": true,
+    "max_abs_error": 1.68086e-08,
+    "levels_consumed": 8,
+    "exec_time_ms": 183.786,
+    "eval_time_ms": 160.085,
+    "output": "output y: max_abs_error=1.68086e-08 (ok), chain_index 10 -> 2 (levels consumed 8), log2_scale=40.0000802\nexecution_time_(ms): 183.786\nfhe_eval_median_(ms): 160.085 (1 warmup + 10 runs)\nPASS (tolerance 1e-06)\n"
+   },
+   {
+    "name": "dense",
+    "slot_count": 256,
+    "passed": true,
+    "max_abs_error": 6.23436e-08,
+    "levels_consumed": 8,
+    "exec_time_ms": 184.444,
+    "eval_time_ms": 160.65,
+    "output": "output y: max_abs_error=6.23436e-08 (ok), chain_index 10 -> 2 (levels consumed 8), log2_scale=40.0000802\nexecution_time_(ms): 184.444\nfhe_eval_median_(ms): 160.65 (1 warmup + 10 runs)\nPASS (tolerance 1e-06)\n"
+   }
+  ],
+  "eval_time_ms": 160.65,
+  "levels": 8,
+  "max_abs_error": 6.23436e-08
+ },
+ "best": {
+  "status": "ok",
+  "correct": true,
+  "message": "kernel fbb0afbe8c",
+  "compile_time_ms": 0.483625,
+  "depth": 22,
+  "mult_depth": 8,
+  "terms": 73,
+  "ops": {
+   "ct_ct_mul": 6,
+   "ct_pt_mul": 5,
+   "relin": 6,
+   "rotate": 0,
+   "rescale": 11,
+   "mod_switch": 13,
+   "match_scale": 8,
+   "add": 16
+  },
+  "cases": [
+   {
+    "name": "fixed",
+    "slot_count": 9,
+    "passed": true,
+    "max_abs_error": 1.68086e-08,
+    "levels_consumed": 8,
+    "exec_time_ms": 183.786,
+    "eval_time_ms": 160.085,
+    "output": "output y: max_abs_error=1.68086e-08 (ok), chain_index 10 -> 2 (levels consumed 8), log2_scale=40.0000802\nexecution_time_(ms): 183.786\nfhe_eval_median_(ms): 160.085 (1 warmup + 10 runs)\nPASS (tolerance 1e-06)\n"
+   },
+   {
+    "name": "dense",
+    "slot_count": 256,
+    "passed": true,
+    "max_abs_error": 6.23436e-08,
+    "levels_consumed": 8,
+    "exec_time_ms": 184.444,
+    "eval_time_ms": 160.65,
+    "output": "output y: max_abs_error=6.23436e-08 (ok), chain_index 10 -> 2 (levels consumed 8), log2_scale=40.0000802\nexecution_time_(ms): 184.444\nfhe_eval_median_(ms): 160.65 (1 warmup + 10 runs)\nPASS (tolerance 1e-06)\n"
+   }
+  ],
+  "eval_time_ms": 160.65,
+  "levels": 8,
+  "max_abs_error": 6.23436e-08
+ },
+ "best_iteration": 0,
+ "speedup": 1.0,
+ "usage": {
+  "input_tokens": 0,
+  "output_tokens": 0,
+  "cache_creation_input_tokens": 0,
+  "cache_read_input_tokens": 0
+ },
+ "approx_cost_usd": 0.0,
+ "attempts": [
+  {
+   "iteration": 0,
+   "kind": "baseline",
+   "evaluation": {
+    "status": "ok",
+    "correct": true,
+    "message": "kernel fbb0afbe8c",
+    "compile_time_ms": 0.483625,
+    "depth": 22,
+    "mult_depth": 8,
+    "terms": 73,
+    "ops": {
+     "ct_ct_mul": 6,
+     "ct_pt_mul": 5,
+     "relin": 6,
+     "rotate": 0,
+     "rescale": 11,
+     "mod_switch": 13,
+     "match_scale": 8,
+     "add": 16
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 9,
+      "passed": true,
+      "max_abs_error": 1.68086e-08,
+      "levels_consumed": 8,
+      "exec_time_ms": 183.786,
+      "eval_time_ms": 160.085,
+      "output": "output y: max_abs_error=1.68086e-08 (ok), chain_index 10 -> 2 (levels consumed 8), log2_scale=40.0000802\nexecution_time_(ms): 183.786\nfhe_eval_median_(ms): 160.085 (1 warmup + 10 runs)\nPASS (tolerance 1e-06)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 256,
+      "passed": true,
+      "max_abs_error": 6.23436e-08,
+      "levels_consumed": 8,
+      "exec_time_ms": 184.444,
+      "eval_time_ms": 160.65,
+      "output": "output y: max_abs_error=6.23436e-08 (ok), chain_index 10 -> 2 (levels consumed 8), log2_scale=40.0000802\nexecution_time_(ms): 184.444\nfhe_eval_median_(ms): 160.65 (1 warmup + 10 runs)\nPASS (tolerance 1e-06)\n"
+     }
+    ],
+    "eval_time_ms": 160.65,
+    "levels": 8,
+    "max_abs_error": 6.23436e-08
+   },
+   "seconds": 9.202583074569702
+  },
+  {
+   "iteration": 1,
+   "kind": "api_error",
+   "error": "Error code: 401 - {'type': 'error', 'error': {'type': 'authentication_error', 'message': 'invalid x-api-key'}, 'request_id': 'req_011Cfx7NZN3ThoyZtb61nuYH'}"
+  }
+ ]
+}

@@ -1,0 +1,768 @@
+{
+ "task": "chebyshev_gelu_d7",
+ "scheme": "ckks",
+ "model": "claude-opus-5-5",
+ "effort": "medium",
+ "iterations": 8,
+ "timestamp": "20261101-103803",
+ "wall_time_s": 465.49056601524353,
+ "baseline": {
+  "status": "ok",
+  "correct": true,
+  "message": "kernel 526f54ad28",
+  "compile_time_ms": 0.462625,
+  "depth": 19,
+  "mult_depth": 7,
+  "terms": 64,
+  "ops": {
+   "ct_ct_mul": 5,
+   "square": 0,
+   "ct_pt_mul": 5,
+   "relin": 5,
+   "rotate": 0,
+   "rescale": 10,
+   "mod_switch": 10,
+   "match_scale": 7,
+   "add": 14
+  },
+  "cases": [
+   {
+    "name": "fixed",
+    "slot_count": 9,
+    "passed": true,
+    "max_abs_error": 5.30496e-08,
+    "levels_consumed": 7,
+    "exec_time_ms": 179.809,
+    "eval_time_ms": 156.193,
+    "noise_budget_bits": null,
+    "output": "output y: max_abs_error=5.30496e-08 (ok), chain_index 10 -> 3 (levels consumed 7), log2_scale=40.0000662\nexecution_time_(ms): 179.809\nfhe_eval_median_(ms): 156.193 (1 warmup + 1 runs)\nPASS (tolerance 1e-06)\n"
+   },
+   {
+    "name": "dense",
+    "slot_count": 256,
+    "passed": true,
+    "max_abs_error": 1.10801e-07,
+    "levels_consumed": 7,
+    "exec_time_ms": 177.349,
+    "eval_time_ms": 152.446,
+    "noise_budget_bits": null,
+    "output": "output y: max_abs_error=1.10801e-07 (ok), chain_index 10 -> 3 (levels consumed 7), log2_scale=40.0000662\nexecution_time_(ms): 177.349\nfhe_eval_median_(ms): 152.446 (1 warmup + 10 runs)\nPASS (tolerance 1e-06)\n"
+   }
+  ],
+  "timing_skipped": false,
+  "eval_time_ms": 152.446,
+  "levels": 7,
+  "max_abs_error": 1.10801e-07
+ },
+ "best": {
+  "status": "ok",
+  "correct": true,
+  "message": "kernel 7573e001af",
+  "compile_time_ms": 0.375792,
+  "depth": 9,
+  "mult_depth": 4,
+  "terms": 37,
+  "ops": {
+   "ct_ct_mul": 3,
+   "square": 0,
+   "ct_pt_mul": 4,
+   "relin": 3,
+   "rotate": 0,
+   "rescale": 7,
+   "mod_switch": 0,
+   "match_scale": 2,
+   "add": 10
+  },
+  "cases": [
+   {
+    "name": "fixed",
+    "slot_count": 9,
+    "passed": true,
+    "max_abs_error": 1.33032e-07,
+    "levels_consumed": 4,
+    "exec_time_ms": 131.028,
+    "eval_time_ms": 107.764,
+    "noise_budget_bits": null,
+    "output": "output y: max_abs_error=1.33032e-07 (ok), chain_index 10 -> 6 (levels consumed 4), log2_scale=40.0000506\nexecution_time_(ms): 131.028\nfhe_eval_median_(ms): 107.764 (1 warmup + 1 runs)\nPASS (tolerance 1e-06)\n"
+   },
+   {
+    "name": "dense",
+    "slot_count": 256,
+    "passed": true,
+    "max_abs_error": 1.16029e-07,
+    "levels_consumed": 4,
+    "exec_time_ms": 134.423,
+    "eval_time_ms": 108.598,
+    "noise_budget_bits": null,
+    "output": "output y: max_abs_error=1.16029e-07 (ok), chain_index 10 -> 6 (levels consumed 4), log2_scale=40.0000506\nexecution_time_(ms): 134.423\nfhe_eval_median_(ms): 108.598 (1 warmup + 10 runs)\nPASS (tolerance 1e-06)\n"
+   }
+  ],
+  "timing_skipped": false,
+  "eval_time_ms": 108.598,
+  "levels": 4,
+  "max_abs_error": 1.33032e-07
+ },
+ "best_iteration": 1,
+ "speedup": 1.4105034038808872,
+ "final_remeasure": {
+  "candidate_ms": 108.033,
+  "reference_ms": 152.309,
+  "ratios": [
+   0.7064,
+   0.702,
+   0.7079,
+   0.7094,
+   0.709,
+   0.7094,
+   0.7094
+  ],
+  "wins": 7,
+  "batches": 7,
+  "median_ratio": 0.7089667399940901,
+  "speedup": 1.4105034038808872,
+  "confirmed": true
+ },
+ "single_run_speedup": 1.4037643418847492,
+ "structural_change": true,
+ "usage": {
+  "input_tokens": 30,
+  "output_tokens": 22697,
+  "cache_creation_input_tokens": 26034,
+  "cache_read_input_tokens": 98404
+ },
+ "approx_cost_usd": 0.0,
+ "attempts": [
+  {
+   "iteration": 0,
+   "kind": "baseline",
+   "evaluation": {
+    "status": "ok",
+    "correct": true,
+    "message": "kernel 526f54ad28",
+    "compile_time_ms": 0.462625,
+    "depth": 19,
+    "mult_depth": 7,
+    "terms": 64,
+    "ops": {
+     "ct_ct_mul": 5,
+     "square": 0,
+     "ct_pt_mul": 5,
+     "relin": 5,
+     "rotate": 0,
+     "rescale": 10,
+     "mod_switch": 10,
+     "match_scale": 7,
+     "add": 14
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 9,
+      "passed": true,
+      "max_abs_error": 5.30496e-08,
+      "levels_consumed": 7,
+      "exec_time_ms": 179.809,
+      "eval_time_ms": 156.193,
+      "noise_budget_bits": null,
+      "output": "output y: max_abs_error=5.30496e-08 (ok), chain_index 10 -> 3 (levels consumed 7), log2_scale=40.0000662\nexecution_time_(ms): 179.809\nfhe_eval_median_(ms): 156.193 (1 warmup + 1 runs)\nPASS (tolerance 1e-06)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 256,
+      "passed": true,
+      "max_abs_error": 1.10801e-07,
+      "levels_consumed": 7,
+      "exec_time_ms": 177.349,
+      "eval_time_ms": 152.446,
+      "noise_budget_bits": null,
+      "output": "output y: max_abs_error=1.10801e-07 (ok), chain_index 10 -> 3 (levels consumed 7), log2_scale=40.0000662\nexecution_time_(ms): 177.349\nfhe_eval_median_(ms): 152.446 (1 warmup + 10 runs)\nPASS (tolerance 1e-06)\n"
+     }
+    ],
+    "timing_skipped": false,
+    "eval_time_ms": 152.446,
+    "levels": 7,
+    "max_abs_error": 1.10801e-07
+   },
+   "seconds": 8.366038084030151
+  },
+  {
+   "iteration": 1,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "ok",
+    "correct": true,
+    "message": "kernel 7573e001af",
+    "compile_time_ms": 0.375792,
+    "depth": 9,
+    "mult_depth": 4,
+    "terms": 37,
+    "ops": {
+     "ct_ct_mul": 3,
+     "square": 0,
+     "ct_pt_mul": 4,
+     "relin": 3,
+     "rotate": 0,
+     "rescale": 7,
+     "mod_switch": 0,
+     "match_scale": 2,
+     "add": 10
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 9,
+      "passed": true,
+      "max_abs_error": 1.33032e-07,
+      "levels_consumed": 4,
+      "exec_time_ms": 131.028,
+      "eval_time_ms": 107.764,
+      "noise_budget_bits": null,
+      "output": "output y: max_abs_error=1.33032e-07 (ok), chain_index 10 -> 6 (levels consumed 4), log2_scale=40.0000506\nexecution_time_(ms): 131.028\nfhe_eval_median_(ms): 107.764 (1 warmup + 1 runs)\nPASS (tolerance 1e-06)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 256,
+      "passed": true,
+      "max_abs_error": 1.16029e-07,
+      "levels_consumed": 4,
+      "exec_time_ms": 134.423,
+      "eval_time_ms": 108.598,
+      "noise_budget_bits": null,
+      "output": "output y: max_abs_error=1.16029e-07 (ok), chain_index 10 -> 6 (levels consumed 4), log2_scale=40.0000506\nexecution_time_(ms): 134.423\nfhe_eval_median_(ms): 108.598 (1 warmup + 10 runs)\nPASS (tolerance 1e-06)\n"
+     }
+    ],
+    "timing_skipped": false,
+    "eval_time_ms": 108.598,
+    "levels": 4,
+    "max_abs_error": 1.33032e-07
+   },
+   "verdict": "new_best",
+   "same_as": null,
+   "remeasure": {
+    "candidate_ms": 108.005,
+    "reference_ms": 152.341,
+    "ratios": [
+     0.7084,
+     0.709,
+     0.709,
+     0.7087,
+     0.7095
+    ],
+    "wins": 5,
+    "batches": 5,
+    "median_ratio": 0.7089949521140073,
+    "speedup": 1.4104472775416865,
+    "confirmed": true,
+    "against": 0
+   },
+   "new_best": true,
+   "seconds": 47.32520413398743
+  },
+  {
+   "iteration": 2,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "ok",
+    "correct": true,
+    "message": "kernel d9f6fac81d",
+    "compile_time_ms": 0.421959,
+    "depth": 11,
+    "mult_depth": 4,
+    "terms": 39,
+    "ops": {
+     "ct_ct_mul": 3,
+     "square": 0,
+     "ct_pt_mul": 4,
+     "relin": 3,
+     "rotate": 0,
+     "rescale": 7,
+     "mod_switch": 0,
+     "match_scale": 2,
+     "add": 12
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 9,
+      "passed": true,
+      "max_abs_error": 4.71675e-08,
+      "levels_consumed": 4,
+      "exec_time_ms": 131.474,
+      "eval_time_ms": 108.261,
+      "noise_budget_bits": null,
+      "output": "output y: max_abs_error=4.71675e-08 (ok), chain_index 10 -> 6 (levels consumed 4), log2_scale=40.0000506\nexecution_time_(ms): 131.474\nfhe_eval_median_(ms): 108.261 (1 warmup + 1 runs)\nPASS (tolerance 1e-06)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 256,
+      "passed": true,
+      "max_abs_error": 1.08551e-07,
+      "levels_consumed": 4,
+      "exec_time_ms": 131.219,
+      "eval_time_ms": 108.185,
+      "noise_budget_bits": null,
+      "output": "output y: max_abs_error=1.08551e-07 (ok), chain_index 10 -> 6 (levels consumed 4), log2_scale=40.0000506\nexecution_time_(ms): 131.219\nfhe_eval_median_(ms): 108.185 (1 warmup + 10 runs)\nPASS (tolerance 1e-06)\n"
+     }
+    ],
+    "timing_skipped": false,
+    "eval_time_ms": 108.185,
+    "levels": 4,
+    "max_abs_error": 1.08551e-07
+   },
+   "verdict": "not_confirmed",
+   "same_as": null,
+   "remeasure": {
+    "candidate_ms": 108.216,
+    "reference_ms": 107.884,
+    "ratios": [
+     1.004,
+     0.9996,
+     1.0028,
+     1.0027,
+     1.004
+    ],
+    "wins": 1,
+    "batches": 5,
+    "median_ratio": 1.002844515274213,
+    "speedup": 0.9971635530424823,
+    "confirmed": false,
+    "against": 1
+   },
+   "new_best": false,
+   "seconds": 70.38993096351624
+  },
+  {
+   "iteration": 3,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "ok",
+    "correct": true,
+    "message": "kernel 2a7a1982d3",
+    "compile_time_ms": 0.370875,
+    "depth": 11,
+    "mult_depth": 4,
+    "terms": 38,
+    "ops": {
+     "ct_ct_mul": 3,
+     "square": 0,
+     "ct_pt_mul": 4,
+     "relin": 3,
+     "rotate": 0,
+     "rescale": 7,
+     "mod_switch": 1,
+     "match_scale": 2,
+     "add": 10
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 9,
+      "passed": true,
+      "max_abs_error": 1.43976e-07,
+      "levels_consumed": 4,
+      "exec_time_ms": 130.256,
+      "eval_time_ms": 107.268,
+      "noise_budget_bits": null,
+      "output": "output y: max_abs_error=1.43976e-07 (ok), chain_index 10 -> 6 (levels consumed 4), log2_scale=40.0000506\nexecution_time_(ms): 130.256\nfhe_eval_median_(ms): 107.268 (1 warmup + 1 runs)\nPASS (tolerance 1e-06)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 256,
+      "passed": true,
+      "max_abs_error": 8.79903e-08,
+      "levels_consumed": 4,
+      "exec_time_ms": 130.505,
+      "eval_time_ms": 108.051,
+      "noise_budget_bits": null,
+      "output": "output y: max_abs_error=8.79903e-08 (ok), chain_index 10 -> 6 (levels consumed 4), log2_scale=40.0000506\nexecution_time_(ms): 130.505\nfhe_eval_median_(ms): 108.051 (1 warmup + 10 runs)\nPASS (tolerance 1e-06)\n"
+     }
+    ],
+    "timing_skipped": false,
+    "eval_time_ms": 108.051,
+    "levels": 4,
+    "max_abs_error": 1.43976e-07
+   },
+   "verdict": "not_confirmed",
+   "same_as": null,
+   "remeasure": {
+    "candidate_ms": 107.603,
+    "reference_ms": 107.861,
+    "ratios": [
+     0.9991,
+     0.997,
+     0.9973,
+     0.9975,
+     0.9978
+    ],
+    "wins": 5,
+    "batches": 5,
+    "median_ratio": 0.9974693869983963,
+    "speedup": 1.002537033250934,
+    "confirmed": false,
+    "against": 1
+   },
+   "new_best": false,
+   "seconds": 55.004356145858765
+  },
+  {
+   "iteration": 4,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "ok",
+    "correct": true,
+    "message": "kernel dafb3a6a89",
+    "compile_time_ms": 0.382459,
+    "depth": 9,
+    "mult_depth": 4,
+    "terms": 37,
+    "ops": {
+     "ct_ct_mul": 3,
+     "square": 2,
+     "ct_pt_mul": 4,
+     "relin": 3,
+     "rotate": 0,
+     "rescale": 7,
+     "mod_switch": 0,
+     "match_scale": 2,
+     "add": 10
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 9,
+      "passed": true,
+      "max_abs_error": 5.28134e-08,
+      "levels_consumed": 4,
+      "exec_time_ms": 130.128,
+      "eval_time_ms": 109.654,
+      "noise_budget_bits": null,
+      "output": "output y: max_abs_error=5.28134e-08 (ok), chain_index 10 -> 6 (levels consumed 4), log2_scale=40.0000506\nexecution_time_(ms): 130.128\nfhe_eval_median_(ms): 109.654 (1 warmup + 1 runs)\nPASS (tolerance 1e-06)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 256,
+      "passed": true,
+      "max_abs_error": 1.41418e-07,
+      "levels_consumed": 4,
+      "exec_time_ms": 130.551,
+      "eval_time_ms": 107.649,
+      "noise_budget_bits": null,
+      "output": "output y: max_abs_error=1.41418e-07 (ok), chain_index 10 -> 6 (levels consumed 4), log2_scale=40.0000506\nexecution_time_(ms): 130.551\nfhe_eval_median_(ms): 107.649 (1 warmup + 10 runs)\nPASS (tolerance 1e-06)\n"
+     }
+    ],
+    "timing_skipped": false,
+    "eval_time_ms": 107.649,
+    "levels": 4,
+    "max_abs_error": 1.41418e-07
+   },
+   "verdict": "not_confirmed",
+   "same_as": null,
+   "remeasure": {
+    "candidate_ms": 107.25,
+    "reference_ms": 108.014,
+    "ratios": [
+     0.9932,
+     0.9926,
+     0.9925,
+     0.9927,
+     0.9936
+    ],
+    "wins": 5,
+    "batches": 5,
+    "median_ratio": 0.992713907456441,
+    "speedup": 1.00733956932489,
+    "confirmed": false,
+    "against": 1
+   },
+   "new_best": false,
+   "seconds": 36.101582050323486
+  },
+  {
+   "iteration": 5,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "ok",
+    "correct": true,
+    "message": "kernel d415e3ddac",
+    "compile_time_ms": 0.394042,
+    "depth": 11,
+    "mult_depth": 4,
+    "terms": 38,
+    "ops": {
+     "ct_ct_mul": 3,
+     "square": 2,
+     "ct_pt_mul": 4,
+     "relin": 3,
+     "rotate": 0,
+     "rescale": 7,
+     "mod_switch": 1,
+     "match_scale": 2,
+     "add": 10
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 9,
+      "passed": true,
+      "max_abs_error": 1.87492e-08,
+      "levels_consumed": 4,
+      "exec_time_ms": 129.249,
+      "eval_time_ms": 107.148,
+      "noise_budget_bits": null,
+      "output": "output y: max_abs_error=1.87492e-08 (ok), chain_index 10 -> 6 (levels consumed 4), log2_scale=40.0000506\nexecution_time_(ms): 129.249\nfhe_eval_median_(ms): 107.148 (1 warmup + 1 runs)\nPASS (tolerance 1e-06)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 256,
+      "passed": true,
+      "max_abs_error": 1.05701e-07,
+      "levels_consumed": 4,
+      "exec_time_ms": 131.056,
+      "eval_time_ms": 107.266,
+      "noise_budget_bits": null,
+      "output": "output y: max_abs_error=1.05701e-07 (ok), chain_index 10 -> 6 (levels consumed 4), log2_scale=40.0000506\nexecution_time_(ms): 131.056\nfhe_eval_median_(ms): 107.266 (1 warmup + 10 runs)\nPASS (tolerance 1e-06)\n"
+     }
+    ],
+    "timing_skipped": false,
+    "eval_time_ms": 107.266,
+    "levels": 4,
+    "max_abs_error": 1.05701e-07
+   },
+   "verdict": "not_confirmed",
+   "same_as": null,
+   "remeasure": {
+    "candidate_ms": 107.208,
+    "reference_ms": 108.236,
+    "ratios": [
+     0.9898,
+     0.9887,
+     0.9914,
+     0.9916,
+     0.9894
+    ],
+    "wins": 5,
+    "batches": 5,
+    "median_ratio": 0.989831855871179,
+    "speedup": 1.0102725973795537,
+    "confirmed": false,
+    "against": 1
+   },
+   "new_best": false,
+   "seconds": 80.57282280921936
+  },
+  {
+   "iteration": 6,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "ok",
+    "correct": true,
+    "message": "kernel 5bf2dfebf4",
+    "compile_time_ms": 0.383,
+    "depth": 12,
+    "mult_depth": 4,
+    "terms": 38,
+    "ops": {
+     "ct_ct_mul": 3,
+     "square": 2,
+     "ct_pt_mul": 4,
+     "relin": 3,
+     "rotate": 0,
+     "rescale": 7,
+     "mod_switch": 1,
+     "match_scale": 2,
+     "add": 10
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 9,
+      "passed": true,
+      "max_abs_error": 4.73299e-08,
+      "levels_consumed": 4,
+      "exec_time_ms": 133.166,
+      "eval_time_ms": 105.658,
+      "noise_budget_bits": null,
+      "output": "output y: max_abs_error=4.73299e-08 (ok), chain_index 10 -> 6 (levels consumed 4), log2_scale=40.0000506\nexecution_time_(ms): 133.166\nfhe_eval_median_(ms): 105.658 (1 warmup + 1 runs)\nPASS (tolerance 1e-06)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 256,
+      "passed": true,
+      "max_abs_error": 1.54641e-07,
+      "levels_consumed": 4,
+      "exec_time_ms": 130.455,
+      "eval_time_ms": 105.3,
+      "noise_budget_bits": null,
+      "output": "output y: max_abs_error=1.54641e-07 (ok), chain_index 10 -> 6 (levels consumed 4), log2_scale=40.0000506\nexecution_time_(ms): 130.455\nfhe_eval_median_(ms): 105.3 (1 warmup + 10 runs)\nPASS (tolerance 1e-06)\n"
+     }
+    ],
+    "timing_skipped": false,
+    "eval_time_ms": 105.3,
+    "levels": 4,
+    "max_abs_error": 1.54641e-07
+   },
+   "verdict": "not_confirmed",
+   "same_as": null,
+   "remeasure": {
+    "candidate_ms": 105.781,
+    "reference_ms": 108.29,
+    "ratios": [
+     0.9807,
+     0.9801,
+     0.9797,
+     0.9786,
+     0.9767
+    ],
+    "wins": 5,
+    "batches": 5,
+    "median_ratio": 0.9796873416672041,
+    "speedup": 1.0207338172791214,
+    "confirmed": false,
+    "against": 1
+   },
+   "new_best": false,
+   "seconds": 68.7682113647461
+  },
+  {
+   "iteration": 7,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "ok",
+    "correct": true,
+    "message": "kernel e4931a30e3",
+    "compile_time_ms": 0.380666,
+    "depth": 11,
+    "mult_depth": 4,
+    "terms": 37,
+    "ops": {
+     "ct_ct_mul": 3,
+     "square": 2,
+     "ct_pt_mul": 4,
+     "relin": 3,
+     "rotate": 0,
+     "rescale": 7,
+     "mod_switch": 0,
+     "match_scale": 2,
+     "add": 10
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 9,
+      "passed": true,
+      "max_abs_error": 4.07141e-08,
+      "levels_consumed": 4,
+      "exec_time_ms": 129.638,
+      "eval_time_ms": 106.032,
+      "noise_budget_bits": null,
+      "output": "output y: max_abs_error=4.07141e-08 (ok), chain_index 10 -> 6 (levels consumed 4), log2_scale=40.0000506\nexecution_time_(ms): 129.638\nfhe_eval_median_(ms): 106.032 (1 warmup + 1 runs)\nPASS (tolerance 1e-06)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 256,
+      "passed": true,
+      "max_abs_error": 1.41621e-07,
+      "levels_consumed": 4,
+      "exec_time_ms": 129.056,
+      "eval_time_ms": 105.563,
+      "noise_budget_bits": null,
+      "output": "output y: max_abs_error=1.41621e-07 (ok), chain_index 10 -> 6 (levels consumed 4), log2_scale=40.0000506\nexecution_time_(ms): 129.056\nfhe_eval_median_(ms): 105.563 (1 warmup + 10 runs)\nPASS (tolerance 1e-06)\n"
+     }
+    ],
+    "timing_skipped": false,
+    "eval_time_ms": 105.563,
+    "levels": 4,
+    "max_abs_error": 1.41621e-07
+   },
+   "verdict": "not_confirmed",
+   "same_as": null,
+   "remeasure": {
+    "candidate_ms": 105.32,
+    "reference_ms": 107.833,
+    "ratios": [
+     0.977,
+     0.9739,
+     0.9767,
+     0.9763,
+     0.9757
+    ],
+    "wins": 5,
+    "batches": 5,
+    "median_ratio": 0.9763123724726397,
+    "speedup": 1.0242623449166872,
+    "confirmed": false,
+    "against": 1
+   },
+   "new_best": false,
+   "seconds": 45.702765703201294
+  },
+  {
+   "iteration": 8,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "ok",
+    "correct": true,
+    "message": "kernel 288e390e57",
+    "compile_time_ms": 0.4785,
+    "depth": 12,
+    "mult_depth": 4,
+    "terms": 38,
+    "ops": {
+     "ct_ct_mul": 3,
+     "square": 2,
+     "ct_pt_mul": 4,
+     "relin": 3,
+     "rotate": 0,
+     "rescale": 7,
+     "mod_switch": 1,
+     "match_scale": 2,
+     "add": 10
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 9,
+      "passed": true,
+      "max_abs_error": 4.01138e-08,
+      "levels_consumed": 4,
+      "exec_time_ms": 130.977,
+      "eval_time_ms": 116.423,
+      "noise_budget_bits": null,
+      "output": "output y: max_abs_error=4.01138e-08 (ok), chain_index 10 -> 6 (levels consumed 4), log2_scale=40.0000506\nexecution_time_(ms): 130.977\nfhe_eval_median_(ms): 116.423 (1 warmup + 1 runs)\nPASS (tolerance 1e-06)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 256,
+      "passed": true,
+      "max_abs_error": 1.08584e-07,
+      "levels_consumed": 4,
+      "exec_time_ms": 134.968,
+      "eval_time_ms": 106.121,
+      "noise_budget_bits": null,
+      "output": "output y: max_abs_error=1.08584e-07 (ok), chain_index 10 -> 6 (levels consumed 4), log2_scale=40.0000506\nexecution_time_(ms): 134.968\nfhe_eval_median_(ms): 106.121 (1 warmup + 1 runs)\nPASS (tolerance 1e-06)\n"
+     }
+    ],
+    "timing_skipped": true,
+    "eval_time_ms": null,
+    "levels": 4,
+    "max_abs_error": 1.08584e-07
+   },
+   "verdict": "duplicate",
+   "same_as": 6,
+   "remeasure": null,
+   "new_best": false,
+   "seconds": 27.458229064941406
+  }
+ ],
+ "proposer": "cli",
+ "equivalent_api_cost_usd": 3.0250348000000002,
+ "cli_session_id": "03fcc70f-0f43-40c0-9a5e-8f778a36dc8f"
+}

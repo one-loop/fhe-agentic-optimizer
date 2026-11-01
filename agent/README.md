@@ -18,7 +18,7 @@ The model only writes CHEHAB DSL code. Kernels that contain preprocessor lines, 
 
 ## Tasks
 
-There are 26 tasks: every CKKS benchmark in the repository. Bootstrap does not exist yet. Linear, Conv2d and AvgPool are BFV-only benchmarks, so they are not tasks yet.
+There are 29 tasks: every CKKS benchmark in the repository, plus the three BFV neural-network operators (Linear, Conv2d, AvgPool2d) on CHEHAB's scalar path. Bootstrap does not exist yet.
 
 | Group | Tasks | Benchmark |
 |---|---|---|
@@ -30,6 +30,7 @@ There are 26 tasks: every CKKS benchmark in the repository. Bootstrap does not e
 | Multiply | `elementwise_mul`, `elementwise_mul_plain`, `elementwise_mul_scalar` | `elementwise_ckks` |
 | Extraction | `extract`, `extract_linear`, `extract_sparse` | `extract_embedding_ckks` |
 | Table and embedding | `table_mult`, `embedding` | `extract_embedding_ckks` |
+| Linear, Conv2d, AvgPool2d (BFV) | `nn_linear`, `nn_conv2d`, `nn_avgpool2d` | `nn_linear`, `nn_conv2d`, `nn_avgpool2d` |
 
 Each baseline in `tasks/*.cpp` reproduces its benchmark, with the same depth, levels and operation counts. `tasks/gen_baselines.py` writes the Chebyshev, Quad, BatchNorm, Add, Multiply, extraction and table baselines. `relu_composite.cpp` and `embedding.cpp` are written by hand.
 
@@ -40,6 +41,8 @@ A candidate must be correct on every case of its task:
 - **random:** embedding only, with random inputs.
 
 The extraction, table and embedding tasks use the 1e-4 tolerance their author chose, because rotations add about 1e-5 of error. Every other task uses 1e-6.
+
+The three BFV tasks are exact: a proposal is correct only if every decrypted output equals the expected integer (`agent/bfv_main.cpp`, which reuses the repository's `benchmarks/utils.cpp` and the generated main's parameters, BFVDefault(16384) with a 20-bit plaintext modulus). Their baselines are the scalar kernels of `benchmarks/nn_*` (one value per ciphertext), as `run_benchmarks.py` records them with `--vectorize 0`; the fixed case is width 4 (the recorded baseline) and the dense, timed case is width 6. CHEHAB's own vectorizer is not used, so a packed rewrite is the model's to find.
 
 The small tasks are already optimal, or nearly so: Add, Multiply, Quad, BatchNorm and the extraction tasks. They show whether the model breaks working code, not whether it speeds it up.
 
@@ -83,9 +86,9 @@ Options:
 - `--iterations`: default 8.
 - `--eval-repeats`: timed `fhe()` runs per evaluation, default 10.
 
-An evaluation takes about 6 to 20 seconds, so a task takes a few minutes and all 26 take about two hours (about 73% of it CHEHAB compiling, building and timing). Run one loop at a time: concurrent runs share the CPU and the `build/` directory, which corrupts both timings and builds. Calls use the subscription's limits, so a run's `approx_cost_usd` is 0; `equivalent_api_cost_usd` is what the CLI reports the calls would have cost at API prices (about $11 for all 26 tasks with Sonnet 5.5). If a baseline is not correct, the loop reports the task as SKIPPED and goes on.
+An evaluation takes about 6 to 20 seconds, so a task takes a few minutes and all 29 take about two and a half hours (about 73% of it CHEHAB compiling, building and timing; the BFV tasks are the slowest to evaluate). Run one loop at a time: concurrent runs share the CPU and the `build/` directory, which corrupts both timings and builds. Calls use the subscription's limits, so a run's `approx_cost_usd` is 0; `equivalent_api_cost_usd` is what the CLI reports the calls would have cost at API prices (about $11 for all 26 tasks with Sonnet 5.5). If a baseline is not correct, the loop reports the task as SKIPPED and goes on.
 
-`collect.py` takes the latest run of each task and writes `agent/results/summary.md` and `summary.csv`, or another directory with `--out`; `--since`/`--until` restrict it to a window of run timestamps (for example one full run). `remeasure_runs.py` re-times several runs' best kernels against the baseline in one session, so runs made at different times can be compared on equal terms (no model calls). Unit tests of the selection rule: `agent/.venv/bin/python -m unittest agent/test_selection.py`. A run whose model calls all failed, for example because the CLI is not logged in, is listed separately and not counted.
+`collect.py` takes the latest run of each task and writes `agent/results/summary.md` and `summary.csv`, or another directory with `--out`; `--since`/`--until` restrict it to a window of run timestamps (for example one full run). `remeasure_runs.py` re-times several runs' best kernels against the baseline in one session, so runs made at different times can be compared on equal terms (no model calls). Unit tests of the selection rule: `agent/.venv/bin/python -m unittest agent/test_selection.py`. `compare_models.py` puts full runs made with different models side by side under the strict rule (`--run name:since..until` for runs that recorded it, `--run name:<set>` for sets in `results/remeasured.csv`; `--notes file.md` appends remarks). The five-run table is `results/model_comparison.md`. A run whose model calls all failed, for example because the CLI is not logged in, is listed separately and not counted.
 
 Offline check, with no model calls, which replays hand-written kernels covering every kind of feedback:
 
@@ -116,5 +119,5 @@ Timing noise of one median is several percent, and up to ~40% on sub-millisecond
 
 - **One task at a time.** There is no search tree and no parallel candidates; the proposal's MCTS-style exploration is a later step.
 - **CKKS only, on the scalar path.** CHEHAB's CKKS functions reject its vectorizer, so the agent rewrites kernels at the DSL level.
-- **Coverage.** The tasks cover every CKKS benchmark. Linear, Conv2d and AvgPool are BFV-only benchmarks, and Bootstrap does not exist yet, so none of them are tasks.
+- **Coverage.** The tasks cover every CKKS benchmark and the three BFV operators. Bootstrap does not exist yet, so it is not a task.
 - **Timing.** Results are from one machine. Compare across team members only on the same machine, or compare speedups rather than raw times.

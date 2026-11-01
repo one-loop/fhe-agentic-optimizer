@@ -18,7 +18,7 @@ AGENT = Path(__file__).resolve().parent
 RUNS = AGENT / "runs"
 OUT = AGENT / "results"
 
-FIELDS = ["task", "model", "effort", "baseline_ms", "best_ms", "speedup", "best_attempt", "attempts",
+FIELDS = ["task", "scheme", "model", "effort", "baseline_ms", "best_ms", "speedup", "best_attempt", "attempts",
           "correct_attempts", "baseline_levels", "best_levels", "baseline_ct_ct_mul", "best_ct_ct_mul",
           "baseline_ct_pt_mul", "best_ct_pt_mul", "baseline_rotations", "best_rotations", "wall_time_s",
           "cost_usd", "structural_change", "remeasured", "new_circuits", "chehab_errors", "run"]
@@ -42,7 +42,7 @@ def load_runs(include_offline: bool, since: str = "", until: str = "~"):
 def row(r):
     b, best = r["baseline"], r["best"]
     return {
-        "task": r["task"], "model": r["model"], "effort": r["effort"],
+        "task": r["task"], "scheme": r.get("scheme", "ckks"), "model": r["model"], "effort": r["effort"],
         "baseline_ms": round(b["eval_time_ms"], 2), "best_ms": round(best["eval_time_ms"], 2),
         "speedup": round(r["speedup"], 3), "best_attempt": r["best_iteration"], "attempts": r["iterations"],
         "correct_attempts": sum(1 for a in r["_candidates"] if a["evaluation"]["correct"]),
@@ -50,7 +50,7 @@ def row(r):
         "baseline_ct_ct_mul": b["ops"].get("ct_ct_mul"), "best_ct_ct_mul": best["ops"].get("ct_ct_mul"),
         "baseline_ct_pt_mul": b["ops"].get("ct_pt_mul"), "best_ct_pt_mul": best["ops"].get("ct_pt_mul"),
         "baseline_rotations": b["ops"].get("rotate"), "best_rotations": best["ops"].get("rotate"),
-        "wall_time_s": round(r["wall_time_s"]), "cost_usd": round(r["approx_cost_usd"], 4),
+        "wall_time_s": round(r["wall_time_s"]), "cost_usd": round(r.get("approx_cost_usd") or r.get("equivalent_api_cost_usd", 0), 4),
         "structural_change": fingerprint(best) != fingerprint(b),
         "remeasured": bool(r.get("final_remeasure")),
         # distinct correct circuits other than the baseline's: how much of the search was new

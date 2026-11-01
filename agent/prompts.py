@@ -4,7 +4,7 @@ and one feedback turn per evaluated candidate."""
 import re
 from typing import Optional
 
-SYSTEM_PROMPT = """You optimize Fully Homomorphic Encryption (FHE) programs written in the CHEHAB compiler's C++ DSL, compiled for the CKKS scheme (Microsoft SEAL backend). You work in a loop: you propose a kernel, CHEHAB compiles it, the generated program runs on encrypted inputs, and you receive its correctness and performance. Goal: the lowest fhe() evaluation time while computing the same function.
+SYSTEM_PROMPT = """You optimize Fully Homomorphic Encryption (FHE) programs written in the CHEHAB compiler's C++ DSL (Microsoft SEAL backend). Most tasks use the CKKS scheme (approximate real numbers); the nn_* tasks use BFV (exact integers), and the task says which. You work in a loop: you propose a kernel, CHEHAB compiles it, the generated program runs on encrypted inputs, and you receive its correctness and performance. Goal: the lowest fhe() evaluation time while computing the same function.
 
 # The kernel
 A kernel is C++ code that defines `void fhe()` with no parameters, plus any helper functions or classes it needs. It is compiled after `using namespace std; using namespace fheco;`, so `vector`, `to_string` and the DSL types are available without prefixes.
@@ -29,6 +29,12 @@ A kernel is C++ code that defines `void fhe()` with no parameters, plus any help
 - level/scale alignment inserted by CHEHAB: a multiply_plain + rescale (~5 ms) or a mod switch (~1 ms)
 Fewer ciphertext multiplications and rotations, and work at deeper levels, are what make a kernel faster. Reducing depth also helps, because each later operation is cheaper.
 
+# BFV tasks (nn_linear, nn_conv2d, nn_avgpool2d): what changes
+- Exact integer arithmetic with a 20-bit plaintext modulus: outputs must equal the expected integers exactly. Integer constants are allowed (`c * 2`, `c + 1`, `Plaintext(3)`); there are no levels, scales or rescales, and the CKKS rules above do not apply.
+- The baselines are scalar: every input value is its own ciphertext (slot 0 of a 16384-slot ciphertext), and each output label must hold its value in slot 0. The function's slot count is 1, so rotations are pointless on the inputs as given; the way to win is fewer ciphertext-ciphertext multiplications (each costs a relinearization too), lower multiplicative depth, and fewer additions.
+- A kernel may not change the input or output labels. It may share intermediate products across outputs, reorder sums, or factor expressions, as long as the results stay exact.
+- Costs (measured, N = 16384): ciphertext x ciphertext multiply + relinearize ~30 ms; ciphertext add ~0.3 ms; multiply by an integer constant ~1 ms. Depth matters less than in CKKS, but each multiplication consumes noise budget, which must stay above zero.
+
 # Answer format
 Briefly state the idea of your change (a few sentences), then give the complete kernel in exactly one ```cpp code block. Always return a full kernel, never a diff. If the last attempt failed, fix the reported problem first."""
 
@@ -37,7 +43,7 @@ def first_turn(task, baseline_source: str, baseline_summary: str, iterations: in
     return f"""# Task: {task.name}
 {task.description}
 
-Correctness: every output must be within {task.tolerance:g} (absolute) of the expected values on all test cases ({", ".join(c.name for c in task.cases)}). Timing is measured on the dense case.
+Correctness: {("every output must exactly equal the expected integers (BFV)" if getattr(task, "scheme", "ckks") == "bfv" else f"every output must be within {task.tolerance:g} (absolute) of the expected values")} on all test cases ({", ".join(c.name for c in task.cases)}). Timing is measured on the dense case.
 
 # Baseline kernel
 ```cpp
@@ -58,6 +64,9 @@ You have {iterations} attempts. Propose a faster kernel that computes the same o
 
 def circuit_line(ev) -> str:
     ops = ev.ops
+    if ev.levels is None:  # BFV: no levels, scales or rescales
+        return (f"depth ({ev.depth}, {ev.mult_depth}), ct-ct mul {ops.get('ct_ct_mul')}, "
+                f"ct-pt mul {ops.get('ct_pt_mul')}, rotations {ops.get('rotate')}, adds {ops.get('add')}")
     return (f"levels {ev.levels}, depth ({ev.depth}, {ev.mult_depth}), ct-ct mul {ops.get('ct_ct_mul')}, "
             f"ct-pt mul {ops.get('ct_pt_mul')}, rotations {ops.get('rotate')}, rescale {ops.get('rescale')}, "
             f"match_scale {ops.get('match_scale')}, mod_switch {ops.get('mod_switch')}")

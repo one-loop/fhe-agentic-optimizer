@@ -1,0 +1,56 @@
+I'm returning attempt 2's kernel as the final answer. Attempts 3–5 all landed at 134–134.4 ms, within run-to-run noise of attempt 2's 133.96 ms, so further variants of this structure are unlikely to help.
+
+The kernel uses 3 ciphertext-ciphertext multiplications (z², w², w³ with w = z²), the minimum for the degree-6 even part. Each Chebyshev term T2, T4, T6 is an integer-coefficient combination of those powers, built with doubling additions, and each c_k costs one ciphertext-plaintext multiplication. The remaining overhead is the constant handling (`one`, `c0`), which would need plaintext-plaintext arithmetic to remove.
+
+```cpp
+// Chebyshev relu degree 7 on [-4,4].
+// w = z^2 is the only variable needed for the even terms; T2, T4, T6 are
+// integer-coefficient combinations of w, w^2, w^3 built with doubling adds.
+// Only 3 ciphertext-ciphertext multiplications (z*z, w*w, w2*w).
+
+Ciphertext dbl(Ciphertext c, int n)
+{
+  for (int i = 0; i < n; ++i)
+    c = c + c;
+  return c;
+}
+
+void fhe()
+{
+  Ciphertext x("x");
+  Plaintext alpha("alpha");
+  Plaintext one("one");
+
+  Ciphertext z = x * alpha;      // z = x/4 in [-1,1]
+  Ciphertext w = z * z;          // w = z^2
+  Ciphertext w2 = w * w;         // w^2 = z^4
+  Ciphertext w3 = w2 * w;        // w^3 = z^6
+
+  // T2 = 2w - 1
+  Ciphertext T2 = w + w - one;
+
+  // T4 = 8w^2 - 8w + 1
+  Ciphertext T4 = dbl(w2, 3) - dbl(w, 3) + one;
+
+  // T6 = 32w^3 - 48w^2 + 18w - 1,  48 = 16 + 32,  18 = 16 + 2
+  Ciphertext T6 = dbl(w3, 5) - dbl(w2, 4) - dbl(w2, 5)
+                + dbl(w, 4) + dbl(w, 1) - one;
+
+  Plaintext c0("c0");
+  Plaintext c1("c1");
+  Plaintext c2("c2");
+  Plaintext c4("c4");
+  Plaintext c6("c6");
+
+  Ciphertext term1 = z * c1;
+  Ciphertext term2 = T2 * c2;
+  Ciphertext term4 = T4 * c4;
+  Ciphertext term6 = T6 * c6;
+
+  Ciphertext result = term1 + term2;
+  result = result + term4;
+  result = result + term6;
+  result = result + c0;
+  result.set_output("y");
+}
+```

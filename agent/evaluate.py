@@ -49,6 +49,7 @@ class CaseResult:
     levels_consumed: Optional[int] = None
     exec_time_ms: Optional[float] = None  # parse + encode + encrypt + evaluate (CHEHAB convention)
     eval_time_ms: Optional[float] = None  # fhe() alone, median of the timed runs
+    noise_budget_bits: Optional[int] = None  # BFV only: smallest remaining noise budget over outputs
     output: str = ""
 
 
@@ -98,24 +99,35 @@ class Evaluation:
         ops = ", ".join(f"{k}={v}" for k, v in self.ops.items())
         timing = ("not timed: the circuit is identical to one timed earlier" if self.timing_skipped
                   else f"{self.eval_time_ms:.2f} ms")
+        noise = [c.noise_budget_bits for c in self.cases if c.noise_budget_bits is not None]
         lines = [
             "status: ok (correct on every case)",
             f"fhe() evaluation time (dense case, median): {timing}",
-            f"CKKS levels consumed: {self.levels}",
+            (f"BFV: outputs exactly equal the expected integers; remaining noise budget {min(noise)} bits"
+             if noise else f"CKKS levels consumed: {self.levels}"),
             f"CHEHAB depth (total, multiplicative): ({self.depth}, {self.mult_depth}); IR terms: {self.terms}",
             f"operations: {ops}",
-            f"max abs error vs expected: {self.max_abs_error:.3g}",
         ]
+        if not noise:
+            lines.append(f"max abs error vs expected: {self.max_abs_error:.3g}")
         return "\n".join(lines)
 
 
-def _run(cmd, cwd, timeout):
+def _run(cmd, cwd, timeout, extra_env=None):
     return subprocess.run(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
-                          timeout=timeout, env=_env())
+                          timeout=timeout, env=_env(extra_env))
 
 
-def _env():
+def _case_width(case) -> int:
+    """The --slot_count argument of a BFV generator (the operator's width), else 0."""
+    gen = case.generator
+    return int(gen[gen.index("--slot_count") + 1]) if "--slot_count" in gen else 0
+
+
+def _env(extra_env=None):
     env = os.environ.copy()
+    if extra_env:
+        env.update(extra_env)
     # Same toolchain choice as run_benchmarks.py.
     if Path("/usr/bin/gcc").exists():
         env.setdefault("CC", "/usr/bin/gcc")
@@ -215,9 +227,17 @@ def _prepare_case(task, case, case_dir: Path) -> int:
     shutil.copy(bench_dir / "fhe_io_example.txt", case_dir / "fhe_io_example.txt")
     he = case_dir / "he"
     he.mkdir(exist_ok=True)
-    for name in ("ckks_utils.cpp", "ckks_utils.hpp"):
-        shutil.copy(REPO / "benchmarks" / name, he / name)
-    shutil.copy(REPO / "benchmarks" / "relu_ckks" / "he" / "CMakeLists.txt", he / "CMakeLists.txt")
+    if getattr(task, "scheme", "ckks") == "bfv":
+        # The generated he/main.cpp runs fhe() once with no verdict; the agent's runtime
+        # (agent/bfv_main.cpp) adds the --repeats timing and the exact check, and is
+        # written after CHEHAB generates the code (which also writes a main.cpp).
+        for name in ("utils.cpp", "utils.hpp"):
+            shutil.copy(REPO / "benchmarks" / name, he / name)
+        shutil.copy(REPO / "agent" / "bfv_he_CMakeLists.txt", he / "CMakeLists.txt")
+    else:
+        for name in ("ckks_utils.cpp", "ckks_utils.hpp"):
+            shutil.copy(REPO / "benchmarks" / name, he / name)
+        shutil.copy(REPO / "benchmarks" / "relu_ckks" / "he" / "CMakeLists.txt", he / "CMakeLists.txt")
     return slot
 
 
@@ -225,6 +245,13 @@ def _parse_run(out: str, cr: CaseResult):
     errors = [float(v) for v in re.findall(r"max_abs_error=([0-9.eE+-]+|nan|inf)", out)]
     if errors:
         cr.max_abs_error = max(errors)
+    # BFV runtime (agent/bfv_main.cpp): exact comparison; report 0 error on a match and the
+    # number of wrong outputs otherwise, so the generic pass/fail logic applies unchanged.
+    if m := re.search(r"outputs_checked: (\d+)/(\d+) outputs", out):
+        good, total = int(m.group(1)), int(m.group(2))
+        cr.max_abs_error = 0.0 if good == total and total > 0 else float(total - good)
+    if m := re.search(r"noise_budget_bits:\s*(-?\d+)", out):
+        cr.noise_budget_bits = int(m.group(1))
     levels = [int(v) for v in re.findall(r"levels consumed (\d+)\)", out)]
     if levels:
         cr.levels_consumed = max(levels)
@@ -241,7 +268,8 @@ def evaluate(task, source: str, seal_prefix: str, repeats: int = 10, timeout: fl
     if reason := check_kernel(source):
         return Evaluation("rejected", message=reason)
 
-    # Compile phase: rebuild the driver with this kernel.
+    # Compile phase: rebuild the driver with this kernel. BFV kernels read the case's
+    # width from WIDTH, which the driver takes from the environment at run time.
     KERNEL_INC.parent.mkdir(parents=True, exist_ok=True)
     KERNEL_INC.write_text(source)
     # make tracks timestamps to the second: remove the driver's object and binary so
@@ -262,7 +290,9 @@ def evaluate(task, source: str, seal_prefix: str, repeats: int = 10, timeout: fl
         cr = CaseResult(case.name, slot)
         ev.cases.append(cr)
 
-        comp = _run([str(DRIVER), str(slot)], case_dir, timeout)
+        scheme = getattr(task, "scheme", "ckks")
+        width = _case_width(case)
+        comp = _run([str(DRIVER), str(slot), scheme], case_dir, timeout, extra_env={"AGENT_WIDTH": str(width)})
         if comp.returncode != 0:
             ev.status = "chehab_error"
             ev.message = f"CHEHAB rejected the kernel (case {case.name}, {slot} slots):\n" + _chehab_error(comp.stdout)
@@ -277,6 +307,8 @@ def evaluate(task, source: str, seal_prefix: str, repeats: int = 10, timeout: fl
         (case_dir / "compile_output.txt").write_text(comp.stdout)
 
         he = case_dir / "he"
+        if scheme == "bfv":
+            shutil.copy(REPO / "agent" / "bfv_main.cpp", he / "main.cpp")
         cfg = _run(["cmake", "-S", ".", "-B", "build", f"-DCMAKE_PREFIX_PATH={seal_prefix}",
                     "-DCMAKE_BUILD_TYPE=Release"], he, timeout)
         bld = _run(["cmake", "--build", "build", "-j8"], he, timeout) if cfg.returncode == 0 else cfg
@@ -296,9 +328,15 @@ def evaluate(task, source: str, seal_prefix: str, repeats: int = 10, timeout: fl
                 ev.message = f"the encrypted program failed (case {case.name}):\n" + run.stdout[-3000:]
             else:
                 ev.status = "wrong_output"
-                ev.message = (f"wrong result on case {case.name} ({slot} slots): max abs error "
-                              f"{cr.max_abs_error:.3g} > tolerance {task.tolerance:g}. The kernel does not "
-                              "compute the same function as the original.\n" + run.stdout[-1500:])
+                if scheme == "bfv":
+                    ev.message = (f"wrong result on case {case.name} (width {width}): {cr.max_abs_error:.0f} "
+                                  "output(s) differ from the expected integers (or the noise budget is "
+                                  "exhausted). The kernel does not compute the same function as the "
+                                  "original.\n" + run.stdout[-1500:])
+                else:
+                    ev.message = (f"wrong result on case {case.name} ({slot} slots): max abs error "
+                                  f"{cr.max_abs_error:.3g} > tolerance {task.tolerance:g}. The kernel does not "
+                                  "compute the same function as the original.\n" + run.stdout[-1500:])
             return ev
 
     ev.correct = True

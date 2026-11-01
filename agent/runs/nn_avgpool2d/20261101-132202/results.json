@@ -1,0 +1,617 @@
+{
+ "task": "nn_avgpool2d",
+ "scheme": "bfv",
+ "model": "claude-opus-5-5",
+ "effort": "medium",
+ "iterations": 8,
+ "timestamp": "20261101-132202",
+ "wall_time_s": 140.59595108032227,
+ "baseline": {
+  "status": "ok",
+  "correct": true,
+  "message": "kernel d858fc8dff",
+  "compile_time_ms": 0.346958,
+  "depth": 3,
+  "mult_depth": 0,
+  "terms": 63,
+  "ops": {
+   "ct_ct_mul": 0,
+   "square": 0,
+   "ct_pt_mul": 0,
+   "relin": 0,
+   "rotate": 0,
+   "mod_switch": 0,
+   "add": 27
+  },
+  "cases": [
+   {
+    "name": "fixed",
+    "slot_count": 1,
+    "passed": true,
+    "max_abs_error": 0.0,
+    "levels_consumed": null,
+    "exec_time_ms": 72.2714,
+    "eval_time_ms": 2.06079,
+    "noise_budget_bits": 360,
+    "output": "outputs_match: 1 (4/4 outputs equal the expected values)\noutputs_checked: 4/4 outputs equal the expected values (exact)\nnoise_budget_bits: 360\nexecution_time_(ms): 72.2714\nfhe_eval_median_(ms): 2.06079 (1 warmup + 1 runs)\nPASS (exact integer comparison)\n"
+   },
+   {
+    "name": "dense",
+    "slot_count": 1,
+    "passed": true,
+    "max_abs_error": 0.0,
+    "levels_consumed": null,
+    "exec_time_ms": 160.205,
+    "eval_time_ms": 3.91673,
+    "noise_budget_bits": 360,
+    "output": "outputs_match: 1 (9/9 outputs equal the expected values)\noutputs_checked: 9/9 outputs equal the expected values (exact)\nnoise_budget_bits: 360\nexecution_time_(ms): 160.205\nfhe_eval_median_(ms): 3.91673 (1 warmup + 10 runs)\nPASS (exact integer comparison)\n"
+   }
+  ],
+  "timing_skipped": false,
+  "eval_time_ms": 3.91673,
+  "levels": null,
+  "max_abs_error": 0.0
+ },
+ "best": {
+  "status": "ok",
+  "correct": true,
+  "message": "kernel d858fc8dff",
+  "compile_time_ms": 0.346958,
+  "depth": 3,
+  "mult_depth": 0,
+  "terms": 63,
+  "ops": {
+   "ct_ct_mul": 0,
+   "square": 0,
+   "ct_pt_mul": 0,
+   "relin": 0,
+   "rotate": 0,
+   "mod_switch": 0,
+   "add": 27
+  },
+  "cases": [
+   {
+    "name": "fixed",
+    "slot_count": 1,
+    "passed": true,
+    "max_abs_error": 0.0,
+    "levels_consumed": null,
+    "exec_time_ms": 72.2714,
+    "eval_time_ms": 2.06079,
+    "noise_budget_bits": 360,
+    "output": "outputs_match: 1 (4/4 outputs equal the expected values)\noutputs_checked: 4/4 outputs equal the expected values (exact)\nnoise_budget_bits: 360\nexecution_time_(ms): 72.2714\nfhe_eval_median_(ms): 2.06079 (1 warmup + 1 runs)\nPASS (exact integer comparison)\n"
+   },
+   {
+    "name": "dense",
+    "slot_count": 1,
+    "passed": true,
+    "max_abs_error": 0.0,
+    "levels_consumed": null,
+    "exec_time_ms": 160.205,
+    "eval_time_ms": 3.91673,
+    "noise_budget_bits": 360,
+    "output": "outputs_match: 1 (9/9 outputs equal the expected values)\noutputs_checked: 9/9 outputs equal the expected values (exact)\nnoise_budget_bits: 360\nexecution_time_(ms): 160.205\nfhe_eval_median_(ms): 3.91673 (1 warmup + 10 runs)\nPASS (exact integer comparison)\n"
+   }
+  ],
+  "timing_skipped": false,
+  "eval_time_ms": 3.91673,
+  "levels": null,
+  "max_abs_error": 0.0
+ },
+ "best_iteration": 0,
+ "speedup": 1.0,
+ "final_remeasure": null,
+ "single_run_speedup": 1.0,
+ "structural_change": false,
+ "usage": {
+  "input_tokens": 30,
+  "output_tokens": 6226,
+  "cache_creation_input_tokens": 10259,
+  "cache_read_input_tokens": 54872
+ },
+ "approx_cost_usd": 0.0,
+ "attempts": [
+  {
+   "iteration": 0,
+   "kind": "baseline",
+   "evaluation": {
+    "status": "ok",
+    "correct": true,
+    "message": "kernel d858fc8dff",
+    "compile_time_ms": 0.346958,
+    "depth": 3,
+    "mult_depth": 0,
+    "terms": 63,
+    "ops": {
+     "ct_ct_mul": 0,
+     "square": 0,
+     "ct_pt_mul": 0,
+     "relin": 0,
+     "rotate": 0,
+     "mod_switch": 0,
+     "add": 27
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 1,
+      "passed": true,
+      "max_abs_error": 0.0,
+      "levels_consumed": null,
+      "exec_time_ms": 72.2714,
+      "eval_time_ms": 2.06079,
+      "noise_budget_bits": 360,
+      "output": "outputs_match: 1 (4/4 outputs equal the expected values)\noutputs_checked: 4/4 outputs equal the expected values (exact)\nnoise_budget_bits: 360\nexecution_time_(ms): 72.2714\nfhe_eval_median_(ms): 2.06079 (1 warmup + 1 runs)\nPASS (exact integer comparison)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 1,
+      "passed": true,
+      "max_abs_error": 0.0,
+      "levels_consumed": null,
+      "exec_time_ms": 160.205,
+      "eval_time_ms": 3.91673,
+      "noise_budget_bits": 360,
+      "output": "outputs_match: 1 (9/9 outputs equal the expected values)\noutputs_checked: 9/9 outputs equal the expected values (exact)\nnoise_budget_bits: 360\nexecution_time_(ms): 160.205\nfhe_eval_median_(ms): 3.91673 (1 warmup + 10 runs)\nPASS (exact integer comparison)\n"
+     }
+    ],
+    "timing_skipped": false,
+    "eval_time_ms": 3.91673,
+    "levels": null,
+    "max_abs_error": 0.0
+   },
+   "seconds": 7.503199815750122
+  },
+  {
+   "iteration": 1,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "ok",
+    "correct": true,
+    "message": "kernel 7fcc7e6bb2",
+    "compile_time_ms": 0.333,
+    "depth": 2,
+    "mult_depth": 0,
+    "terms": 63,
+    "ops": {
+     "ct_ct_mul": 0,
+     "square": 0,
+     "ct_pt_mul": 0,
+     "relin": 0,
+     "rotate": 0,
+     "mod_switch": 0,
+     "add": 27
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 1,
+      "passed": true,
+      "max_abs_error": 0.0,
+      "levels_consumed": null,
+      "exec_time_ms": 75.1727,
+      "eval_time_ms": 2.08121,
+      "noise_budget_bits": 360,
+      "output": "outputs_match: 1 (4/4 outputs equal the expected values)\noutputs_checked: 4/4 outputs equal the expected values (exact)\nnoise_budget_bits: 360\nexecution_time_(ms): 75.1727\nfhe_eval_median_(ms): 2.08121 (1 warmup + 1 runs)\nPASS (exact integer comparison)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 1,
+      "passed": true,
+      "max_abs_error": 0.0,
+      "levels_consumed": null,
+      "exec_time_ms": 158.183,
+      "eval_time_ms": 3.94406,
+      "noise_budget_bits": 360,
+      "output": "outputs_match: 1 (9/9 outputs equal the expected values)\noutputs_checked: 9/9 outputs equal the expected values (exact)\nnoise_budget_bits: 360\nexecution_time_(ms): 158.183\nfhe_eval_median_(ms): 3.94406 (1 warmup + 10 runs)\nPASS (exact integer comparison)\n"
+     }
+    ],
+    "timing_skipped": false,
+    "eval_time_ms": 3.94406,
+    "levels": null,
+    "max_abs_error": 0.0
+   },
+   "verdict": "slower",
+   "same_as": null,
+   "remeasure": null,
+   "new_best": false,
+   "seconds": 17.430551052093506
+  },
+  {
+   "iteration": 2,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "ok",
+    "correct": true,
+    "message": "kernel 2f92f3ea04",
+    "compile_time_ms": 0.307875,
+    "depth": 3,
+    "mult_depth": 0,
+    "terms": 63,
+    "ops": {
+     "ct_ct_mul": 0,
+     "square": 0,
+     "ct_pt_mul": 0,
+     "relin": 0,
+     "rotate": 0,
+     "mod_switch": 0,
+     "add": 27
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 1,
+      "passed": true,
+      "max_abs_error": 0.0,
+      "levels_consumed": null,
+      "exec_time_ms": 71.5588,
+      "eval_time_ms": 2.13408,
+      "noise_budget_bits": 360,
+      "output": "outputs_match: 1 (4/4 outputs equal the expected values)\noutputs_checked: 4/4 outputs equal the expected values (exact)\nnoise_budget_bits: 360\nexecution_time_(ms): 71.5588\nfhe_eval_median_(ms): 2.13408 (1 warmup + 1 runs)\nPASS (exact integer comparison)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 1,
+      "passed": true,
+      "max_abs_error": 0.0,
+      "levels_consumed": null,
+      "exec_time_ms": 157.697,
+      "eval_time_ms": 4.72687,
+      "noise_budget_bits": 360,
+      "output": "outputs_match: 1 (9/9 outputs equal the expected values)\noutputs_checked: 9/9 outputs equal the expected values (exact)\nnoise_budget_bits: 360\nexecution_time_(ms): 157.697\nfhe_eval_median_(ms): 4.72687 (1 warmup + 1 runs)\nPASS (exact integer comparison)\n"
+     }
+    ],
+    "timing_skipped": true,
+    "eval_time_ms": null,
+    "levels": null,
+    "max_abs_error": 0.0
+   },
+   "verdict": "same_as_baseline",
+   "same_as": null,
+   "remeasure": null,
+   "new_best": false,
+   "seconds": 19.251518964767456
+  },
+  {
+   "iteration": 3,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "ok",
+    "correct": true,
+    "message": "kernel bcb3b21a89",
+    "compile_time_ms": 0.316875,
+    "depth": 2,
+    "mult_depth": 0,
+    "terms": 63,
+    "ops": {
+     "ct_ct_mul": 0,
+     "square": 0,
+     "ct_pt_mul": 0,
+     "relin": 0,
+     "rotate": 0,
+     "mod_switch": 0,
+     "add": 27
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 1,
+      "passed": true,
+      "max_abs_error": 0.0,
+      "levels_consumed": null,
+      "exec_time_ms": 71.1519,
+      "eval_time_ms": 2.20433,
+      "noise_budget_bits": 360,
+      "output": "outputs_match: 1 (4/4 outputs equal the expected values)\noutputs_checked: 4/4 outputs equal the expected values (exact)\nnoise_budget_bits: 360\nexecution_time_(ms): 71.1519\nfhe_eval_median_(ms): 2.20433 (1 warmup + 1 runs)\nPASS (exact integer comparison)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 1,
+      "passed": true,
+      "max_abs_error": 0.0,
+      "levels_consumed": null,
+      "exec_time_ms": 157.446,
+      "eval_time_ms": 4.74071,
+      "noise_budget_bits": 360,
+      "output": "outputs_match: 1 (9/9 outputs equal the expected values)\noutputs_checked: 9/9 outputs equal the expected values (exact)\nnoise_budget_bits: 360\nexecution_time_(ms): 157.446\nfhe_eval_median_(ms): 4.74071 (1 warmup + 1 runs)\nPASS (exact integer comparison)\n"
+     }
+    ],
+    "timing_skipped": true,
+    "eval_time_ms": null,
+    "levels": null,
+    "max_abs_error": 0.0
+   },
+   "verdict": "duplicate",
+   "same_as": 1,
+   "remeasure": null,
+   "new_best": false,
+   "seconds": 18.65458106994629
+  },
+  {
+   "iteration": 4,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "ok",
+    "correct": true,
+    "message": "kernel 74979e6998",
+    "compile_time_ms": 0.395042,
+    "depth": 3,
+    "mult_depth": 0,
+    "terms": 63,
+    "ops": {
+     "ct_ct_mul": 0,
+     "square": 0,
+     "ct_pt_mul": 0,
+     "relin": 0,
+     "rotate": 0,
+     "mod_switch": 0,
+     "add": 27
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 1,
+      "passed": true,
+      "max_abs_error": 0.0,
+      "levels_consumed": null,
+      "exec_time_ms": 69.6873,
+      "eval_time_ms": 2.02221,
+      "noise_budget_bits": 360,
+      "output": "outputs_match: 1 (4/4 outputs equal the expected values)\noutputs_checked: 4/4 outputs equal the expected values (exact)\nnoise_budget_bits: 360\nexecution_time_(ms): 69.6873\nfhe_eval_median_(ms): 2.02221 (1 warmup + 1 runs)\nPASS (exact integer comparison)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 1,
+      "passed": true,
+      "max_abs_error": 0.0,
+      "levels_consumed": null,
+      "exec_time_ms": 157.071,
+      "eval_time_ms": 4.68008,
+      "noise_budget_bits": 360,
+      "output": "outputs_match: 1 (9/9 outputs equal the expected values)\noutputs_checked: 9/9 outputs equal the expected values (exact)\nnoise_budget_bits: 360\nexecution_time_(ms): 157.071\nfhe_eval_median_(ms): 4.68008 (1 warmup + 1 runs)\nPASS (exact integer comparison)\n"
+     }
+    ],
+    "timing_skipped": true,
+    "eval_time_ms": null,
+    "levels": null,
+    "max_abs_error": 0.0
+   },
+   "verdict": "same_as_baseline",
+   "same_as": null,
+   "remeasure": null,
+   "new_best": false,
+   "seconds": 18.15368676185608
+  },
+  {
+   "iteration": 5,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "ok",
+    "correct": true,
+    "message": "kernel 74979e6998",
+    "compile_time_ms": 0.3245,
+    "depth": 3,
+    "mult_depth": 0,
+    "terms": 63,
+    "ops": {
+     "ct_ct_mul": 0,
+     "square": 0,
+     "ct_pt_mul": 0,
+     "relin": 0,
+     "rotate": 0,
+     "mod_switch": 0,
+     "add": 27
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 1,
+      "passed": true,
+      "max_abs_error": 0.0,
+      "levels_consumed": null,
+      "exec_time_ms": 69.8227,
+      "eval_time_ms": 2.09683,
+      "noise_budget_bits": 360,
+      "output": "outputs_match: 1 (4/4 outputs equal the expected values)\noutputs_checked: 4/4 outputs equal the expected values (exact)\nnoise_budget_bits: 360\nexecution_time_(ms): 69.8227\nfhe_eval_median_(ms): 2.09683 (1 warmup + 1 runs)\nPASS (exact integer comparison)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 1,
+      "passed": true,
+      "max_abs_error": 0.0,
+      "levels_consumed": null,
+      "exec_time_ms": 156.711,
+      "eval_time_ms": 4.83121,
+      "noise_budget_bits": 360,
+      "output": "outputs_match: 1 (9/9 outputs equal the expected values)\noutputs_checked: 9/9 outputs equal the expected values (exact)\nnoise_budget_bits: 360\nexecution_time_(ms): 156.711\nfhe_eval_median_(ms): 4.83121 (1 warmup + 1 runs)\nPASS (exact integer comparison)\n"
+     }
+    ],
+    "timing_skipped": true,
+    "eval_time_ms": null,
+    "levels": null,
+    "max_abs_error": 0.0
+   },
+   "verdict": "same_as_baseline",
+   "same_as": null,
+   "remeasure": null,
+   "new_best": false,
+   "seconds": 14.884791135787964
+  },
+  {
+   "iteration": 6,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "ok",
+    "correct": true,
+    "message": "kernel 74979e6998",
+    "compile_time_ms": 0.311292,
+    "depth": 3,
+    "mult_depth": 0,
+    "terms": 63,
+    "ops": {
+     "ct_ct_mul": 0,
+     "square": 0,
+     "ct_pt_mul": 0,
+     "relin": 0,
+     "rotate": 0,
+     "mod_switch": 0,
+     "add": 27
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 1,
+      "passed": true,
+      "max_abs_error": 0.0,
+      "levels_consumed": null,
+      "exec_time_ms": 69.8265,
+      "eval_time_ms": 2.1155,
+      "noise_budget_bits": 360,
+      "output": "outputs_match: 1 (4/4 outputs equal the expected values)\noutputs_checked: 4/4 outputs equal the expected values (exact)\nnoise_budget_bits: 360\nexecution_time_(ms): 69.8265\nfhe_eval_median_(ms): 2.1155 (1 warmup + 1 runs)\nPASS (exact integer comparison)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 1,
+      "passed": true,
+      "max_abs_error": 0.0,
+      "levels_consumed": null,
+      "exec_time_ms": 159.326,
+      "eval_time_ms": 4.81254,
+      "noise_budget_bits": 360,
+      "output": "outputs_match: 1 (9/9 outputs equal the expected values)\noutputs_checked: 9/9 outputs equal the expected values (exact)\nnoise_budget_bits: 360\nexecution_time_(ms): 159.326\nfhe_eval_median_(ms): 4.81254 (1 warmup + 1 runs)\nPASS (exact integer comparison)\n"
+     }
+    ],
+    "timing_skipped": true,
+    "eval_time_ms": null,
+    "levels": null,
+    "max_abs_error": 0.0
+   },
+   "verdict": "same_as_baseline",
+   "same_as": null,
+   "remeasure": null,
+   "new_best": false,
+   "seconds": 15.050343036651611
+  },
+  {
+   "iteration": 7,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "ok",
+    "correct": true,
+    "message": "kernel 74979e6998",
+    "compile_time_ms": 0.299,
+    "depth": 3,
+    "mult_depth": 0,
+    "terms": 63,
+    "ops": {
+     "ct_ct_mul": 0,
+     "square": 0,
+     "ct_pt_mul": 0,
+     "relin": 0,
+     "rotate": 0,
+     "mod_switch": 0,
+     "add": 27
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 1,
+      "passed": true,
+      "max_abs_error": 0.0,
+      "levels_consumed": null,
+      "exec_time_ms": 69.9594,
+      "eval_time_ms": 1.99204,
+      "noise_budget_bits": 360,
+      "output": "outputs_match: 1 (4/4 outputs equal the expected values)\noutputs_checked: 4/4 outputs equal the expected values (exact)\nnoise_budget_bits: 360\nexecution_time_(ms): 69.9594\nfhe_eval_median_(ms): 1.99204 (1 warmup + 1 runs)\nPASS (exact integer comparison)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 1,
+      "passed": true,
+      "max_abs_error": 0.0,
+      "levels_consumed": null,
+      "exec_time_ms": 157.105,
+      "eval_time_ms": 4.80979,
+      "noise_budget_bits": 360,
+      "output": "outputs_match: 1 (9/9 outputs equal the expected values)\noutputs_checked: 9/9 outputs equal the expected values (exact)\nnoise_budget_bits: 360\nexecution_time_(ms): 157.105\nfhe_eval_median_(ms): 4.80979 (1 warmup + 1 runs)\nPASS (exact integer comparison)\n"
+     }
+    ],
+    "timing_skipped": true,
+    "eval_time_ms": null,
+    "levels": null,
+    "max_abs_error": 0.0
+   },
+   "verdict": "same_as_baseline",
+   "same_as": null,
+   "remeasure": null,
+   "new_best": false,
+   "seconds": 15.76062798500061
+  },
+  {
+   "iteration": 8,
+   "stop_reason": "end_turn",
+   "kind": "candidate",
+   "evaluation": {
+    "status": "ok",
+    "correct": true,
+    "message": "kernel 74979e6998",
+    "compile_time_ms": 0.335125,
+    "depth": 3,
+    "mult_depth": 0,
+    "terms": 63,
+    "ops": {
+     "ct_ct_mul": 0,
+     "square": 0,
+     "ct_pt_mul": 0,
+     "relin": 0,
+     "rotate": 0,
+     "mod_switch": 0,
+     "add": 27
+    },
+    "cases": [
+     {
+      "name": "fixed",
+      "slot_count": 1,
+      "passed": true,
+      "max_abs_error": 0.0,
+      "levels_consumed": null,
+      "exec_time_ms": 70.0053,
+      "eval_time_ms": 2.08379,
+      "noise_budget_bits": 360,
+      "output": "outputs_match: 1 (4/4 outputs equal the expected values)\noutputs_checked: 4/4 outputs equal the expected values (exact)\nnoise_budget_bits: 360\nexecution_time_(ms): 70.0053\nfhe_eval_median_(ms): 2.08379 (1 warmup + 1 runs)\nPASS (exact integer comparison)\n"
+     },
+     {
+      "name": "dense",
+      "slot_count": 1,
+      "passed": true,
+      "max_abs_error": 0.0,
+      "levels_consumed": null,
+      "exec_time_ms": 159.842,
+      "eval_time_ms": 4.76404,
+      "noise_budget_bits": 360,
+      "output": "outputs_match: 1 (9/9 outputs equal the expected values)\noutputs_checked: 9/9 outputs equal the expected values (exact)\nnoise_budget_bits: 360\nexecution_time_(ms): 159.842\nfhe_eval_median_(ms): 4.76404 (1 warmup + 1 runs)\nPASS (exact integer comparison)\n"
+     }
+    ],
+    "timing_skipped": true,
+    "eval_time_ms": null,
+    "levels": null,
+    "max_abs_error": 0.0
+   },
+   "verdict": "same_as_baseline",
+   "same_as": null,
+   "remeasure": null,
+   "new_best": false,
+   "seconds": 13.906423091888428
+  }
+ ],
+ "proposer": "cli",
+ "equivalent_api_cost_usd": 1.0478996,
+ "cli_session_id": "dae05305-d4f0-4267-9adf-0854e2a37a81"
+}

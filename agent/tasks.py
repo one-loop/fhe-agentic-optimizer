@@ -39,6 +39,7 @@ class Task:
     description: str  # what the kernel computes and what its inputs mean (shown to the LLM)
     tolerance: float
     cases: List[Case] = field(default_factory=list)
+    scheme: str = "ckks"  # "ckks" or "bfv" (exact integers; the tolerance does not apply)
 
     @property
     def baseline_path(self) -> Path:
@@ -220,3 +221,54 @@ TASKS["embedding"] = Task(
         Case("random", ["python3", str(TASK_DIR / "gen_embedding_random.py"), "64", "7"], slot_count=64),
     ],
 )
+
+
+# BFV neural-network operators (benchmarks/nn_*), scalar path: every value is its own
+# ciphertext, as run_benchmarks.py records them with --vectorize 0. Width 4 is the
+# recorded baseline configuration (docs/unified_baseline.md); width 6 is the timing case.
+_BFV_RULES = (
+    "\nScheme: BFV with exact integer arithmetic (20-bit plaintext modulus), so results must be exactly "
+    "equal, and integer constants are allowed (`c * 2`, `c + 1`). Every input is its own ciphertext holding "
+    "one value in slot 0 (the function has slots() = 1 slot per value). Each output label must hold its "
+    "value in slot 0. There are no CKKS levels or scales; the costs are the multiplicative depth and the "
+    "number of ciphertext-ciphertext multiplications (each followed by a relinearization) and rotations."
+)
+
+
+def _bfv(name: str, desc: str, fixed: int, dense: int) -> Task:
+    return Task(
+        name=name,
+        bench_dir=name,
+        description=desc + _BFV_RULES,
+        tolerance=0.0,
+        scheme="bfv",
+        cases=[
+            Case("fixed", ["python3", f"generate_{name}.py", "--slot_count", str(fixed)], slot_count=1),
+            Case("dense", ["python3", f"generate_{name}.py", "--slot_count", str(dense)], slot_count=1),
+        ],
+    )
+
+
+TASKS["nn_linear"] = _bfv(
+    "nn_linear",
+    "nn.Linear (fully connected layer) with in_features = out_features = W (benchmarks/nn_linear): "
+    "y_i = b_i + sum_j w_{i,j} * x_j.\nInputs: ciphertexts `x_j` (j = 0..W-1), `w_i_j` (the weight "
+    "matrix, i and j in 0..W-1) and `b_i`. Outputs: `y_i` for i = 0..W-1. W is the case's width: 4 "
+    "(fixed) or 6 (dense); the kernel reads it from WIDTH.",
+    4, 6)
+TASKS["nn_conv2d"] = _bfv(
+    "nn_conv2d",
+    "nn.Conv2d with one W x W input channel, one 3 x 3 kernel, no padding, stride 1 "
+    "(benchmarks/nn_conv2d): y_{r,c} = b + sum_{ki,kj} k_{ki,kj} * x_{r+ki, c+kj} for an output of size "
+    "(W-2) x (W-2).\nInputs: ciphertexts `x_r_c` (r, c in 0..W-1), `k_ki_kj` (ki, kj in 0..2) and `b`. "
+    "Outputs: `y_r_c` for r, c in 0..W-3. W is the case's width: 4 (fixed) or 6 (dense); the kernel reads "
+    "it from WIDTH.",
+    4, 6)
+TASKS["nn_avgpool2d"] = _bfv(
+    "nn_avgpool2d",
+    "nn.AvgPool2d sums (the benchmark omits the division): 2 x 2 window, stride 2, on a W x W input "
+    "(benchmarks/nn_avgpool2d): y_{r,c} = x_{2r,2c} + x_{2r,2c+1} + x_{2r+1,2c} + x_{2r+1,2c+1}.\n"
+    "Inputs: ciphertexts `x_r_c` (r, c in 0..W-1). Outputs: `y_r_c` for r, c in 0..W/2-1. W is the "
+    "case's width: 4 (fixed) or 6 (dense); the kernel reads it from WIDTH. The baseline has no "
+    "multiplications at all; only its additions can change.",
+    4, 6)

@@ -197,7 +197,8 @@ def run_task(task, args, proposer) -> dict:
     final = confirm(*interleaved(task, best_dir, programs / "baseline", FINAL_BATCHES, args.eval_repeats)) \
         if best_it else None
     result = {
-        "task": task.name, "model": proposer.model, "effort": getattr(proposer, "effort", None),
+        "task": task.name, "scheme": getattr(task, "scheme", "ckks"),
+        "model": proposer.model, "effort": getattr(proposer, "effort", None),
         "iterations": args.iterations, "timestamp": stamp, "wall_time_s": time.time() - start,
         "baseline": baseline.to_dict(), "best": best_ev.to_dict(), "best_iteration": best_it,
         "speedup": final["speedup"] if final else 1.0, "final_remeasure": final,

@@ -1,6 +1,6 @@
 # Agent Handoff: CKKS Operator Optimization Loop
 
-Last verified locally: 2026-10-25
+Last verified locally: 2026-11-01
 
 ## 1. Goal and present scope
 
@@ -123,6 +123,19 @@ All 26 tasks were rerun with `--proposer cli --model claude-sonnet-5-5`, effort 
 - `chebyshev_selu_d7` (1.41x) keeps 8 levels but uses a Clenshaw recurrence: ct-pt 8→2, rescale 14→8, match_scale 11→5.
 - `elementwise_add_scalar` again shows a large (1.43x) gain with an identical circuit: timing noise.
 - The CLI adds one small context block (account email) to each prompt; no CLAUDE.md, tools or MCP servers.
+
+## 5c. BFV operators and the Opus run (2026-11-01)
+
+The loop now also covers the three BFV neural-network operators, `nn_linear`, `nn_conv2d` and `nn_avgpool2d` (29 tasks in all), on CHEHAB's scalar path, which `run_benchmarks.py --vectorize 0` records. Changes:
+
+- `agent/driver.cpp` takes a scheme argument (`ckks`, the default, or `bfv`: `Compiler::create_func("fhe", slots, 20, false, true)` as in `benchmarks/nn_*`) and exposes `WIDTH` (the operator's width, from `AGENT_WIDTH`) to kernels.
+- `agent/bfv_main.cpp` + `agent/bfv_he_CMakeLists.txt`: a BFV runtime with the CKKS runtime's interface (`--repeats` timing, median, PASS/FAIL), on the untouched `benchmarks/utils.cpp`. Correctness is exact: every decrypted output must equal the expected integer. The generated BFV code is unchanged, so `tests/bfv_golden` still applies.
+- `agent/tasks.py`: `Task.scheme`; `evaluate.py`, `prompts.py`, `collect.py` and `loop.py` are scheme-aware (BFV rules and costs in the system prompt; no levels/scales in the feedback; `noise_budget_bits` recorded).
+- Baselines (`agent/tasks/nn_*.cpp`) reproduce the benchmarks: width 4 gives (depth, mult. depth) and op counts equal to the recorded baseline table (`docs/unified_baseline.md`: linear 16 ct-ct, conv 36, avgpool 0); width 6 is the timed case.
+- `agent/compare_models.py`: full runs of different models side by side under the strict rule, using `results/remeasured.csv` for runs that predate it.
+- Verified: the three baselines pass the exact check (noise budgets 327/327/360 bits, as the golden table); a deliberately wrong avgpool kernel fails it; the offline CKKS replay is unchanged (x1.08, 5/5). The Claude CLI was updated 2.1.167 → 2.1.316, which Opus 5.5 requires.
+
+Opus 5.5 run (all 29 tasks, effort medium, 8 attempts, runs `agent/runs/*/20261101-1*`, summary `agent/results/opus_20261101/`, five-run comparison `agent/results/model_comparison.md` with remarks in `model_comparison_notes.md`): geometric mean over the 26 CKKS tasks 1.244 (Sonnet v2: 1.141 teammate, 1.146 this Mac; Haiku 1.089), 15 tasks improved under the strict rule (Sonnet v2: 12), 222/232 correct attempts and 5 CHEHAB errors (Sonnet v2: 183–185/208, 19–21). Chebyshev group 1.380 (Sonnet v2 1.326–1.340). Two large single results, both with a caveat recorded in the notes: `embedding` x5.69 (drags the indicator down eight levels before 26 rotations through a numerically zero term; partly a baseline weakness) and `nn_conv2d` x3.69 (Winograd F(4,3) made exact with the inverse of 576 modulo the plaintext modulus 786433; tied to that modulus). `nn_linear` and `nn_avgpool2d` stay at x1.00 with every attempt correct but structurally identical to the baseline. Wall time 256 min, equivalent API cost $82.81 ($71.74 for the 26 CKKS tasks). `collect.py` now reports the CLI's equivalent cost (it read only the API-key field before). Not done: a Sonnet or Haiku run of the three BFV tasks, so the BFV column has no cross-model comparison yet.
 
 ## 5b. Selection and feedback improvements, Sonnet v2 run (2026-10-24)
 
