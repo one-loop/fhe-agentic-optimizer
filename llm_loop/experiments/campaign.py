@@ -15,6 +15,8 @@ Experiments, in priority order:
   7. nn_haiku, nn_sonnet, sonnet_quad_batchnorm  the BFV nn_* tasks (nn_conv2d 3 runs, the others 1) and Quad,
      BatchNorm (1 run), archive only
   8. opus_chebyshev, opus_quad_batchnorm, opus_nn  the same tasks with Claude Opus 5.5
+  9. opus_focus_chebyshev, opus_focus_conv2d  the cut-down Opus version: the 3 pilot tasks and nn_conv2d, 3 runs each,
+     re-scored apart because the schemes differ
 
 Unattended behaviour: if Claude's usage limit is reached, or the model cannot be
 reached, the campaign waits and retries (an interrupted run is redone from
@@ -69,6 +71,11 @@ EXPERIMENTS = [
     {"name": "opus_nn", "tasks": NN, "runs": [1, 2, 3], "hints": "none", "feedback": "execution",
      "out": "phase2-nn-opus", "results": "phase2_nn_opus", "model": "claude-opus-5-5", "strategies": ["archive"],
      "one_run": NN_ONE_RUN},
+    {"name": "opus_focus_chebyshev", "tasks": PILOT, "runs": [1, 2, 3], "hints": "none", "feedback": "execution",
+     "out": "phase2-opus-focus", "results": "phase2_opus_focus", "model": "claude-opus-5-5", "strategies": ["archive"]},
+    {"name": "opus_focus_conv2d", "tasks": ["nn_conv2d"], "runs": [1, 2, 3], "hints": "none", "feedback": "execution",
+     "out": "phase2-nn-opus-focus", "results": "phase2_nn_opus_focus", "model": "claude-opus-5-5",
+     "strategies": ["archive"]},
 ]
 WAIT_LIMIT_S = 30 * 60      # after a usage limit
 WAIT_ERROR_S = 10 * 60      # after the model could not be reached or a crash
