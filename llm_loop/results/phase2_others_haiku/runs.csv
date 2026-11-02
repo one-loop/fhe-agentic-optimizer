@@ -1,0 +1,15 @@
+task,strategy,run,started_at,final_kernel,final_attempt,final_is_baseline,speedup,eval_median_ms,e2e_median_ms,correct,fhe_max_abs_error,depth,xdepth,levels,ct_ct_mul,ct_pt_mul,align_mul,rescale,mod_switch,compile_median_ms,calls,correct_attempts,duplicates,compile_failures,chehab_rejections,build_failures,runtime_failures,wrong_output,heldout_failures,no_code,predicted_slower,input_tokens,output_tokens,thinking_tokens,search_seconds,models
+chebyshev_relu_d2,archive,1,2026-11-02T04:44:22,k1,1,False,1.2754107147414901,47.0156,71.9191,True,1.5056e-07,7,3,3,1,2,0,3,1,0.334042,8,3,5,0,0,0,0,0,0,0,0,32471,46999,43277,326.3,claude-haiku-5-5
+chebyshev_relu_d7,archive,1,2026-11-02T04:35:21,k1,5,False,1.4104025737317887,122.6235,148.7995,True,2.17667e-07,9,4,4,3,4,2,9,0,0.483833,8,6,1,0,1,0,0,0,0,0,0,33401,65796,60035,513.5,claude-haiku-5-5
+elementwise_add,archive,1,2026-11-02T05:05:05,baseline,0,True,1.0,0.4985,41.634100000000004,True,3.928e-08,1,0,0,0,0,0,0,0,0.305166,8,0,8,0,0,0,0,0,0,0,0,25976,3406,1585,45.8,claude-haiku-5-5
+elementwise_add_plain,archive,1,2026-11-02T05:06:12,baseline,0,True,1.0,2.76893,23.917749999999998,True,2.85146e-08,1,0,0,0,0,0,0,0,0.311375,8,0,8,0,0,0,0,0,0,0,0,26125,4253,2382,55.2,claude-haiku-5-5
+elementwise_add_scalar,archive,1,2026-11-02T05:07:28,baseline,0,True,1.0,0.2608125,21.23705,True,3.34272e-08,1,0,0,0,0,0,0,0,0.290333,8,0,8,0,0,0,0,0,0,0,0,26024,3991,2275,52.0,claude-haiku-5-5
+elementwise_mul,archive,1,2026-11-02T05:08:45,baseline,0,True,1.0,36.61925,80.2918,True,6.14299e-08,1,1,1,1,0,0,1,0,0.334666,8,0,8,0,0,0,0,0,0,0,0,26301,3906,1820,53.1,claude-haiku-5-5
+elementwise_mul_plain,archive,1,2026-11-02T05:10:00,baseline,0,True,1.0,7.650835,28.9503,True,5.20673e-08,1,1,1,0,1,0,1,0,0.403959,8,0,8,0,0,0,0,0,0,0,0,26113,3998,2336,50.9,claude-haiku-5-5
+elementwise_mul_scalar,archive,1,2026-11-02T05:11:12,baseline,0,True,1.0,5.10247,26.33775,True,5.84651e-08,1,1,1,0,1,0,1,0,0.294209,8,0,8,0,0,0,0,0,0,0,0,26053,4762,3048,61.3,claude-haiku-5-5
+embedding,archive,1,2026-11-02T05:33:29,baseline,0,True,1.0,715.0855,752.377,True,3.84846e-05,21,2,2,0,6,0,6,0,0.43025,8,4,1,1,2,0,0,0,0,0,0,31716,92876,88168,826.6,claude-haiku-5-5
+extract,archive,1,2026-11-02T05:12:39,baseline,0,True,1.0,33.42545,56.4862,True,9.81511e-06,2,1,1,0,1,0,1,0,0.284209,8,1,6,0,0,0,0,1,0,0,0,28017,8611,6244,108.1,claude-haiku-5-5
+extract_linear,archive,1,2026-11-02T05:14:52,baseline,0,True,1.0,33.42345,56.1753,True,1.02951e-05,2,1,1,0,1,0,1,0,0.295209,8,1,7,0,0,0,0,0,0,0,0,27883,8958,6738,103.8,claude-haiku-5-5
+extract_sparse,archive,1,2026-11-02T05:17:08,k1,2,False,1.3866921179606966,72.71405,115.7895,True,7.90009e-06,3,1,1,0,2,1,3,0,0.349958,8,7,1,0,0,0,0,0,0,0,0,33430,52358,47641,430.8,claude-haiku-5-5
+relu_composite,archive,1,2026-11-02T04:50:46,baseline,0,True,1.0,364.43899999999996,394.531,True,6.53514e-07,17,10,10,16,12,9,37,9,0.64075,8,3,2,0,3,0,0,0,0,0,0,35242,136380,128844,838.0,claude-haiku-5-5
+table_mult,archive,1,2026-11-02T05:25:46,baseline,0,True,1.0,651.5260000000001,684.8679999999999,True,6.72472e-05,17,1,1,0,3,0,3,0,0.381084,8,1,7,0,0,0,0,0,0,0,0,28218,48732,45958,369.0,claude-haiku-5-5

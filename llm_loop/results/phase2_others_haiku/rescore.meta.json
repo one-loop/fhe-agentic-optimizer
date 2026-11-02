@@ -1,0 +1,41 @@
+{
+ "started": "2026-11-02T05:47:15",
+ "finished": "2026-11-02T06:04:15",
+ "git": {
+  "commit": "3c62a442cd99bea5d8925e8f8769a38450411365",
+  "branch": "umair/llm-loop",
+  "dirty": false
+ },
+ "machine": "Darwin arm64 arm",
+ "compiler": "Apple clang version 17.0.0 (clang-1700.3.19.1)",
+ "seal": "4.1",
+ "protocol": {
+  "warmup_processes": 1,
+  "measured_processes": 10,
+  "fhe_runs_per_process": 10,
+  "compile_runs": 3,
+  "interleaved": true,
+  "heldout_correctness": true
+ },
+ "proposers": [
+  "{\"claude_code\": \"2.1.310 (Claude Code)\", \"effort\": \"medium\", \"model\": \"claude-haiku-5-5\", \"proposer\": \"claude-code\"}"
+ ],
+ "baselines": {
+  "chebyshev_relu_d7": "93a33268674430a9cd1b3de7348eb705ad6376cd",
+  "chebyshev_relu_d2": "f5fd2c31a11debd2003ab1dd05fe023afb627108",
+  "relu_composite": "18ecfe56fe57fd73669ad0b7ba7c90491f5273ab",
+  "elementwise_add": "42dab6a66c74e3fe02a4540a38fbff72362c9b24",
+  "elementwise_add_plain": "9e8a713a883ddb8e171124cc5e2d70571012c09b",
+  "elementwise_add_scalar": "929b715e01c4dc5797e3d79d333b6d8d7ac28ee9",
+  "elementwise_mul": "925a2f78c1a07ae8f5ee8f7eb1ffca83d7f66dd8",
+  "elementwise_mul_plain": "53d47433cdca0e262c18a83a3e36cc964c04ceb6",
+  "elementwise_mul_scalar": "28282eaab816f67f3c22a00774f7b9a9840f1b39",
+  "extract": "eb6ff233852badbae4ab30d06c41774f082102e1",
+  "extract_linear": "eb6ff233852badbae4ab30d06c41774f082102e1",
+  "extract_sparse": "7af7b339f6ae265b495ebff33d42cf107129e965",
+  "table_mult": "487fba3d06a3c388875afe34942fcc0049d97ba3",
+  "embedding": "f3e905427380b215a4099a9d3b5e350f1db9589a"
+ },
+ "runs_root": "/Users/umee/Downloads/CHEHAB/llm_loop/runs/phase2-others-haiku",
+ "runs": 14
+}
