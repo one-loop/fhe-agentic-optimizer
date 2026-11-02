@@ -92,7 +92,8 @@ def rescore_task(task: Task, runs: List[dict], evaluator: Evaluator) -> List[dic
         k["ev"] = ev
         k["compile_ms"] = evaluator.compile_times(task, k["label"], COMPILE_RUNS) if ev.correct else []
         print(f"   {task.name} {k['label']:<8} {ev.status:<12} runs={k['runs']}", flush=True)
-    timed = [k for k in kernels.values() if k["ev"].correct]
+    # The baseline is always timed, as the speedup reference, even if it fails a case (reported as correct=False).
+    timed = [k for k in kernels.values() if k["ev"].correct or k["label"] == "baseline"]
     samples = {k["label"]: [] for k in timed}
     for i in range(WARMUP + MEASURED):
         shift = i % len(timed)
