@@ -1,0 +1,7 @@
+task,kernel,sha1,runs,status,message,correct,all_timing_runs_pass,tolerance,fhe_max_abs_error,eval_median_ms,eval_min_ms,eval_max_ms,e2e_median_ms,speedup,depth,xdepth,levels_static,levels_run,ct_ct_mul,ct_pt_mul,align_mul,rescale,mod_switch,rotate,add,add_plain,compile_median_ms,compile_runs_ms,measured_processes
+nn_linear,baseline,905122c81aad6f8ff19690e0c044afd0470232be,archive/run1,ok,,True,True,0.0,0.0,949.3965000000001,948.485,950.384,1184.55,1.0,7,1,0,,36,0,0,0,0,0,36,0,0.328084,0.780 0.328 0.321,10
+nn_avgpool2d,baseline,b1660a2b8e09be23634ca99abc69f124e06870fa,archive/run1,ok,,True,True,0.0,0.0,4.344615,4.29054,4.54746,174.177,1.0,3,0,0,,0,0,0,0,0,0,27,0,0.253583,0.300 0.254 0.241,10
+nn_conv2d,baseline,96e82e26c04e0c15a88ef2a895d863fc3d2d6370,,ok,,True,True,0.0,0.0,3798.3450000000003,3784.85,3839.51,4029.64,1.0,10,1,0,,144,0,0,0,0,0,144,0,0.788333,1.165 0.723 0.788,10
+nn_conv2d,k1,41570eae79f75dfbe348d54a44eb4b5dc8f03f0a,archive/run1,ok,,True,True,0.0,0.0,2658.98,2644.52,2663.33,2891.0950000000003,1.428497017653386,13,1,0,,100,0,0,0,0,0,220,0,0.773334,0.870 0.773 0.766,10
+nn_conv2d,k2,c7bde2ae0569c3ecce375c62a0d0a5230cf7f82b,archive/run2,ok,,True,True,0.0,0.0,2653.3100000000004,2642.56,2664.59,2888.335,1.4315496493059612,10,1,0,,100,0,0,0,0,0,195,0,0.862,1.117 0.862 0.818,10
+nn_conv2d,k3,7ba458890a10c8d565da35edb16e1d9a77529004,archive/run3,ok,,True,True,0.0,0.0,2658.275,2646.23,2680.53,2897.12,1.4288758687494711,14,1,0,,100,0,0,0,0,0,236,0,0.899416,1.493 0.897 0.899,10

@@ -1,0 +1,4 @@
+task,kernel,sha1,runs,status,message,correct,all_timing_runs_pass,tolerance,fhe_max_abs_error,eval_median_ms,eval_min_ms,eval_max_ms,e2e_median_ms,speedup,depth,xdepth,levels_static,levels_run,ct_ct_mul,ct_pt_mul,align_mul,rescale,mod_switch,rotate,add,add_plain,compile_median_ms,compile_runs_ms,measured_processes
+quad,baseline,499b8392a82beaa2cd4efe43faa5638cd4491e42,archive/run1,ok,,True,True,1e-06,1.17731e-07,36.3961,36.2726,36.6366,60.3211,1.0,1,1,1,1,1,0,0,1,0,0,0,0,0.297916,0.343 0.298 0.255,10
+batchnorm1d,baseline,12307efa8b0ad20219aa7c971a9b66c621e65ec6,archive/run1,ok,,True,True,1e-06,3.7759e-08,10.7272,10.5904,10.8531,32.942449999999994,1.0,2,1,1,1,0,1,0,1,0,0,0,1,0.215583,0.280 0.216 0.206,10
+batchnorm2d,baseline,12307efa8b0ad20219aa7c971a9b66c621e65ec6,archive/run1,ok,,True,True,1e-06,4.0844e-08,10.73685,10.6102,10.8128,32.96425,1.0,2,1,1,1,0,1,0,1,0,0,0,1,0.370333,0.425 0.370 0.336,10

@@ -1,0 +1,30 @@
+{
+ "started": "2026-11-02T04:32:41",
+ "finished": "2026-11-02T04:33:43",
+ "git": {
+  "commit": "45234b7a2de99e859c780fd6aa3f688b6c72b71f",
+  "branch": "umair/llm-loop",
+  "dirty": false
+ },
+ "machine": "Darwin arm64 arm",
+ "compiler": "Apple clang version 17.0.0 (clang-1700.3.19.1)",
+ "seal": "4.1",
+ "protocol": {
+  "warmup_processes": 1,
+  "measured_processes": 10,
+  "fhe_runs_per_process": 10,
+  "compile_runs": 3,
+  "interleaved": true,
+  "heldout_correctness": true
+ },
+ "proposers": [
+  "{\"claude_code\": \"2.1.310 (Claude Code)\", \"effort\": \"medium\", \"model\": \"claude-sonnet-5-5\", \"proposer\": \"claude-code\"}"
+ ],
+ "baselines": {
+  "quad": "55fd0dc280b4ccb56e5b66c5de1f73aec1eb11c8",
+  "batchnorm1d": "5369abfcfa9d1bf35f211273b85a9c8201f38748",
+  "batchnorm2d": "5369abfcfa9d1bf35f211273b85a9c8201f38748"
+ },
+ "runs_root": "/Users/umee/Downloads/CHEHAB/llm_loop/runs/phase2-sonnet-quad-batchnorm",
+ "runs": 3
+}
