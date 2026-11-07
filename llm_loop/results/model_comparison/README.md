@@ -9,12 +9,16 @@ re-scoring session. The final kernel is the strategy's own selection.
   Sigmoid d7, ELU), 1 run for the rest. A single run says nothing about run-to-run spread.
 - **Sessions differ.** Each model's runs were re-scored in their own session on the same machine. Speedups
   are ratios to the baseline of the same session, for which the same kernel moved by about 0.1% (median) across sessions earlier.
-- **Correctness.** Every final kernel is checked on the fixed, dense and 6 held-out cases; 102 of 102 finals pass.
-- **Pending.** Sonnet and Opus on the other 14 operators ran but are not re-timed yet. Sonnet's
-  relu_composite run was skipped because the baseline failed a held-out case (error 1.35e-06,
-  tolerance 1e-06).
-- **Not confirmed.** Opus run 1 on GELU (x2.63) and Sigmoid d7 (x2.55) use more levels than the
-  baseline; a repeated correctness check is pending (see `../phase2_opus_focus/README.md`).
+- **Correctness.** Every final kernel is checked on the fixed, dense and 6 held-out cases; 130 of 130 finals pass.
+- **Repeated check.** Opus run 1 on GELU (x2.63) failed 1 of 20 repeated checks (error 1.06e-06,
+  tolerance 1e-06), so it is not reliably correct; Sigmoid d7 run 1 (x2.55) passed 20 of 20
+  (`../phase2_opus_focus/repeat_correctness.md`). Counting GELU run 1 as x1.00, the Opus geometric
+  mean over GELU, Sigmoid d7 and ELU is x1.488 instead of x1.661.
+- **Noisier session.** Sonnet and Opus on the other 14 were re-timed on battery with more spread
+  (max-min up to about 14%, more on sub-millisecond kernels). Speedups are medians, and the
+  improved kernels agree across models; differences of a few percent here are noise.
+- **relu_composite.** Its baseline itself failed a held-out case once (error 1.35e-06, tolerance
+  1e-06), so the Opus run was redone from scratch.
 - These are my loop's results only. Teammates' kernels are compared in `../phase2_teammates_rescore/`.
 
 ## Across tasks (geometric mean of per-task mean speedups, same tasks for every model in a row)
@@ -25,7 +29,7 @@ re-scoring session. The final kernel is the strategy's own selection.
 | GELU, Sigmoid d7, ELU | 3 | x1.277 | x1.225 | x1.661 |
 | nn_conv2d (BFV) | 1 | x1.430 | x1.622 | x2.799 |
 | Quad, BatchNorm1d/2d, nn_linear, nn_avgpool2d | 5 | x1.002 | x1.002 | - |
-| The other 14 operators | 14 | pending | pending | pending |
+| The other 14 operators | 14 | x1.067 | x1.068 | x1.069 |
 
 ## Every operator (median, min-max over runs)
 
@@ -46,17 +50,17 @@ re-scoring session. The final kernel is the strategy's own selection.
 | nn_linear | Umair | BFV | x1.00 | x1.00 | not run |
 | nn_avgpool2d | Umair | BFV | x1.00 | x1.01 | not run |
 | nn_conv2d | Umair | BFV | x1.43 (1.43-1.43, 3 runs) | x1.35 (1.30-2.22, 3 runs) | x2.35 (2.31-3.74, 3 runs) |
-| chebyshev_relu_d7 | Moonis | CKKS | x1.41 | pending re-timing | pending re-timing |
-| chebyshev_relu_d2 | Moonis | CKKS | x1.28 | pending re-timing | pending re-timing |
-| relu_composite | Moonis | CKKS | x1.00 | pending re-timing | pending re-timing |
-| elementwise_add | Moonis | CKKS | x1.00 | pending re-timing | pending re-timing |
-| elementwise_add_plain | Moonis | CKKS | x1.00 | pending re-timing | pending re-timing |
-| elementwise_add_scalar | Moonis | CKKS | x1.00 | pending re-timing | pending re-timing |
-| elementwise_mul | Moonis | CKKS | x1.00 | pending re-timing | pending re-timing |
-| elementwise_mul_plain | Moonis | CKKS | x1.00 | pending re-timing | pending re-timing |
-| elementwise_mul_scalar | Moonis | CKKS | x1.00 | pending re-timing | pending re-timing |
-| extract | mabyan22 | CKKS | x1.00 | pending re-timing | pending re-timing |
-| extract_linear | mabyan22 | CKKS | x1.00 | pending re-timing | pending re-timing |
-| extract_sparse | mabyan22 | CKKS | x1.39 | pending re-timing | pending re-timing |
-| table_mult | mabyan22 | CKKS | x1.00 | pending re-timing | pending re-timing |
-| embedding | mabyan22 | CKKS | x1.00 | pending re-timing | pending re-timing |
+| chebyshev_relu_d7 | Moonis | CKKS | x1.41 | x1.40 | x1.44 |
+| chebyshev_relu_d2 | Moonis | CKKS | x1.28 | x1.28 | x1.28 |
+| relu_composite | Moonis | CKKS | x1.00 | x1.01 | x1.00 |
+| elementwise_add | Moonis | CKKS | x1.00 | x1.00 | x1.00 |
+| elementwise_add_plain | Moonis | CKKS | x1.00 | x1.00 | x1.00 |
+| elementwise_add_scalar | Moonis | CKKS | x1.00 | x1.00 | x1.00 |
+| elementwise_mul | Moonis | CKKS | x1.00 | x1.00 | x1.00 |
+| elementwise_mul_plain | Moonis | CKKS | x1.00 | x1.00 | x1.00 |
+| elementwise_mul_scalar | Moonis | CKKS | x1.00 | x1.00 | x1.00 |
+| extract | mabyan22 | CKKS | x1.00 | x1.00 | x1.00 |
+| extract_linear | mabyan22 | CKKS | x1.00 | x1.00 | x1.00 |
+| extract_sparse | mabyan22 | CKKS | x1.39 | x1.38 | x1.37 |
+| table_mult | mabyan22 | CKKS | x1.00 | x1.00 | x1.00 |
+| embedding | mabyan22 | CKKS | x1.00 | x1.00 | x1.00 |

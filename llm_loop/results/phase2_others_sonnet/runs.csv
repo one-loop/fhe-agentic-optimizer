@@ -1,0 +1,15 @@
+task,strategy,run,started_at,final_kernel,final_attempt,final_is_baseline,speedup,eval_median_ms,e2e_median_ms,correct,fhe_max_abs_error,depth,xdepth,levels,ct_ct_mul,ct_pt_mul,align_mul,rescale,mod_switch,compile_median_ms,calls,correct_attempts,duplicates,compile_failures,chehab_rejections,build_failures,runtime_failures,wrong_output,heldout_failures,no_code,predicted_slower,input_tokens,output_tokens,thinking_tokens,search_seconds,models
+chebyshev_relu_d2,archive,1,2026-11-02T06:09:49,k1,1,False,1.2756539320788982,47.134100000000004,71.64355,True,1.5631e-07,7,3,3,1,2,0,3,1,0.337125,8,3,3,0,0,0,0,0,0,0,2,29919,15438,12864,234.3,claude-sonnet-5-5
+chebyshev_relu_d7,archive,1,2026-11-02T06:04:36,k1,3,False,1.4038198532472321,126.1305,154.6035,True,2.69394e-07,9,4,4,3,4,2,9,0,0.582417,8,5,2,0,1,0,0,0,0,0,0,32311,16412,12182,302.6,claude-sonnet-5-5
+elementwise_add,archive,1,2026-11-02T06:20:31,baseline,0,True,1.0,0.531416,42.05,True,4.89605e-08,1,0,0,0,0,0,0,0,0.34725,8,0,8,0,0,0,0,0,0,0,0,25785,1235,44,48.8,claude-sonnet-5-5
+elementwise_add_plain,archive,1,2026-11-02T06:21:25,baseline,0,True,1.0,2.835535,24.79645,True,3.07394e-08,1,0,0,0,0,0,0,0,0.333458,8,0,8,0,0,0,0,0,0,0,0,26060,2509,1099,56.6,claude-sonnet-5-5
+elementwise_add_scalar,archive,1,2026-11-02T06:22:26,baseline,0,True,1.0,0.278198,22.02245,True,2.84379e-08,1,0,0,0,0,0,0,0,0.254,8,0,8,0,0,0,0,0,0,0,0,25870,2526,1216,56.4,claude-sonnet-5-5
+elementwise_mul,archive,1,2026-11-02T06:23:30,baseline,0,True,1.0,36.9234,82.114,True,6.04856e-08,1,1,1,1,0,0,1,0,0.389541,8,0,8,0,0,0,0,0,0,0,0,26117,1671,202,54.0,claude-sonnet-5-5
+elementwise_mul_plain,archive,1,2026-11-02T06:24:29,baseline,0,True,1.0,7.71951,29.4496,True,4.95554e-08,1,1,1,0,1,0,1,0,0.411708,8,0,8,0,0,0,0,0,0,0,0,26013,1431,212,47.1,claude-sonnet-5-5
+elementwise_mul_scalar,archive,1,2026-11-02T06:25:21,baseline,0,True,1.0,5.20524,26.88345,True,5.71776e-08,1,1,1,0,1,0,1,0,0.314583,8,0,8,0,0,0,0,0,0,0,0,25931,2122,726,54.7,claude-sonnet-5-5
+embedding,archive,1,2026-11-02T06:42:13,baseline,0,True,1.0,759.424,794.182,True,4.28788e-05,21,2,2,0,6,0,6,0,0.525708,8,1,6,0,0,0,0,1,0,0,0,29000,33893,30425,431.1,claude-sonnet-5-5
+extract,archive,1,2026-11-02T06:26:24,baseline,0,True,1.0,33.806799999999996,58.29785,True,6.13883e-06,2,1,1,0,1,0,1,0,0.306708,8,0,8,0,0,0,0,0,0,0,0,26006,5335,3665,80.4,claude-sonnet-5-5
+extract_linear,archive,1,2026-11-02T06:27:52,baseline,0,True,1.0,34.3855,59.6969,True,1.1115e-05,2,1,1,0,1,0,1,0,0.318459,8,0,8,0,0,0,0,0,0,0,0,25928,4323,2669,68.9,claude-sonnet-5-5
+extract_sparse,archive,1,2026-11-02T06:29:16,k1,1,False,1.3785389624267985,73.69215,119.8295,True,7.46001e-06,4,1,1,0,2,1,3,0,0.377084,8,7,1,0,0,0,0,0,0,0,0,30878,11285,8383,277.1,claude-sonnet-5-5
+relu_composite,archive,1,2026-11-02T06:14:23,k1,8,False,1.0137609276746784,365.12800000000004,402.804,True,8.03941e-07,18,10,10,15,11,8,34,16,0.6895,8,2,4,0,2,0,0,0,0,0,0,34119,28515,22155,364.4,claude-sonnet-5-5
+table_mult,archive,1,2026-11-02T06:35:02,baseline,0,True,1.0,663.671,691.226,True,6.82261e-05,17,1,1,0,3,0,3,0,0.525917,8,3,5,0,0,0,0,0,0,0,0,29638,10253,7412,354.4,claude-sonnet-5-5

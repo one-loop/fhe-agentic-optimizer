@@ -1,0 +1,15 @@
+task,strategy,run,started_at,final_kernel,final_attempt,final_is_baseline,speedup,eval_median_ms,e2e_median_ms,correct,fhe_max_abs_error,depth,xdepth,levels,ct_ct_mul,ct_pt_mul,align_mul,rescale,mod_switch,compile_median_ms,calls,correct_attempts,duplicates,compile_failures,chehab_rejections,build_failures,runtime_failures,wrong_output,heldout_failures,no_code,predicted_slower,input_tokens,output_tokens,thinking_tokens,search_seconds,models
+chebyshev_relu_d2,archive,1,2026-11-02T11:29:31,k1,1,False,1.2807800358419583,48.07215,73.3365,True,1.79344e-07,7,3,3,1,2,0,3,1,0.404042,8,5,3,0,0,0,0,0,0,0,0,30110,18641,15461,336.7,claude-opus-5-5
+chebyshev_relu_d7,archive,1,2026-11-02T11:16:58,k1,5,False,1.4378016194331984,123.5,152.372,True,1.987e-07,11,4,4,3,4,2,9,0,0.513292,8,7,1,0,0,0,0,0,0,0,0,33020,48863,43523,743.9,claude-opus-5-5
+elementwise_add,archive,1,2026-11-02T11:35:33,baseline,0,True,1.0,0.5680105,43.6662,True,4.69835e-08,1,0,0,0,0,0,0,0,0.546,8,0,8,0,0,0,0,0,0,0,0,25884,2224,568,62.5,claude-opus-5-5
+elementwise_add_plain,archive,1,2026-11-02T11:36:40,baseline,0,True,1.0,3.029555,27.603450000000002,True,2.97892e-08,1,0,0,0,0,0,0,0,0.54325,8,0,8,0,0,0,0,0,0,0,0,26036,2450,691,64.3,claude-opus-5-5
+elementwise_add_scalar,archive,1,2026-11-02T11:37:49,baseline,0,True,1.0,0.302771,22.88755,True,3.42656e-08,1,0,0,0,0,0,0,0,0.42725,8,0,8,0,0,0,0,0,0,0,0,25820,2436,869,63.2,claude-opus-5-5
+elementwise_mul,archive,1,2026-11-02T11:39:00,baseline,0,True,1.0,38.791799999999995,84.95849999999999,True,5.46893e-08,1,1,1,1,0,0,1,0,0.492791,8,0,8,0,0,0,0,0,0,0,0,26055,2724,908,65.6,claude-opus-5-5
+elementwise_mul_plain,archive,1,2026-11-02T11:40:11,baseline,0,True,1.0,8.2373,31.1494,True,4.69282e-08,1,1,1,0,1,0,1,0,0.366833,8,1,7,0,0,0,0,0,0,0,0,27020,2257,559,83.1,claude-opus-5-5
+elementwise_mul_scalar,archive,1,2026-11-02T11:41:38,baseline,0,True,1.0,5.410175000000001,27.460099999999997,True,6.1761e-08,1,1,1,0,1,0,1,0,0.376583,8,1,7,0,0,0,0,0,0,0,0,26608,2372,645,85.1,claude-opus-5-5
+embedding,archive,1,2026-11-02T12:07:15,baseline,0,True,1.0,740.704,769.8095,True,5.73395e-05,21,2,2,0,6,0,6,0,0.573875,8,7,1,0,0,0,0,0,0,0,0,32438,70752,65873,1415.7,claude-opus-5-5
+extract,archive,1,2026-11-02T11:43:12,baseline,0,True,1.0,35.15685,61.6632,True,5.61276e-06,2,1,1,0,1,0,1,0,0.560708,8,4,4,0,0,0,0,0,0,0,0,27507,3824,1847,136.4,claude-opus-5-5
+extract_linear,archive,1,2026-11-02T11:45:36,baseline,0,True,1.0,34.9543,63.342150000000004,True,6.72716e-06,2,1,1,0,1,0,1,0,0.516208,8,2,6,0,0,0,0,0,0,0,0,27068,4275,2417,119.2,claude-opus-5-5
+extract_sparse,archive,1,2026-11-02T11:47:50,k1,2,False,1.37307941791853,76.54255,121.35249999999999,True,8.48458e-06,4,1,1,0,2,1,3,0,0.384667,8,7,1,0,0,0,0,0,0,0,0,33443,17912,13540,364.4,claude-opus-5-5
+relu_composite,archive,1,2026-11-02T12:41:31,baseline,0,True,1.0,377.8015,406.29200000000003,True,9.96355e-07,17,10,10,16,12,9,37,9,0.706458,8,3,1,0,2,0,0,0,1,0,1,34705,120606,112949,1466.7,claude-opus-5-5
+table_mult,archive,1,2026-11-02T11:55:03,baseline,0,True,1.0,684.1179999999999,708.445,True,6.85332e-05,17,1,1,0,3,0,3,0,0.4905,8,6,2,0,0,0,0,0,0,0,0,30141,13870,10083,655.7,claude-opus-5-5
