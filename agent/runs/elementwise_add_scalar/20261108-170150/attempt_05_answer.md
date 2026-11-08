@@ -1,0 +1,1 @@
+I don't have a new kernel to propose. The baseline is a single add, which is the minimum for `x0 + s`. I can't remove that add, and any circuit that differs from it must contain extra operations, so it would be slower. Resubmitting the same code would just repeat attempts 1–4, so I'm not using the remaining attempts. The baseline stays the best kernel.

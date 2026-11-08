@@ -1,0 +1,30 @@
+The scale mismatch came from adding `c6w * s` and `c4 * t4` at the same level with different multiplication histories. I rewrote the sum as t4·(2·c6w + c4) − c6w, using s = 2·t4 − 1. The two terms now meet at different levels, and this also removes one plaintext multiplication. I have not compiled or run this.
+
+```cpp
+void fhe()
+{
+  Ciphertext x("x");
+  Plaintext alpha("alpha");
+  Plaintext one("one");
+  Plaintext c0("c0");
+  Plaintext c1("c1");
+  Plaintext c2("c2");
+  Plaintext c4("c4");
+  Plaintext c6("c6");
+  Ciphertext z = x * alpha;
+  Ciphertext u = z * z;
+  Ciphertext w = u + u - one;
+  Ciphertext w2 = w * w;
+  Ciphertext t4 = w2 + w2 - one;
+  Ciphertext c6w = w * c6;
+  Ciphertext q = c6w + c6w + c4;
+  Ciphertext p = t4 * q;
+  Ciphertext term2 = w * c2;
+  Ciphertext term1 = z * c1;
+  Ciphertext r = term2 - c6w;
+  r = r + term1;
+  Ciphertext result = p + r;
+  result = result + c0;
+  result.set_output("y");
+}
+```

@@ -1,0 +1,27 @@
+void fhe()
+{
+  Ciphertext x("x");
+  Plaintext alpha("alpha");
+  Plaintext one("one");
+  Plaintext c0("c0");
+  Plaintext c1("c1");
+  Plaintext c2("c2");
+  Plaintext c4("c4");
+  Plaintext c6("c6");
+
+  Ciphertext z = x * alpha;            // level 1
+  Ciphertext zz = z * z;               // level 2
+  Ciphertext t2 = zz + zz - one;       // level 2
+  Ciphertext t2s = t2 * t2;            // level 3
+  Ciphertext t4 = t2s + t2s - one;     // level 3
+
+  Ciphertext u = t2 * c6;              // level 3
+  Ciphertext inner = u + u + c4;       // level 3
+  Ciphertext high = t4 * inner - u;    // level 4: c4*T4 + c6*T6
+
+  Ciphertext term1 = z * c1;           // level 2
+  Ciphertext term2 = t2 * c2;          // level 3
+
+  Ciphertext result = high + term2 + term1 + c0;
+  result.set_output("y");
+}

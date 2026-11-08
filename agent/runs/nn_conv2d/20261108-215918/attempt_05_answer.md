@@ -1,0 +1,179 @@
+The 36 ciphertext-ciphertext multiplications are a lower bound here. The output is a 6×6 coefficient space, which forces at least (4+3−1)² = 36 products for bilinear algorithms, and also for quadratic ones, since polynomial multiplication gains nothing from commutativity. Slot packing is also out, because slots() = 1 makes rotations the identity. So the multiply work cannot shrink further, and what remains is small overhead.
+
+This attempt folds the 576⁻¹ factor (4⁻¹ in the fixed case) directly into the first-stage kernel constants. Each first-stage kernel output becomes one scalar multiply of a short sum of k terms by a precomputed modular constant, which makes the separate 9-multiply prescale and the doubling chains unnecessary.
+
+This trades about 54 cheap additions for 9 more scalar multiplies, so I expect it to time within noise of attempts 2 and 3 rather than clear the 3% bar. I have no change left that would reduce runtime meaningfully. The constants assume t = 786433, which the passing attempts 2–4 relied on.
+
+```cpp
+static Ciphertext dbl(const Ciphertext &a) { return a + a; }
+
+static vector<Ciphertext> data43(const vector<Ciphertext> &d)
+{
+  vector<Ciphertext> r(6);
+  Ciphertext d1x4 = dbl(dbl(d[1]));
+  Ciphertext d2x4 = dbl(dbl(d[2]));
+  r[1] = (d[3] + d[4]) - (d1x4 + d2x4);
+  r[2] = (d[4] - d[3]) + (d1x4 - d2x4);
+  Ciphertext w = d[4] - d[2];
+  r[0] = dbl(dbl(d[0] - d[2])) + w;
+  Ciphertext u = dbl(d[3] - d[1]);
+  r[3] = w + u;
+  r[4] = w - u;
+  r[5] = (d[5] - d[3]) - dbl(u);
+  return r;
+}
+
+// first-stage kernel transform with the modular scale folded into constants
+static const long long T = 786433;
+static long long md(long long a) { a %= T; if (a < 0) a += T; return a; }
+
+static vector<Ciphertext> kern43_first(const vector<Ciphertext> &g, long long inv)
+{
+  vector<Ciphertext> s(6);
+  s[0] = g[0] * (int)md(6 * inv);
+  Ciphertext e = g[0] + g[2];
+  s[1] = (e + g[1]) * (int)md(4 * inv);
+  s[2] = (e - g[1]) * (int)md(4 * inv);
+  Ciphertext g2x4 = dbl(dbl(g[2]));
+  Ciphertext g1x2 = dbl(g[1]);
+  Ciphertext f = g[0] + g2x4;
+  s[3] = (f + g1x2) * (int)md(inv);
+  s[4] = (f - g1x2) * (int)md(inv);
+  s[5] = g[2] * (int)md(24 * inv);
+  return s;
+}
+
+static vector<Ciphertext> kern43(const vector<Ciphertext> &g)
+{
+  vector<Ciphertext> s(6);
+  Ciphertext g0x2 = dbl(g[0]);
+  Ciphertext g0x4 = dbl(g0x2);
+  s[0] = g0x2 + g0x4;
+  Ciphertext g2x4 = dbl(dbl(g[2]));
+  Ciphertext g1x2 = dbl(g[1]);
+  Ciphertext g1x4 = dbl(g1x2);
+  Ciphertext E4 = g0x4 + g2x4;
+  s[1] = E4 + g1x4;
+  s[2] = E4 - g1x4;
+  Ciphertext f = g[0] + g2x4;
+  s[3] = f + g1x2;
+  s[4] = f - g1x2;
+  Ciphertext x8 = dbl(g2x4);
+  s[5] = dbl(x8) + x8;
+  return s;
+}
+
+static vector<Ciphertext> out43(const vector<Ciphertext> &m)
+{
+  vector<Ciphertext> y(4);
+  Ciphertext a = m[1] + m[2];
+  Ciphertext ds = m[2] - m[1];
+  Ciphertext p = m[3] + m[4];
+  Ciphertext q = m[3] - m[4];
+  Ciphertext q2 = dbl(q);
+  y[0] = (m[0] + p) - a;
+  y[1] = ds + q2;
+  y[2] = dbl(dbl(p)) - a;
+  y[3] = (ds + m[5]) + dbl(dbl(q2));
+  return y;
+}
+
+static vector<Ciphertext> data23(const vector<Ciphertext> &d)
+{
+  vector<Ciphertext> r(4);
+  r[0] = d[0] - d[2];
+  r[1] = d[1] + d[2];
+  r[2] = d[2] - d[1];
+  r[3] = d[1] - d[3];
+  return r;
+}
+
+static vector<Ciphertext> kern23_first(const vector<Ciphertext> &g, long long inv)
+{
+  vector<Ciphertext> s(4);
+  s[0] = g[0] * (int)md(2 * inv);
+  Ciphertext e = g[0] + g[2];
+  s[1] = (e + g[1]) * (int)md(inv);
+  s[2] = (e - g[1]) * (int)md(inv);
+  s[3] = g[2] * (int)md(2 * inv);
+  return s;
+}
+
+static vector<Ciphertext> kern23(const vector<Ciphertext> &g)
+{
+  vector<Ciphertext> s(4);
+  s[0] = dbl(g[0]);
+  Ciphertext e = g[0] + g[2];
+  s[1] = e + g[1];
+  s[2] = e - g[1];
+  s[3] = dbl(g[2]);
+  return s;
+}
+
+static vector<Ciphertext> out23(const vector<Ciphertext> &m)
+{
+  vector<Ciphertext> y(2);
+  y[0] = m[0] + m[1] + m[2];
+  y[1] = m[1] - m[2] - m[3];
+  return y;
+}
+
+void fhe()
+{
+  const int W = WIDTH;
+  const int M = W - 2;
+  const int P = M + 2;
+  const long long INV = (M == 4) ? 260779LL : 589825LL;
+
+  vector<vector<Ciphertext>> x(W, vector<Ciphertext>(W));
+  for (int r = 0; r < W; ++r)
+    for (int c = 0; c < W; ++c)
+      x[r][c] = Ciphertext("x_" + to_string(r) + "_" + to_string(c));
+
+  vector<vector<Ciphertext>> k(3, vector<Ciphertext>(3));
+  for (int r = 0; r < 3; ++r)
+    for (int c = 0; c < 3; ++c)
+      k[r][c] = Ciphertext("k_" + to_string(r) + "_" + to_string(c));
+
+  Ciphertext b("b");
+
+  vector<vector<Ciphertext>> KT(3);
+  for (int i = 0; i < 3; ++i)
+    KT[i] = (M == 4) ? kern43_first(k[i], INV) : kern23_first(k[i], INV);
+  vector<vector<Ciphertext>> KK(P, vector<Ciphertext>(P));
+  for (int q = 0; q < P; ++q) {
+    vector<Ciphertext> col(3);
+    for (int i = 0; i < 3; ++i) col[i] = KT[i][q];
+    vector<Ciphertext> t = (M == 4) ? kern43(col) : kern23(col);
+    for (int p = 0; p < P; ++p) KK[p][q] = t[p];
+  }
+
+  vector<vector<Ciphertext>> XT(W);
+  for (int a = 0; a < W; ++a) XT[a] = (M == 4) ? data43(x[a]) : data23(x[a]);
+  vector<vector<Ciphertext>> XX(P, vector<Ciphertext>(P));
+  for (int q = 0; q < P; ++q) {
+    vector<Ciphertext> col(W);
+    for (int a = 0; a < W; ++a) col[a] = XT[a][q];
+    vector<Ciphertext> t = (M == 4) ? data43(col) : data23(col);
+    for (int p = 0; p < P; ++p) XX[p][q] = t[p];
+  }
+
+  vector<vector<Ciphertext>> PR(P, vector<Ciphertext>(P));
+  for (int p = 0; p < P; ++p)
+    for (int q = 0; q < P; ++q)
+      PR[p][q] = KK[p][q] * XX[p][q];
+
+  vector<vector<Ciphertext>> U(P);
+  for (int p = 0; p < P; ++p) U[p] = (M == 4) ? out43(PR[p]) : out23(PR[p]);
+
+  for (int c = 0; c < M; ++c) {
+    vector<Ciphertext> col(P);
+    for (int p = 0; p < P; ++p) col[p] = U[p][c];
+    vector<Ciphertext> Y = (M == 4) ? out43(col) : out23(col);
+    for (int r = 0; r < M; ++r) {
+      Ciphertext y = b + Y[r];
+      y.set_output("y_" + to_string(r) + "_" + to_string(c));
+    }
+  }
+}
+```

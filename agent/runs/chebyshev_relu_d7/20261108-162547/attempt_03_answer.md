@@ -1,0 +1,31 @@
+This version removes the plaintext subtraction in t4. I use T4 = 2w² − 1 to write the product as w²·(2q) − q, and fold the −q into the lower-level sum. I have not compiled or run this.
+
+```cpp
+void fhe()
+{
+  Ciphertext x("x");
+  Plaintext alpha("alpha");
+  Plaintext one("one");
+  Plaintext c0("c0");
+  Plaintext c1("c1");
+  Plaintext c2("c2");
+  Plaintext c4("c4");
+  Plaintext c6("c6");
+  Ciphertext z = x * alpha;
+  Ciphertext u = z * z;
+  Ciphertext w = u + u - one;
+  Ciphertext w2 = w * w;
+  Ciphertext c6w = w * c6;
+  Ciphertext q = c6w + c6w + c4;
+  Ciphertext q2 = q + q;
+  Ciphertext p = w2 * q2;
+  Ciphertext term2 = w * c2;
+  Ciphertext term1 = z * c1;
+  Ciphertext r = term2 - c6w;
+  r = r - q;
+  r = r + term1;
+  Ciphertext result = p + r;
+  result = result + c0;
+  result.set_output("y");
+}
+```

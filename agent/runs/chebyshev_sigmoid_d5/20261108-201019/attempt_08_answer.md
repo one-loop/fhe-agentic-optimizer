@@ -1,0 +1,28 @@
+I'm out of structural ideas that beat attempt 4. Attempt 7 (depth 4) is within about 2% of it. It is held back mainly by one `match_scale` (~5 ms) when the level-2 linear part is aligned to the level-4 product.
+
+For this last attempt I fold `c0` into the linear part while it is still at level 2. Then only one already-shifted term has to be aligned to `big`. This may change how CHEHAB places the alignment and the `c0` plaintext add. If CHEHAB normalizes the regrouping away, the circuit will match attempt 7 and this attempt cannot win.
+
+```cpp
+void fhe()
+{
+  Ciphertext x("x");
+  Plaintext alpha("alpha");
+  Plaintext one("one");
+  Plaintext c0("c0");
+  Plaintext c1("c1");
+  Plaintext c3("c3");
+  Plaintext c5("c5");
+
+  Ciphertext z = x * alpha;            // level 1
+  Ciphertext z2 = square(z);           // level 2
+  Ciphertext u = z2 + z2 - one;        // T2
+  Ciphertext q3 = u + u - one;         // 2u - 1
+  Ciphertext zq3 = z * q3;             // T3, level 3
+  Ciphertext c5u = u * c5;             // level 3
+  Ciphertext r = c5u + c5u + c3;       // c3 + 2 c5 u
+  Ciphertext big = zq3 * r;            // level 4
+  Ciphertext lin = z * c1 - z * c5 + c0; // level 2, includes c0
+  Ciphertext result = big + lin;
+  result.set_output("y");
+}
+```
