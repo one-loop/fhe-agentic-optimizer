@@ -233,6 +233,11 @@ size_t align_ckks_operands(const shared_ptr<ir::Func> &func)
         "align_ckks_operands: unhandled ciphertext operation '" + term->op_code().str_repr() + "'");
     }
   }
+  size_t levels_used = 0;
+  for (const auto &[term, output_info] : func->data_flow().outputs_info())
+    if (auto it = infos.find(term); it != infos.end())
+      levels_used = max(levels_used, it->second.level);
+  func->set_ckks_levels_used(levels_used);
   return inserted;
 }
 } // namespace fheco::passes

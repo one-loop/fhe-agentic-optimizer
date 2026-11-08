@@ -36,6 +36,11 @@ struct CkksParams
   std::vector<int> coeff_mod_bit_sizes;
   // Fresh inputs are encoded at scale 2^log2_scale.
   int log2_scale;
+  // Generate the coefficient modulus with only as many rescaling primes as the
+  // compiled function consumes levels (first prime, consumed primes, special
+  // prime), instead of the full chain. Unused levels would otherwise make every
+  // operation of a shallow function more expensive than necessary.
+  bool trim_to_levels_used = false;
 };
 
 void validate_shape(const std::vector<std::size_t> &shape);

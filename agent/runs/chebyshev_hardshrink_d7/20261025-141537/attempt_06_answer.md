@@ -1,0 +1,36 @@
+A new structure: scale `w` instead of the coefficients. With `u = 4w`, `Q1/4`, `Q2/16` and `Q3/64` are small-integer combinations, so the long doubling chains disappear. The result is `y = S + u·(f + u·(e + u·d))`, where `f = b − 5c + 14d`, `e = c − 7d` and `S = a − 3b + 5c − 7d`. This needs fewer ciphertext additions with the same 4 ct-ct multiplications.
+
+```cpp
+void fhe()
+{
+  Ciphertext x("x");
+  Plaintext alpha("alpha");
+  Plaintext c1("c1");
+  Plaintext c3("c3");
+  Plaintext c5("c5");
+  Plaintext c7("c7");
+  Ciphertext z = x * alpha;
+  Ciphertext w = z * z;
+  Ciphertext w2 = w + w;
+  Ciphertext u = w2 + w2;
+  Ciphertext a = z * c1;
+  Ciphertext b = z * c3;
+  Ciphertext c = z * c5;
+  Ciphertext d = z * c7;
+  Ciphertext d2 = d + d;
+  Ciphertext d4 = d2 + d2;
+  Ciphertext d8 = d4 + d4;
+  Ciphertext d7 = d8 - d;
+  Ciphertext d14 = d7 + d7;
+  Ciphertext c2 = c + c;
+  Ciphertext c4 = c2 + c2;
+  Ciphertext c5x = c4 + c;
+  Ciphertext e = c - d7;
+  Ciphertext f = (b - c5x) + d14;
+  Ciphertext S = (a - (b + b + b)) + (c5x - d7);
+  Ciphertext h = e + u * d;
+  h = f + u * h;
+  Ciphertext r = S + u * h;
+  r.set_output("y");
+}
+```

@@ -30,7 +30,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from evaluate import REPO, evaluate, snapshot, time_program  # noqa: E402
 from prompts import SYSTEM_PROMPT, extract_kernel, feedback_turn, first_turn, no_code_turn  # noqa: E402
-from selection import BATCHES, FINAL_BATCHES, classify, confirm, fingerprint  # noqa: E402
+from score import score_programs  # noqa: E402
+from selection import BATCHES, classify, confirm, fingerprint  # noqa: E402
 from tasks import TASKS  # noqa: E402
 
 RUNS = Path(__file__).resolve().parent / "runs"
@@ -144,6 +145,7 @@ def run_task(task, args, proposer) -> dict:
     best_ev, best_src, best_it, best_dir = baseline, baseline_src, 0, programs / "baseline"
     baseline_fp = fingerprint(baseline.to_dict())
     seen = {baseline_fp: 0}  # circuit fingerprint -> first attempt that produced it
+    history = []  # every evaluated attempt, shown back to the model each turn
     records = [{"iteration": 0, "kind": "baseline", "evaluation": baseline.to_dict(), "seconds": time.time() - start}]
     turn = first_turn(task, baseline_src, baseline.summary(), args.iterations)
 
@@ -182,20 +184,26 @@ def run_task(task, args, proposer) -> dict:
                     shutil.rmtree(cand_dir)
             if ev.correct:
                 seen.setdefault(fingerprint(evd), it)
+            history.append({"iteration": it, "verdict": verdict, "evaluation": evd, "source": source,
+                            "fingerprint": fingerprint(evd)})
             record.update(verdict=verdict, same_as=earlier, remeasure=remeasure, new_best=verdict == "new_best")
             extra = (f", remeasured x{remeasure['speedup']:.2f} vs attempt {remeasure['against']} "
                      f"({remeasure['wins']}/{remeasure['batches']} wins)" if remeasure else "")
             print(f"   attempt {it}: {ev.status:<13} time {fmt_time(ev.eval_time_ms)} ms, levels {ev.levels}, "
                   f"ops {ev.ops}: {verdict}{'' if earlier is None else f' (attempt {earlier})'}{extra}", flush=True)
             turn = feedback_turn(it, args.iterations, ev.summary(), verdict, earlier, remeasure,
-                                 baseline, best_ev, best_it)
+                                 baseline, best_ev, best_it, history)
         record["seconds"] = time.time() - t0
         records.append(record)
 
     (out / "best.cpp").write_text(best_src)
-    # The reported speedup: baseline and best timed in alternating batches.
-    final = confirm(*interleaved(task, best_dir, programs / "baseline", FINAL_BATCHES, args.eval_repeats)) \
-        if best_it else None
+    # The reported speedup, measured as in Umair's neutral re-scoring (score.py).
+    final = None
+    if best_it:
+        s = score_programs(task, {"baseline": programs / "baseline", "best": best_dir})
+        final = {"method": "score.py", "reference_ms": s["baseline"]["ms"], "candidate_ms": s["best"]["ms"],
+                 "speedup": s["best"]["speedup"], "processes": s["best"]["processes"],
+                 "all_passed": s["best"]["all_passed"], "max_abs_error": s["best"]["max_abs_error"]}
     result = {
         "task": task.name, "scheme": getattr(task, "scheme", "ckks"),
         "model": proposer.model, "effort": getattr(proposer, "effort", None),
@@ -247,8 +255,8 @@ def summary_md(task, result, records) -> str:
                 f"{e['max_abs_error']:.2g} |" if e.get("max_abs_error") is not None else f"| {name} | - |")
 
     lines += [row("baseline", b), row(f"best (attempt {result['best_iteration']})", best), "",
-              f"Speedup: x{result['speedup']:.2f} (baseline and best timed in "
-              f"{FINAL_BATCHES} alternating batches; 1.00 when no candidate was confirmed faster).", "",
+              f"Speedup: x{result['speedup']:.2f} (baseline and best re-scored as in score.py: 10 interleaved "
+              f"processes each; 1.00 when no candidate was confirmed faster).", "",
               "| attempt | outcome | fhe() time (ms) | verdict | note |", "|---:|---|---:|---|---|"]
     for r in records[1:]:
         e = r.get("evaluation", {})

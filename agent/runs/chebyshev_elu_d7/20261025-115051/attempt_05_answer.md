@@ -1,0 +1,37 @@
+Distinct levels are forced for the terms, so this version merges terms algebraically to keep them at distinct levels while cutting ct-ct multiplications to 5.
+
+- **Terms c1–c3:** these are plain terms at levels 2, 3 and 4.
+- **Terms c4–c5:** `t4*(c4 + 2*c5*z) − c5*t3` (level 5), using T5 = 2·z·T4 − T3.
+- **Terms c6–c7:** `2*t3*(c6*t3 + c7*t4) − c6 − c7*z` (level 6), using T6 = 2·T3² − 1 and T7 = 2·T3·T4 − T1.
+
+```cpp
+void fhe()
+{
+  Ciphertext x("x");
+  Plaintext alpha("alpha");
+  Plaintext one("one");
+  Plaintext c0("c0"), c1("c1"), c2("c2"), c3("c3"), c4("c4"), c5("c5"), c6("c6"), c7("c7");
+  Ciphertext z = x * alpha;
+  Ciphertext z2 = square(z);
+  Ciphertext t2 = z2 + z2 - one;
+  Ciphertext u = t2 + t2 - one;
+  Ciphertext t3 = z * u;
+  Ciphertext m4 = z * t3;
+  Ciphertext t4 = m4 + m4 - t2;
+
+  Ciphertext cz5 = z * c5;
+  Ciphertext g = (cz5 + cz5) + c4;
+  Ciphertext B = t4 * g - t3 * c5;
+
+  Ciphertext w = t3 * c6 + t4 * c7;
+  Ciphertext m = t3 * w;
+  Ciphertext C = m + m - c6 - z * c7;
+
+  Ciphertext result = z * c1 + t2 * c2;
+  result = result + t3 * c3;
+  result = result + B;
+  result = result + C;
+  result = result + c0;
+  result.set_output("y");
+}
+```

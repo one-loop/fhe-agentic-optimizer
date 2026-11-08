@@ -1,0 +1,10 @@
+task,set,run,structural_change,speedup,wins,batches,confirmed,note
+embedding,opus,20261101-124108,True,0.611,0,7,False,
+embedding,sonnet_v2,20261024-163940,False,1.0,,,,
+embedding,sonnet_v2_rep2,20261025-152734,False,1.0,,,,
+extract_sparse,opus,20261101-131835,True,1.254,7,7,True,
+extract_sparse,sonnet_v2,20261024-165323,True,1.26,7,7,True,
+extract_sparse,sonnet_v2_rep2,20261025-154311,True,1.23,7,7,True,
+table_mult,opus,20261101-143203,True,0.71,0,7,False,
+table_mult,sonnet_v2,20261024-171127,False,1.0,,,,
+table_mult,sonnet_v2_rep2,20261025-160254,False,1.0,,,,

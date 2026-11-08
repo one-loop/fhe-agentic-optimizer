@@ -1,0 +1,407 @@
+[
+ {
+  "task": "chebyshev_elu_d7",
+  "kernel": "clenshaw",
+  "status": "ok",
+  "levels": 8,
+  "depth": [
+   22,
+   8
+  ],
+  "ops": {
+   "ct_ct_mul": 6,
+   "square": 0,
+   "ct_pt_mul": 2,
+   "relin": 6,
+   "rotate": 0,
+   "rescale": 8,
+   "mod_switch": 16,
+   "match_scale": 5,
+   "add": 14
+  },
+  "max_err": 1.33133e-07,
+  "msg": "",
+  "speedup": 1.38,
+  "ms": 264.1,
+  "base_ms": 367.1,
+  "wins": 7
+ },
+ {
+  "task": "chebyshev_elu_d7",
+  "kernel": "shallow",
+  "status": "ok",
+  "levels": 6,
+  "depth": [
+   17,
+   6
+  ],
+  "ops": {
+   "ct_ct_mul": 4,
+   "square": 0,
+   "ct_pt_mul": 7,
+   "relin": 4,
+   "rotate": 0,
+   "rescale": 11,
+   "mod_switch": 6,
+   "match_scale": 8,
+   "add": 19
+  },
+  "max_err": 1.11133e-07,
+  "msg": "",
+  "speedup": 1.194,
+  "ms": 309.9,
+  "base_ms": 366.7,
+  "wins": 7
+ },
+ {
+  "task": "chebyshev_elu_d7",
+  "kernel": "combo_a",
+  "status": "ok",
+  "levels": 5,
+  "depth": [
+   16,
+   5
+  ],
+  "ops": {
+   "ct_ct_mul": 7,
+   "square": 2,
+   "ct_pt_mul": 4,
+   "relin": 7,
+   "rotate": 0,
+   "rescale": 11,
+   "mod_switch": 5,
+   "match_scale": 3,
+   "add": 24
+  },
+  "max_err": 1.0745e-07,
+  "msg": "",
+  "speedup": 0.873,
+  "ms": 423.1,
+  "base_ms": 365.7,
+  "wins": 0
+ },
+ {
+  "task": "chebyshev_elu_d7",
+  "kernel": "combo_b",
+  "status": "ok",
+  "levels": 6,
+  "depth": [
+   15,
+   6
+  ],
+  "ops": {
+   "ct_ct_mul": 6,
+   "square": 1,
+   "ct_pt_mul": 3,
+   "relin": 6,
+   "rotate": 0,
+   "rescale": 9,
+   "mod_switch": 11,
+   "match_scale": 3,
+   "add": 15
+  },
+  "max_err": 1.4548e-07,
+  "msg": "",
+  "speedup": 1.169,
+  "ms": 310.3,
+  "base_ms": 361.5,
+  "wins": 7
+ },
+ {
+  "task": "chebyshev_elu_d7",
+  "kernel": "clenshaw_burn2",
+  "status": "ok",
+  "levels": 10,
+  "depth": [
+   24,
+   10
+  ],
+  "ops": {
+   "ct_ct_mul": 6,
+   "square": 0,
+   "ct_pt_mul": 4,
+   "relin": 6,
+   "rotate": 0,
+   "rescale": 10,
+   "mod_switch": 16,
+   "match_scale": 5,
+   "add": 14
+  },
+  "max_err": 7.19267e-08,
+  "msg": "",
+  "speedup": 1.933,
+  "ms": 188.3,
+  "base_ms": 362.4,
+  "wins": 7
+ },
+ {
+  "task": "chebyshev_selu_d7",
+  "kernel": "clenshaw",
+  "status": "ok",
+  "levels": 8,
+  "depth": [
+   22,
+   8
+  ],
+  "ops": {
+   "ct_ct_mul": 6,
+   "square": 0,
+   "ct_pt_mul": 2,
+   "relin": 6,
+   "rotate": 0,
+   "rescale": 8,
+   "mod_switch": 16,
+   "match_scale": 5,
+   "add": 14
+  },
+  "max_err": 1.04308e-07,
+  "msg": "",
+  "speedup": 1.423,
+  "ms": 253.9,
+  "base_ms": 362.8,
+  "wins": 7
+ },
+ {
+  "task": "chebyshev_selu_d7",
+  "kernel": "shallow",
+  "status": "ok",
+  "levels": 6,
+  "depth": [
+   17,
+   6
+  ],
+  "ops": {
+   "ct_ct_mul": 4,
+   "square": 0,
+   "ct_pt_mul": 7,
+   "relin": 4,
+   "rotate": 0,
+   "rescale": 11,
+   "mod_switch": 6,
+   "match_scale": 8,
+   "add": 19
+  },
+  "max_err": 1.09628e-07,
+  "msg": "",
+  "speedup": 1.187,
+  "ms": 303.6,
+  "base_ms": 360.5,
+  "wins": 7
+ },
+ {
+  "task": "chebyshev_selu_d7",
+  "kernel": "combo_a",
+  "status": "ok",
+  "levels": 5,
+  "depth": [
+   16,
+   5
+  ],
+  "ops": {
+   "ct_ct_mul": 7,
+   "square": 2,
+   "ct_pt_mul": 4,
+   "relin": 7,
+   "rotate": 0,
+   "rescale": 11,
+   "mod_switch": 5,
+   "match_scale": 3,
+   "add": 24
+  },
+  "max_err": 1.25229e-07,
+  "msg": "",
+  "speedup": 0.864,
+  "ms": 415.6,
+  "base_ms": 359.0,
+  "wins": 0
+ },
+ {
+  "task": "chebyshev_selu_d7",
+  "kernel": "combo_b",
+  "status": "ok",
+  "levels": 6,
+  "depth": [
+   15,
+   6
+  ],
+  "ops": {
+   "ct_ct_mul": 6,
+   "square": 1,
+   "ct_pt_mul": 3,
+   "relin": 6,
+   "rotate": 0,
+   "rescale": 9,
+   "mod_switch": 11,
+   "match_scale": 3,
+   "add": 15
+  },
+  "max_err": 1.21756e-07,
+  "msg": "",
+  "speedup": 1.18,
+  "ms": 304.3,
+  "base_ms": 359.2,
+  "wins": 7
+ },
+ {
+  "task": "chebyshev_selu_d7",
+  "kernel": "clenshaw_burn2",
+  "status": "ok",
+  "levels": 10,
+  "depth": [
+   24,
+   10
+  ],
+  "ops": {
+   "ct_ct_mul": 6,
+   "square": 0,
+   "ct_pt_mul": 4,
+   "relin": 6,
+   "rotate": 0,
+   "rescale": 10,
+   "mod_switch": 16,
+   "match_scale": 5,
+   "add": 14
+  },
+  "max_err": 8.64588e-08,
+  "msg": "",
+  "speedup": 1.909,
+  "ms": 187.0,
+  "base_ms": 357.4,
+  "wins": 7
+ },
+ {
+  "task": "chebyshev_mish_d7",
+  "kernel": "clenshaw",
+  "status": "ok",
+  "levels": 8,
+  "depth": [
+   22,
+   8
+  ],
+  "ops": {
+   "ct_ct_mul": 6,
+   "square": 0,
+   "ct_pt_mul": 2,
+   "relin": 6,
+   "rotate": 0,
+   "rescale": 8,
+   "mod_switch": 16,
+   "match_scale": 5,
+   "add": 14
+  },
+  "max_err": 1.02927e-07,
+  "msg": "",
+  "speedup": 1.426,
+  "ms": 251.0,
+  "base_ms": 358.1,
+  "wins": 7
+ },
+ {
+  "task": "chebyshev_mish_d7",
+  "kernel": "shallow",
+  "status": "ok",
+  "levels": 6,
+  "depth": [
+   17,
+   6
+  ],
+  "ops": {
+   "ct_ct_mul": 4,
+   "square": 0,
+   "ct_pt_mul": 7,
+   "relin": 4,
+   "rotate": 0,
+   "rescale": 11,
+   "mod_switch": 6,
+   "match_scale": 8,
+   "add": 19
+  },
+  "max_err": 8.89325e-08,
+  "msg": "",
+  "speedup": 1.187,
+  "ms": 301.2,
+  "base_ms": 358.4,
+  "wins": 7
+ },
+ {
+  "task": "chebyshev_mish_d7",
+  "kernel": "combo_a",
+  "status": "ok",
+  "levels": 5,
+  "depth": [
+   16,
+   5
+  ],
+  "ops": {
+   "ct_ct_mul": 7,
+   "square": 2,
+   "ct_pt_mul": 4,
+   "relin": 7,
+   "rotate": 0,
+   "rescale": 11,
+   "mod_switch": 5,
+   "match_scale": 3,
+   "add": 24
+  },
+  "max_err": 1.16918e-07,
+  "msg": "",
+  "speedup": 0.863,
+  "ms": 413.6,
+  "base_ms": 357.0,
+  "wins": 0
+ },
+ {
+  "task": "chebyshev_mish_d7",
+  "kernel": "combo_b",
+  "status": "ok",
+  "levels": 6,
+  "depth": [
+   15,
+   6
+  ],
+  "ops": {
+   "ct_ct_mul": 6,
+   "square": 1,
+   "ct_pt_mul": 3,
+   "relin": 6,
+   "rotate": 0,
+   "rescale": 9,
+   "mod_switch": 11,
+   "match_scale": 3,
+   "add": 15
+  },
+  "max_err": 8.05223e-08,
+  "msg": "",
+  "speedup": 1.18,
+  "ms": 302.5,
+  "base_ms": 357.1,
+  "wins": 7
+ },
+ {
+  "task": "chebyshev_mish_d7",
+  "kernel": "clenshaw_burn2",
+  "status": "ok",
+  "levels": 10,
+  "depth": [
+   24,
+   10
+  ],
+  "ops": {
+   "ct_ct_mul": 6,
+   "square": 0,
+   "ct_pt_mul": 4,
+   "relin": 6,
+   "rotate": 0,
+   "rescale": 10,
+   "mod_switch": 16,
+   "match_scale": 5,
+   "add": 14
+  },
+  "max_err": 9.53641e-08,
+  "msg": "",
+  "speedup": 1.921,
+  "ms": 185.8,
+  "base_ms": 357.0,
+  "wins": 7
+ }
+]

@@ -106,6 +106,10 @@ public:
   // Throws if called on a BFV function.
   const CkksParams &ckks_params() const;
 
+  // CKKS: levels consumed by the deepest output, set by passes::align_ckks_operands.
+  inline std::size_t ckks_levels_used() const { return ckks_levels_used_; }
+  inline void set_ckks_levels_used(std::size_t levels) { ckks_levels_used_ = levels; }
+
   // Throws std::logic_error naming `what` if this is not a BFV function.
   void require_bfv(const char *what) const;
 
@@ -129,6 +133,8 @@ private:
   Scheme scheme_ = Scheme::bfv;
 
   std::optional<CkksParams> ckks_params_{};
+
+  std::size_t ckks_levels_used_ = 0;
 };
 
 inline bool operator==(const Func &lhs, const Func &rhs)

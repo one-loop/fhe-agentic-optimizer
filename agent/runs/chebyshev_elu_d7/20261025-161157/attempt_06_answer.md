@@ -1,0 +1,37 @@
+Idea: take the best kernel (attempt 3) and remove the plaintext add that builds T4. Instead of forming T4 = 2·T2² − 1 and multiplying by B, I compute 2·(T2²·B) − B, using a cheap ciphertext subtraction instead of a plaintext encode-and-add (about 2.5 ms saved), and T4 is no longer needed.
+
+```cpp
+void fhe()
+{
+  Ciphertext x("x");
+  Plaintext alpha("alpha");
+  Plaintext one("one");
+  Plaintext c0("c0"), c1("c1"), c2("c2"), c3("c3"), c4("c4"), c5("c5"), c6("c6"), c7("c7");
+  Ciphertext z = x * alpha;
+  Ciphertext zz = square(z);
+  Ciphertext t2 = zz + zz - one;
+  Ciphertext zt2 = z * t2;
+  Ciphertext t3 = zt2 + zt2 - z;
+  Ciphertext t2s = square(t2);
+
+  // B = c4 + 2 c5 T1 + 2 c6 T2 + 2 c7 T3
+  Ciphertext zc5 = z * c5;
+  Ciphertext t2c6 = t2 * c6;
+  Ciphertext t3c7 = t3 * c7;
+  Ciphertext b = (zc5 + zc5);
+  b = b + (t2c6 + t2c6);
+  b = b + (t3c7 + t3c7);
+  b = b + c4;
+  Ciphertext m = t2s * b;
+  Ciphertext hi = m + m - b;
+
+  // A = c0 + (c1-c7) T1 + (c2-c6) T2 + (c3-c5) T3
+  Ciphertext a = z * c1 - z * c7;
+  a = a + (t2 * c2 - t2 * c6);
+  a = a + (t3 * c3 - t3 * c5);
+  a = a + c0;
+
+  Ciphertext r = a + hi;
+  r.set_output("y");
+}
+```
