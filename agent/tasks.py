@@ -23,6 +23,10 @@ EPS = 1e-14
 # operators, which the team runs at 1e-4: their errors are 1e-5 from the rotations.
 TOL = 1e-6
 TOL_ROTATIONS = 1e-4
+# relu_composite consumes all 10 levels, so its encryption error comes closest to TOL: its
+# baseline has failed 1e-6 on random inputs (1.35e-6). 1e-5 is still ~1000x below the
+# composite polynomial's own approximation error (1.2e-2, docs/ckks_add_mul_relu.md).
+TOL_DEEP = 1e-5
 
 
 @dataclass
@@ -132,7 +136,7 @@ TASKS["relu_composite"] = Task(
         "equivalent evaluation is allowed, using only these inputs. The baseline already uses all 10 "
         "available levels."
     ),
-    tolerance=TOL,
+    tolerance=TOL_DEEP,
     cases=[
         Case("fixed", ["python3", "generate_relu_ckks.py", "points9"]),
         Case("dense", ["python3", "generate_relu_ckks.py", "dense"]),

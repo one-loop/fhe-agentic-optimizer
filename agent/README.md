@@ -12,7 +12,7 @@ baseline kernel ──> LLM proposes a kernel ──> CHEHAB compiles it, runs i
 - **Environment:** CHEHAB itself. Each proposed kernel is compiled by `Compiler::compile` and `Compiler::gen_he_code`, with the same settings as the benchmarks, except that the CKKS coefficient modulus is sized to the kernel (`CkksParams::trim_to_levels_used`): one 40-bit prime per level the kernel consumes, plus the 60-bit first and special primes, instead of always 10 levels. With a fixed 10-level chain, levels a kernel does not use are wasted, so reducing depth earned nothing and deliberately consuming levels (`x * one`) made kernels faster; see `results/experiments/combine_and_level_floor/`. The baseline is measured the same way. The generated SEAL program is built and run on encrypted inputs, and the decrypted outputs are checked against independently computed expected outputs.
 - **Feedback:** compile errors, CHEHAB errors, wrong results, or, for a correct kernel, its `fhe()` time, levels used, depth and operation counts. A CKKS scale mismatch names both operands with their level, symbolic scale and expression over the kernel's inputs. Every turn also gets a verdict (identical to the baseline, the best or attempt *k*; new but slower; not confirmed; new best), the baseline's and best's circuit shapes, a one-line log of every attempt so far, and the model's three fastest distinct correct kernels in full. The history is shown for reference only; the prompt never asks the model to combine kernels.
 - The model keeps the whole conversation, so it sees every earlier attempt. Only correct kernels count.
-- **Selection** (`selection.py`): a correct kernel replaces the best only if its circuit (CHEHAB depth plus all operation counts) is new, and it is then confirmed faster than the best in 5 alternating timing batches (at least 3% in the median ratio, winning at least 4 of 5). The reported speedup comes from baseline and best timed in 7 alternating batches at the end; it is 1.00 when nothing was confirmed. A circuit seen before is not timed again.
+- **Selection** (`selection.py`): a correct kernel replaces the best only if its circuit (CHEHAB depth plus all operation counts) is new, and it is then confirmed faster than the best in 5 alternating timing batches (at least 3% in the median ratio, winning at least 4 of 5). The reported speedup comes from `score.py`, the same protocol as Umair's neutral re-scoring (`llm_loop/rescore.py` on `umair/llm-loop`): baseline and best in one session, 1 warmup and 10 measured rounds of one `./main --repeats 10` process each, round-robin; speedup = baseline median / kernel median. It is 1.00 when nothing was confirmed. A circuit seen before is not timed again.
 
 The model only writes CHEHAB DSL code. Kernels that contain preprocessor lines, I/O or compiler internals are rejected before compiling.
 
@@ -40,7 +40,7 @@ A candidate must be correct on every case of its task:
 - **dense:** many values, also used for timing.
 - **random:** embedding only, with random inputs.
 
-The extraction, table and embedding tasks use the 1e-4 tolerance their author chose, because rotations add about 1e-5 of error. Every other task uses 1e-6.
+The extraction, table and embedding tasks use the 1e-4 tolerance their author chose, because rotations add about 1e-5 of error. `relu_composite` uses 1e-5: it consumes all 10 levels, and its baseline has exceeded 1e-6 on random inputs. Every other CKKS task uses 1e-6.
 
 The three BFV tasks are exact: a proposal is correct only if every decrypted output equals the expected integer (`agent/bfv_main.cpp`, which reuses the repository's `benchmarks/utils.cpp` and the generated main's parameters, BFVDefault(16384) with a 20-bit plaintext modulus). Their baselines are the scalar kernels of `benchmarks/nn_*` (one value per ciphertext), as `run_benchmarks.py` records them with `--vectorize 0`; the fixed case is width 4 (the recorded baseline) and the dense, timed case is width 6. CHEHAB's own vectorizer is not used, so a packed rewrite is the model's to find.
 
@@ -109,7 +109,7 @@ Each run writes to `agent/runs/<task>/<timestamp>/`:
 
 The metrics follow section 4.1 of the proposal:
 
-- **Execution latency:** `fhe()` evaluation time on the dense case, median of 10 runs; the speedup from alternating batches as above.
+- **Execution latency:** `fhe()` evaluation time on the dense case, median of 10 runs per process; the final speedup from `score.py` as above.
 - **Rotation count**, plus the other operation counts and the levels used.
 - **Time to converge:** wall time, and the attempt that produced the best kernel.
 
