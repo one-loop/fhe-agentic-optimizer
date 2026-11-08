@@ -50,7 +50,7 @@ PATH="$PWD/agent/.venv/bin:$PATH" agent/.venv/bin/python agent/loop.py --task ch
   --iterations 6 --proposer files:agent/examples/chebyshev_sigmoid_d7 --seal-prefix $SEAL_PREFIX
 ```
 
-The offline replay must end with attempt 6 as `new_best` (confirmed in alternating batches). Then delete its run directory (`agent/runs/chebyshev_sigmoid_d7/<newest>`; its `results.json` says `"model": "files"`), so it does not mix with real runs.
+The offline replay must end with attempt 6 as `new_best` (confirmed in alternating batches; about x2.0 with the modulus chain sized to each kernel). Then delete its run directory (`agent/runs/chebyshev_sigmoid_d7/<newest>`; its `results.json` says `"model": "files"`), so it does not mix with real runs.
 
 ## 4. One live task, then the full run
 
@@ -60,7 +60,7 @@ Ask the human before each live run; it uses their subscription limits.
 PATH="$PWD/agent/.venv/bin:$PATH" agent/.venv/bin/python agent/loop.py --task extract_sparse --iterations 8 --seal-prefix $SEAL_PREFIX
 ```
 
-Expected: about 1.4x, with ct-pt multiplications 3→2 and rotations 3→2. Then the full run (about 2 hours, roughly $11 of equivalent API usage on the subscription):
+Expected: ct-pt multiplications 3→2 and rotations 3→2, confirmed in alternating batches. Then the full run (about 2 hours, roughly $11 of equivalent API usage on the subscription):
 
 ```bash
 date +%Y%m%d-%H%M%S   # note the start timestamp, e.g. 20261101-1400
@@ -75,6 +75,6 @@ Defaults equal the reference configuration: `claude-sonnet-5-5`, effort `medium`
 
 Raw milliseconds differ between machines; compare speedups and circuits.
 
-- Per task, compare the best circuit (levels, ct-ct, ct-pt, rotations) and speedup with `agent/results/cli_v2/summary.md`. Expect the 11 Chebyshev tasks and `extract_sparse` to change circuit and the other 14 to stay at x1.00. Individual Chebyshev results vary from run to run (for example x1.19 to x1.42 on `selu`), so compare the totals line and the geometric mean too.
+- Compare with the newest reference summary in `agent/results/` made with the same code. Runs before 2026-10-25 22:00 (`cli_v2*`) used a fixed 10-level modulus chain; their speedups are not comparable with runs that size the chain to each kernel (`CkksParams::trim_to_levels_used`). Compare per-task circuits (levels, ct-ct, ct-pt, rotations), the totals line and the geometric mean; individual Chebyshev results vary from run to run.
 - Any `speedup` above 1.00 must be marked `r` (remeasured) in the summary. A task listed under "Runs with no successful model call" points to a CLI or login problem.
 - Report the summary, the totals line, wall time, and anything that failed or looked inconsistent. Commit `agent/runs/*/<your timestamps>/` and `agent/results/replication_<name>/` to a branch and open a PR.

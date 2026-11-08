@@ -65,6 +65,9 @@ int main(int argc, char **argv)
   {
     // Shared CKKS parameters of the repository's CKKS benchmarks.
     CkksParams params{32768, {60, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 60}, 40};
+    // Size the modulus chain to the kernel, so that unused levels neither slow a
+    // kernel down nor can be "burned" for speed (see agent/README.md).
+    params.trim_to_levels_used = true;
     Compiler::create_ckks_func("fhe", slot_count, params);
   }
   else

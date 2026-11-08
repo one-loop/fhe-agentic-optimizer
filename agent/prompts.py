@@ -21,13 +21,14 @@ A kernel is C++ code that defines `void fhe()` with no parameters, plus any help
 4. Scales: two ciphertexts added or subtracted at the SAME level must have been produced by the same pattern of multiplications, otherwise CHEHAB reports "CKKS scale mismatch ... aligning them would need an extra level". Operands at different levels are always fine: CHEHAB aligns the shallower one for free. Structure sums so that terms of different multiplication history meet at different levels.
 5. CHEHAB applies its own simplification rewrites, common-subexpression elimination, relinearization, rescaling and level/scale alignment automatically. Do not try to emit those yourself.
 
-# Costs (measured, N = 32768, one ciphertext of 16384 slots; lower when fewer levels remain)
+# CKKS costs (measured, N = 32768, one ciphertext of 16384 slots, at the top of a 10-level chain)
+The coefficient modulus is sized to each kernel: one prime per level the kernel consumes, plus two. The cost of every operation grows with the number of primes its ciphertext still carries, so each level a kernel consumes makes all of its operations more expensive, and an operation gets cheaper as levels are consumed before it.
 - ciphertext x ciphertext multiply (+ relinearize + rescale): ~30 ms at the first level
 - rotation: ~20 ms
 - ciphertext x plaintext-vector multiply (+ rescale): ~7 ms; with a scalar plaintext (one value): ~5 ms
 - plaintext-vector add: ~2.5 ms (encoding); ciphertext add: ~0.5 ms
 - level/scale alignment inserted by CHEHAB: a multiply_plain + rescale (~5 ms) or a mod switch (~1 ms)
-Fewer ciphertext multiplications and rotations, and work at deeper levels, are what make a kernel faster. Reducing depth also helps, because each later operation is cheaper.
+Fewer ciphertext multiplications, rotations and levels are what make a kernel faster.
 
 # BFV tasks (nn_linear, nn_conv2d, nn_avgpool2d): what changes
 - Exact integer arithmetic with a 20-bit plaintext modulus: outputs must equal the expected integers exactly. Integer constants are allowed (`c * 2`, `c + 1`, `Plaintext(3)`); there are no levels, scales or rescales, and the CKKS rules above do not apply.
@@ -96,8 +97,40 @@ def verdict_note(verdict: str, earlier, remeasure, best_iteration: int) -> str:
     return "Verdict: failed, so it does not count. Fix the reported problem, or go back to the best kernel."
 
 
+def history_block(history, top: int = 3) -> str:
+    """Every attempt so far in one line each, then the fastest distinct correct kernels in full."""
+    lines = ["# Your attempts so far"]
+    for h in history:
+        e = h["evaluation"]
+        if e.get("ops"):
+            o = e["ops"]
+            shape = f"ct-ct {o.get('ct_ct_mul')}, ct-pt {o.get('ct_pt_mul')}, rotations {o.get('rotate')}"
+            if e.get("levels") is not None:  # CKKS; BFV has no levels or rescales
+                shape = f"levels {e['levels']}, {shape}, rescale {o.get('rescale')}"
+            else:
+                shape += f", adds {o.get('add')}"
+        else:
+            shape = "no circuit"
+        time = f"{e['eval_time_ms']:.2f} ms" if e.get("eval_time_ms") is not None else "not timed"
+        lines.append(f"- attempt {h['iteration']}: {e.get('status')}, {h['verdict']}; {shape}; {time}")
+    timed = {}
+    for h in history:  # fastest timing per distinct correct circuit (verdicts already merged duplicates)
+        e = h["evaluation"]
+        if e.get("correct") and e.get("eval_time_ms") is not None and h["verdict"] not in ("same_as_baseline",):
+            timed.setdefault(h["fingerprint"], h)
+            if e["eval_time_ms"] < timed[h["fingerprint"]]["evaluation"]["eval_time_ms"]:
+                timed[h["fingerprint"]] = h
+    ranked = sorted(timed.values(), key=lambda h: h["evaluation"]["eval_time_ms"])[:top]
+    if ranked:
+        lines += ["", f"# Your fastest distinct correct kernels so far (single timings; for reference)"]
+        for h in ranked:
+            lines += [f"Attempt {h['iteration']} ({h['evaluation']['eval_time_ms']:.2f} ms):", "```cpp",
+                      h["source"].strip(), "```"]
+    return "\n".join(lines)
+
+
 def feedback_turn(iteration: int, iterations: int, result_summary: str, verdict: str, earlier, remeasure,
-                  baseline, best, best_iteration: int) -> str:
+                  baseline, best, best_iteration: int, history=()) -> str:
     left = iterations - iteration
     name = "the baseline" if best_iteration == 0 else f"attempt {best_iteration}"
     return f"""# Result of attempt {iteration}
@@ -107,6 +140,9 @@ def feedback_turn(iteration: int, iterations: int, result_summary: str, verdict:
 
 Baseline: {baseline.eval_time_ms:.2f} ms; {circuit_line(baseline)}.
 Best so far ({name}): {best.eval_time_ms:.2f} ms; {circuit_line(best)}.
+
+{history_block(history)}
+
 {f"{left} attempt(s) left. Propose a kernel with a different, cheaper circuit than the best (start from the best one if this attempt was worse or failed)." if left else "That was the last attempt."}"""
 
 

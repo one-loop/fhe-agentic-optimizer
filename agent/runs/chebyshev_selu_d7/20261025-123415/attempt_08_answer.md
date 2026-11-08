@@ -1,0 +1,28 @@
+Final attempt: a structurally different arrangement. I double the inputs `z` and `t3` (cheap ciphertext adds) before the plaintext multiplications that build `q2` directly. This removes the separate `q+q` step and reuses `u = t2*c6` for the doubled middle term.
+
+```cpp
+void fhe()
+{
+  Ciphertext x("x");
+  Plaintext alpha("alpha");
+  Plaintext one("one");
+  Plaintext c0("c0"), c1("c1"), c2("c2"), c3("c3"), c4("c4"), c5("c5"), c6("c6"), c7("c7");
+  Ciphertext z = x * alpha;
+  Ciphertext z2 = z * z;
+  Ciphertext t2 = z2 + z2 - one;
+  Ciphertext zt2 = z * t2;
+  Ciphertext t3 = zt2 + zt2 - z;
+  Ciphertext sq = t2 * t2;
+  Ciphertext t4 = sq + sq - one;
+  Ciphertext zd = z + z;
+  Ciphertext t3d = t3 + t3;
+  Ciphertext u = t2 * c6;
+  Ciphertext q2 = zd * c5 + (u + u) + t3d * c7 + c4;
+  Ciphertext r = z * c7 + u + t3 * c5;
+  Ciphertext m = t4 * q2;
+  Ciphertext low = z * c1 + t2 * c2 + t3 * c3;
+  Ciphertext y = low - r + m;
+  y = y + c0;
+  y.set_output("y");
+}
+```

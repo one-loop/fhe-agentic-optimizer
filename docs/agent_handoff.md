@@ -124,6 +124,18 @@ All 26 tasks were rerun with `--proposer cli --model claude-sonnet-5-5`, effort 
 - `elementwise_add_scalar` again shows a large (1.43x) gain with an identical circuit: timing noise.
 - The CLI adds one small context block (account email) to each prompt; no CLAUDE.md, tools or MCP servers.
 
+## 5b. Selection and feedback improvements, Sonnet v2 run (2026-10-24)
+
+Implemented the section 7 selection items (1–3, 5) plus feedback changes, then reran all 26 tasks (runs `20261024-1[5-9]*`, summary `agent/results/cli_v2/`). Full three-way comparison: `agent/results/comparison.md`.
+
+- `agent/selection.py` (+ `test_selection.py`, 14 tests): circuit fingerprint (depth, mult. depth, all op counts); a candidate becomes best only if its circuit is new and it wins an interleaved remeasurement (5 batches, ≥3% median, ≥80% batch wins). Final speedup: baseline vs best in 7 alternating batches.
+- `evaluate.py`: `square()` counted in `ct_ct_mul`; already-seen circuits are not re-timed; non-timing cases run once; CHEHAB errors are trimmed and get a reading hint; `snapshot`/`time_program` keep and re-time built programs (`programs/`, Git-ignored).
+- `src/fheco/passes/align_ckks_operands.cpp`: the scale-mismatch error now prints each operand's level, symbolic scale and expression over the input labels.
+- `prompts.py`: judging rule in the first turn; each feedback turn has a verdict note and the baseline's and best's circuit shapes.
+- `agent/remeasure_runs.py`: re-times older runs' best kernels the same way (no model calls).
+
+Result: geometric-mean remeasured speedup 1.091 (API Haiku) → 1.127 (Sonnet v1) → 1.141 (Sonnet v2); Chebyshev-only 1.193 → 1.290 → 1.326. v2 found 73 distinct new circuits (v1: 35), repeated an earlier circuit 22 times (v1: 55), and its next attempt was correct after 16/21 failures (v1: 9/20). One run per configuration. Not done yet: manifest of the run environment (section 7 item 4).
+
 ## 5c. BFV operators and the Opus run (2026-11-01)
 
 The loop now also covers the three BFV neural-network operators, `nn_linear`, `nn_conv2d` and `nn_avgpool2d` (29 tasks in all), on CHEHAB's scalar path, which `run_benchmarks.py --vectorize 0` records. Changes:
@@ -137,17 +149,14 @@ The loop now also covers the three BFV neural-network operators, `nn_linear`, `n
 
 Opus 5.5 run (all 29 tasks, effort medium, 8 attempts, runs `agent/runs/*/20261101-1*`, summary `agent/results/opus_20261101/`, five-run comparison `agent/results/model_comparison.md` with remarks in `model_comparison_notes.md`): geometric mean over the 26 CKKS tasks 1.244 (Sonnet v2: 1.141 teammate, 1.146 this Mac; Haiku 1.089), 15 tasks improved under the strict rule (Sonnet v2: 12), 222/232 correct attempts and 5 CHEHAB errors (Sonnet v2: 183–185/208, 19–21). Chebyshev group 1.380 (Sonnet v2 1.326–1.340). Two large single results, both with a caveat recorded in the notes: `embedding` x5.69 (drags the indicator down eight levels before 26 rotations through a numerically zero term; partly a baseline weakness) and `nn_conv2d` x3.69 (Winograd F(4,3) made exact with the inverse of 576 modulo the plaintext modulus 786433; tied to that modulus). `nn_linear` and `nn_avgpool2d` stay at x1.00 with every attempt correct but structurally identical to the baseline. Wall time 256 min, equivalent API cost $82.81 ($71.74 for the 26 CKKS tasks). `collect.py` now reports the CLI's equivalent cost (it read only the API-key field before). Not done: a Sonnet or Haiku run of the three BFV tasks, so the BFV column has no cross-model comparison yet.
 
-## 5b. Selection and feedback improvements, Sonnet v2 run (2026-10-24)
+## 5d. Repeatability, fixed-parameter artifact, sized modulus chain, attempt history (2026-10-25)
 
-Implemented the section 7 selection items (1–3, 5) plus feedback changes, then reran all 26 tasks (runs `20261024-1[5-9]*`, summary `agent/results/cli_v2/`). Full three-way comparison: `agent/results/comparison.md`.
-
-- `agent/selection.py` (+ `test_selection.py`, 14 tests): circuit fingerprint (depth, mult. depth, all op counts); a candidate becomes best only if its circuit is new and it wins an interleaved remeasurement (5 batches, ≥3% median, ≥80% batch wins). Final speedup: baseline vs best in 7 alternating batches.
-- `evaluate.py`: `square()` counted in `ct_ct_mul`; already-seen circuits are not re-timed; non-timing cases run once; CHEHAB errors are trimmed and get a reading hint; `snapshot`/`time_program` keep and re-time built programs (`programs/`, Git-ignored).
-- `src/fheco/passes/align_ckks_operands.cpp`: the scale-mismatch error now prints each operand's level, symbolic scale and expression over the input labels.
-- `prompts.py`: judging rule in the first turn; each feedback turn has a verdict note and the baseline's and best's circuit shapes.
-- `agent/remeasure_runs.py`: re-times older runs' best kernels the same way (no model calls).
-
-Result: geometric-mean remeasured speedup 1.091 (API Haiku) → 1.127 (Sonnet v1) → 1.141 (Sonnet v2); Chebyshev-only 1.193 → 1.290 → 1.326. v2 found 73 distinct new circuits (v1: 35), repeated an earlier circuit 22 times (v1: 55), and its next attempt was correct after 16/21 failures (v1: 9/20). One run per configuration. Not done yet: manifest of the run environment (section 7 item 4).
+- Three more independent v2 runs matched the first (same 12 improved tasks, all speedups reconfirmed in a joint re-timing within 0.05): `agent/results/comparison.md`, `cli_v2_repeat{1,2,3}/`.
+- One kernel (repeat 2, `mish`, x1.92) "burned" levels with `x * one * one`. With CHEHAB's fixed 10-level chain, unused levels were wasted, so depth reductions earned nothing and burning levels was rewarded. Hand-written combinations of the two Chebyshev families (Clenshaw + even/odd split) were slower than Clenshaw under fixed parameters but the best circuits under fair parameters: `agent/results/experiments/combine_and_level_floor/`.
+- Fix: `CkksParams::trim_to_levels_used` (opt-in, enabled only in `agent/driver.cpp`); `align_ckks_operands` records `Func::ckks_levels_used()`, and `gen_func.cpp` emits one 40-bit prime per consumed level. All 26 baselines verified; burning now loses (selu: Clenshaw x1.49, Clenshaw+burn x1.28, combined x1.96).
+- The system prompt's cost section now explains that the chain is sized to the kernel; the old "work at deeper levels" line is gone.
+- Each feedback turn now includes a one-line log of every attempt and the model's three fastest distinct correct kernels, for reference only (the user asked not to instruct the model to combine kernels).
+- All runs before this change used the fixed chain; their speedups are not comparable with later runs. No live run has used the new measurement yet.
 
 ## 6. How to inspect or reproduce without spending money
 
@@ -187,7 +196,7 @@ agent/.venv/bin/python agent/collect.py
 
 ## 7. Next recommended work
 
-Done (section 5b): circuit fingerprint, no credit for unchanged circuits, interleaved remeasurement before replacing the best, final interleaved baseline-versus-best speedup, unit tests.
+Done (sections 5b and 5d): circuit fingerprint, no credit for unchanged circuits, interleaved remeasurement before replacing the best, final interleaved baseline-versus-best speedup, unit tests.
 
 Next, in order:
 

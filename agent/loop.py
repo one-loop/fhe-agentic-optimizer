@@ -144,6 +144,7 @@ def run_task(task, args, proposer) -> dict:
     best_ev, best_src, best_it, best_dir = baseline, baseline_src, 0, programs / "baseline"
     baseline_fp = fingerprint(baseline.to_dict())
     seen = {baseline_fp: 0}  # circuit fingerprint -> first attempt that produced it
+    history = []  # every evaluated attempt, shown back to the model each turn
     records = [{"iteration": 0, "kind": "baseline", "evaluation": baseline.to_dict(), "seconds": time.time() - start}]
     turn = first_turn(task, baseline_src, baseline.summary(), args.iterations)
 
@@ -182,13 +183,15 @@ def run_task(task, args, proposer) -> dict:
                     shutil.rmtree(cand_dir)
             if ev.correct:
                 seen.setdefault(fingerprint(evd), it)
+            history.append({"iteration": it, "verdict": verdict, "evaluation": evd, "source": source,
+                            "fingerprint": fingerprint(evd)})
             record.update(verdict=verdict, same_as=earlier, remeasure=remeasure, new_best=verdict == "new_best")
             extra = (f", remeasured x{remeasure['speedup']:.2f} vs attempt {remeasure['against']} "
                      f"({remeasure['wins']}/{remeasure['batches']} wins)" if remeasure else "")
             print(f"   attempt {it}: {ev.status:<13} time {fmt_time(ev.eval_time_ms)} ms, levels {ev.levels}, "
                   f"ops {ev.ops}: {verdict}{'' if earlier is None else f' (attempt {earlier})'}{extra}", flush=True)
             turn = feedback_turn(it, args.iterations, ev.summary(), verdict, earlier, remeasure,
-                                 baseline, best_ev, best_it)
+                                 baseline, best_ev, best_it, history)
         record["seconds"] = time.time() - t0
         records.append(record)
 
