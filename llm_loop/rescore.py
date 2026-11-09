@@ -170,7 +170,7 @@ def report(out: Path, kernel_rows: List[dict], runs: List[dict], meta: dict) -> 
     run_rows.sort(key=lambda x: (x["task"], x["strategy"], x["run"]))
     for name, rows in (("rescore.csv", kernel_rows), ("runs.csv", run_rows)):
         with open(out / name, "w", newline="") as fh:
-            w = csv.DictWriter(fh, fieldnames=list(rows[0]))
+            w = csv.DictWriter(fh, fieldnames=list(dict.fromkeys(k for r in rows for k in r)))  # rows differ by task
             w.writeheader()
             w.writerows(rows)
 
@@ -243,6 +243,8 @@ def main():
     for name in tasks:
         print(f"== re-scoring {name}: {sum(r['task'] == name for r in runs)} runs", flush=True)
         kernel_rows += rescore_task(TASKS[name], [r for r in runs if r["task"] == name], evaluator)
+        args.out.mkdir(parents=True, exist_ok=True)
+        (args.out / "partial_kernel_rows.json").write_text(json.dumps(kernel_rows, default=str))  # survives a crash
     args.out.mkdir(parents=True, exist_ok=True)
     meta = {
         "started": started, "finished": datetime.now().isoformat(timespec="seconds"), "git": git_state(),

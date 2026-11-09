@@ -1,0 +1,195 @@
+diff --git a/llm_loop/driver/driver.cpp b/llm_loop/driver/driver.cpp
+index e0f99e50..7ea78347 100644
+--- a/llm_loop/driver/driver.cpp
++++ b/llm_loop/driver/driver.cpp
+@@ -50,6 +50,8 @@ int main(int argc, char **argv)
+ 
+   // Parameters shared by every CKKS benchmark: N = 32768, {60, 40 x 10, 60}, scale 2^40.
+   CkksParams params{32768, {60, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 60}, 40};
++  // Sized chain (teammates' sized-chain-and-history branch): one prime per level the kernel consumes.
++  params.trim_to_levels_used = true;
+ 
+   const auto start = chrono::high_resolution_clock::now();
+   // BFV: the benchmarks' 20-bit plaintext modulus, signed values. slots() is the operator's width;
+diff --git a/llm_loop/rescore.py b/llm_loop/rescore.py
+index 8a06e1ec..fa0818f8 100644
+--- a/llm_loop/rescore.py
++++ b/llm_loop/rescore.py
+@@ -52,6 +52,7 @@ def discover(root: Path) -> List[dict]:
+         r = json.loads(result.read_text())
+         r["best_source"] = (result.parent / "best.cpp").read_text()
+         r["dir"] = str(result.parent)
++        r["strategy"] = result.parent.parent.parent.name  # combined root: <model>/<task>/run<k>
+         runs.append(r)
+     return runs
+ 
+@@ -170,7 +171,7 @@ def report(out: Path, kernel_rows: List[dict], runs: List[dict], meta: dict) ->
+     run_rows.sort(key=lambda x: (x["task"], x["strategy"], x["run"]))
+     for name, rows in (("rescore.csv", kernel_rows), ("runs.csv", run_rows)):
+         with open(out / name, "w", newline="") as fh:
+-            w = csv.DictWriter(fh, fieldnames=list(rows[0]))
++            w = csv.DictWriter(fh, fieldnames=list(dict.fromkeys(k for r in rows for k in r)))  # rows differ by task
+             w.writeheader()
+             w.writerows(rows)
+ 
+@@ -243,6 +244,8 @@ def main():
+     for name in tasks:
+         print(f"== re-scoring {name}: {sum(r['task'] == name for r in runs)} runs", flush=True)
+         kernel_rows += rescore_task(TASKS[name], [r for r in runs if r["task"] == name], evaluator)
++        args.out.mkdir(parents=True, exist_ok=True)
++        (args.out / "partial_kernel_rows.json").write_text(json.dumps(kernel_rows, default=str))  # survives a crash
+     args.out.mkdir(parents=True, exist_ok=True)
+     meta = {
+         "started": started, "finished": datetime.now().isoformat(timespec="seconds"), "git": git_state(),
+diff --git a/src/fheco/code_gen/gen_func.cpp b/src/fheco/code_gen/gen_func.cpp
+index d2b40115..71e4c717 100644
+--- a/src/fheco/code_gen/gen_func.cpp
++++ b/src/fheco/code_gen/gen_func.cpp
+@@ -113,7 +113,18 @@ void gen_func(
+   if (ckks)
+   {
+     // CKKS parameters are given explicitly; the parameter selector is BFV-only.
+-    gen_main_code_ckks(func->ckks_params(), security_level);
++    CkksParams params = func->ckks_params();
++    if (params.trim_to_levels_used)
++    {
++      const auto &sizes = params.coeff_mod_bit_sizes;
++      const size_t levels = func->ckks_levels_used();
++      if (levels + 2 > sizes.size())
++        throw logic_error("CKKS function consumes more levels than the coefficient modulus provides");
++      vector<int> trimmed(sizes.begin(), sizes.begin() + 1 + levels);
++      trimmed.push_back(sizes.back());
++      params.coeff_mod_bit_sizes = move(trimmed);
++    }
++    gen_main_code_ckks(params, security_level);
+     return;
+   }
+   //std::cout<<"\n ==>Welcome in encryption params selection : \n";
+diff --git a/src/fheco/dsl/common.hpp b/src/fheco/dsl/common.hpp
+index cf2b9f06..c26947c7 100644
+--- a/src/fheco/dsl/common.hpp
++++ b/src/fheco/dsl/common.hpp
+@@ -36,6 +36,11 @@ struct CkksParams
+   std::vector<int> coeff_mod_bit_sizes;
+   // Fresh inputs are encoded at scale 2^log2_scale.
+   int log2_scale;
++  // Generate the coefficient modulus with only as many rescaling primes as the
++  // compiled function consumes levels (first prime, consumed primes, special
++  // prime), instead of the full chain. Unused levels would otherwise make every
++  // operation of a shallow function more expensive than necessary.
++  bool trim_to_levels_used = false;
+ };
+ 
+ void validate_shape(const std::vector<std::size_t> &shape);
+diff --git a/src/fheco/ir/func.hpp b/src/fheco/ir/func.hpp
+index 070dcac1..3a12b4a8 100644
+--- a/src/fheco/ir/func.hpp
++++ b/src/fheco/ir/func.hpp
+@@ -106,6 +106,10 @@ public:
+   // Throws if called on a BFV function.
+   const CkksParams &ckks_params() const;
+ 
++  // CKKS: levels consumed by the deepest output, set by passes::align_ckks_operands.
++  inline std::size_t ckks_levels_used() const { return ckks_levels_used_; }
++  inline void set_ckks_levels_used(std::size_t levels) { ckks_levels_used_ = levels; }
++
+   // Throws std::logic_error naming `what` if this is not a BFV function.
+   void require_bfv(const char *what) const;
+ 
+@@ -129,6 +133,8 @@ private:
+   Scheme scheme_ = Scheme::bfv;
+ 
+   std::optional<CkksParams> ckks_params_{};
++
++  std::size_t ckks_levels_used_ = 0;
+ };
+ 
+ inline bool operator==(const Func &lhs, const Func &rhs)
+diff --git a/src/fheco/passes/align_ckks_operands.cpp b/src/fheco/passes/align_ckks_operands.cpp
+index 9a02efb9..8b3d7aa8 100644
+--- a/src/fheco/passes/align_ckks_operands.cpp
++++ b/src/fheco/passes/align_ckks_operands.cpp
+@@ -2,6 +2,8 @@
+ #include "fheco/ir/term.hpp"
+ #include "fheco/passes/align_ckks_operands.hpp"
+ #include <algorithm>
++#include <cstdlib>
++#include <functional>
+ #include <map>
+ #include <stdexcept>
+ #include <string>
+@@ -50,6 +52,19 @@ namespace
+   };
+ 
+   const SymbolicScale delta{1, {}};
++
++  // "D^3/(q1*q2)": D is the nominal scale, q_l the prime dropped by a rescale at level l.
++  string scale_str(const SymbolicScale &scale)
++  {
++    string num = "D^" + to_string(scale.delta_exp), den;
++    for (const auto &[level, exp] : scale.q_exps)
++    {
++      string factor = "q" + to_string(level) + (abs(exp) == 1 ? "" : "^" + to_string(abs(exp)));
++      string &side = exp < 0 ? den : num;
++      side += (side.empty() ? "" : "*") + factor;
++    }
++    return den.empty() ? num : num + "/(" + den + ")";
++  }
+ } // namespace
+ 
+ size_t align_ckks_operands(const shared_ptr<ir::Func> &func)
+@@ -78,6 +93,32 @@ size_t align_ckks_operands(const shared_ptr<ir::Func> &func)
+     return term;
+   };
+ 
++  // The operand's expression over the function's input labels, for error messages. The
++  // relin, rescale, mod_switch and match_scale terms CHEHAB inserted itself are skipped.
++  function<string(const ir::Term *, int)> describe = [&](const ir::Term *term, int depth) -> string {
++    if (term->is_leaf())
++    {
++      auto info = func->data_flow().get_input_info(term);
++      return info ? info->label_ : "const";
++    }
++    const auto type = term->op_code().type();
++    if (type == ir::OpCode::Type::relin || type == ir::OpCode::Type::rescale ||
++        type == ir::OpCode::Type::mod_switch || type == ir::OpCode::Type::match_scale)
++      return describe(term->operands()[0], depth);
++    if (depth == 0)
++      return "...";
++    string args;
++    for (auto operand : term->operands())
++      args += (args.empty() ? "" : ", ") + describe(operand, depth - 1);
++    return term->op_code().str_repr() + "(" + args + ")";
++  };
++  auto operand_str = [&](const ir::Term *term, const CtxtInfo &info) {
++    string expr = describe(term, 4);
++    if (expr.size() > 400)
++      expr = expr.substr(0, 400) + "...";
++    return "level " + to_string(info.level) + ", scale " + scale_str(info.scale) + ": " + expr;
++  };
++
+   // Copy: the pass inserts and replaces terms.
+   const vector<size_t> ids = func->get_top_sorted_terms_ids();
+   for (auto id : ids)
+@@ -161,7 +202,8 @@ size_t align_ckks_operands(const shared_ptr<ir::Func> &func)
+           throw logic_error(
+             "CKKS scale mismatch: ciphertext operands of '" + term->op_code().str_repr() + "' (term " +
+             to_string(term->id()) + ") are at the same level " + to_string(lhs_info.level) +
+-            " with different scales; aligning them would need an extra level");
++            " with different scales; aligning them would need an extra level\n  left operand:  " +
++            operand_str(lhs, lhs_info) + "\n  right operand: " + operand_str(rhs, rhs_info));
+ 
+         // hi: the operand with more levels left (fewer consumed)
+         const bool lhs_is_hi = lhs_info.level < rhs_info.level;
+@@ -191,6 +233,11 @@ size_t align_ckks_operands(const shared_ptr<ir::Func> &func)
+         "align_ckks_operands: unhandled ciphertext operation '" + term->op_code().str_repr() + "'");
+     }
+   }
++  size_t levels_used = 0;
++  for (const auto &[term, output_info] : func->data_flow().outputs_info())
++    if (auto it = infos.find(term); it != infos.end())
++      levels_used = max(levels_used, it->second.level);
++  func->set_ckks_levels_used(levels_used);
+   return inserted;
+ }
+ } // namespace fheco::passes

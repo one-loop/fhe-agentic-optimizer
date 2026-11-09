@@ -18,6 +18,8 @@ Experiments, in priority order:
   9. opus_focus_chebyshev, opus_focus_conv2d  the cut-down Opus version: the 3 pilot tasks and nn_conv2d, 3 runs each,
      re-scored apart because the schemes differ
  10. others_haiku, others_sonnet, others_opus  the other 14 operators, 1 run per model, archive only
+ 11. opus_rest_chebyshev, opus_quad_batchnorm, opus_nn_rest  Opus on the 11 operators it had not run: the other
+     6 Chebyshev activations (3 runs), Quad, BatchNorm1d/2d, nn_linear, nn_avgpool2d (1 run), archive only
 
 Unattended behaviour: if Claude's usage limit is reached, or the model cannot be
 reached, the campaign waits and retries (an interrupted run is redone from
@@ -87,6 +89,11 @@ EXPERIMENTS = [
      "strategies": ["archive"]},
     {"name": "others_opus", "tasks": OTHERS, "runs": [1], "hints": "none", "feedback": "execution",
      "out": "phase2-others-opus", "results": "phase2_others_opus", "model": "claude-opus-5-5",
+     "strategies": ["archive"]},
+    {"name": "opus_rest_chebyshev", "tasks": REST, "runs": [1, 2, 3], "hints": "none", "feedback": "execution",
+     "out": "phase2-opus-rest", "results": "phase2_opus_rest", "model": "claude-opus-5-5", "strategies": ["archive"]},
+    {"name": "opus_nn_rest", "tasks": NN_ONE_RUN, "runs": [1], "hints": "none", "feedback": "execution",
+     "out": "phase2-nn-opus-rest", "results": "phase2_nn_opus_rest", "model": "claude-opus-5-5",
      "strategies": ["archive"]},
 ]
 WAIT_LIMIT_S = 30 * 60      # after a usage limit

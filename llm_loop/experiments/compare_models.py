@@ -117,6 +117,8 @@ def main():
         "  1e-06), so the Opus run was redone from scratch. Repeated 20 times, the baseline passes 17 and",
         "  Sonnet's final (x1.01) 18: the tolerance is too tight for this task, not a kernel defect.",
         "  Sonnet's Hardshrink run 3 (error 81% of the tolerance) passed 20 of 20.",
+        "- **Fixed chain.** These speedups use CHEHAB's fixed 10-level CKKS chain. Re-timed with the chain sized to each",
+        "  kernel, the Chebyshev speedups roughly double and Opus's two 10-level kernels drop: `../sized_chain_rescore/`.",
         "- These are my loop's results only. Teammates' kernels are compared in `../phase2_teammates_rescore/`.",
         "",
         "## Across tasks (geometric mean of per-task mean speedups, same tasks for every model in a row)",
