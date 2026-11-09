@@ -1,0 +1,530 @@
+{
+  "benchmark": "quad_ckks",
+  "scheme": "CKKS",
+  "slot_count": 8,
+  "iterations": 6,
+  "model": "claude-sonnet-5-5",
+  "started": "2026-11-08T21:47:58",
+  "finished": "2026-11-08T21:48:59",
+  "harness_error": null,
+  "methodology": {
+    "bfv_latency": "median end-to-end time of the generated SEAL main (parse+encode+encrypt+evaluate), 1 warmup + 5 measured runs",
+    "ckks_latency": "median over 3 processes of the eval-only median (1 warmup + 5 runs of fhe())",
+    "ckks_tolerance": 1e-06,
+    "host": "Darwin arm64 26.6"
+  },
+  "original_expression": "(* x x)",
+  "unoptimized_baseline": {
+    "success": true,
+    "candidate_expr": "quad_ckks (as written)",
+    "scheme": "CKKS",
+    "stage_failed": null,
+    "error_message": null,
+    "execution_latency_ms": 36.2461,
+    "latency_samples_ms": [
+      36.1499,
+      36.2461,
+      36.4582
+    ],
+    "compilation_time_ms": 2.41333,
+    "correctness_checked": true,
+    "correct": true,
+    "correctness_detail": "max abs error 2.168e-08 vs expected outputs (tolerance 1e-06)",
+    "depth": 1,
+    "multiplicative_depth": 1,
+    "op_counts": {
+      "mul": 1,
+      "mul_plain": 0,
+      "square": 0,
+      "add": 0,
+      "add_plain": 0,
+      "sub": 0,
+      "sub_plain": 0,
+      "negate": 0,
+      "relin": 1,
+      "rotate": 0,
+      "rescale": 1,
+      "mod_switch": 0
+    },
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": 2.16759e-08,
+    "ckks_levels_consumed": 1,
+    "ckks_tolerance": 1e-06,
+    "static_cost": 0.0
+  },
+  "egraph_baseline": {
+    "success": false,
+    "candidate_expr": "",
+    "scheme": "CKKS",
+    "stage_failed": "not_applicable",
+    "error_message": "CHEHAB's e-graph vectorizer is BFV-only (Func::require_bfv); no CKKS e-graph baseline",
+    "execution_latency_ms": 0.0,
+    "latency_samples_ms": [],
+    "compilation_time_ms": 0.0,
+    "correctness_checked": false,
+    "correct": false,
+    "correctness_detail": "",
+    "depth": 0,
+    "multiplicative_depth": 0,
+    "op_counts": {},
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": null,
+    "ckks_levels_consumed": 0,
+    "ckks_tolerance": null,
+    "static_cost": 0.0
+  },
+  "reference_via_candidate_path": {
+    "success": true,
+    "candidate_expr": "(* x x)",
+    "scheme": "CKKS",
+    "stage_failed": null,
+    "error_message": null,
+    "execution_latency_ms": 36.5111,
+    "latency_samples_ms": [
+      36.5163,
+      36.5111,
+      36.2331
+    ],
+    "compilation_time_ms": 0.70675,
+    "correctness_checked": true,
+    "correct": true,
+    "correctness_detail": "max abs error 3.022e-08 vs expected outputs (tolerance 1e-06)",
+    "depth": 1,
+    "multiplicative_depth": 1,
+    "op_counts": {
+      "mul": 1,
+      "mul_plain": 0,
+      "square": 0,
+      "add": 0,
+      "add_plain": 0,
+      "sub": 0,
+      "sub_plain": 0,
+      "negate": 0,
+      "relin": 1,
+      "rotate": 0,
+      "rescale": 1,
+      "mod_switch": 0
+    },
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": 3.02234e-08,
+    "ckks_levels_consumed": 1,
+    "ckks_tolerance": 1e-06,
+    "static_cost": 0.0
+  },
+  "best_result": {
+    "success": true,
+    "candidate_expr": "(* x x)",
+    "scheme": "CKKS",
+    "stage_failed": null,
+    "error_message": null,
+    "execution_latency_ms": 36.3269,
+    "latency_samples_ms": [
+      36.079,
+      36.6341,
+      36.3269
+    ],
+    "compilation_time_ms": 0.705667,
+    "correctness_checked": true,
+    "correct": true,
+    "correctness_detail": "max abs error 2.927e-08 vs expected outputs (tolerance 1e-06)",
+    "depth": 1,
+    "multiplicative_depth": 1,
+    "op_counts": {
+      "mul": 1,
+      "mul_plain": 0,
+      "square": 0,
+      "add": 0,
+      "add_plain": 0,
+      "sub": 0,
+      "sub_plain": 0,
+      "negate": 0,
+      "relin": 1,
+      "rotate": 0,
+      "rescale": 1,
+      "mod_switch": 0
+    },
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": 2.92745e-08,
+    "ckks_levels_consumed": 1,
+    "ckks_tolerance": 1e-06,
+    "static_cost": 0.0
+  },
+  "speedup_vs_unoptimized": 0.9977757529544221,
+  "speedup_vs_egraph": null,
+  "egraph_speedup_vs_unoptimized": null,
+  "valid_candidates": 6,
+  "history": [
+    {
+      "iteration": 1,
+      "candidate": "(* x x)",
+      "llm_response": "The program `(* x x)` is already minimal: one ciphertext\u00d7ciphertext multiplication at depth 1. Any rewrite I can think of would add operations. Expanding it, or using a plaintext multiply by a constant, would add extra plaintext multiplications or levels. I'm submitting the same expression, since the multiplication, relinearization and rescale are all required, and any latency difference will come from measurement noise rather than a real change.\n\nPROPOSED_EXPRESSION:\n(* x x)",
+      "llm_seconds": 3.9981229999975767,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 1101,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 355,
+        "output_tokens_details": {
+          "thinking_tokens": 191
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(* x x)",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 36.3958,
+        "latency_samples_ms": [
+          36.4521,
+          36.3568,
+          36.3958
+        ],
+        "compilation_time_ms": 0.575916,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 7.252e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 1,
+        "multiplicative_depth": 1,
+        "op_counts": {
+          "mul": 1,
+          "mul_plain": 0,
+          "square": 0,
+          "add": 0,
+          "add_plain": 0,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 1,
+          "rotate": 0,
+          "rescale": 1,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 7.25216e-08,
+        "ckks_levels_consumed": 1,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": true
+    },
+    {
+      "iteration": 2,
+      "candidate": "(* x x)",
+      "llm_response": "The program is still minimal. Squaring a ciphertext needs one ciphertext\u00d7ciphertext multiplication, with its relinearization and rescale, and every alternative I can think of adds operations:\n\n- **Expanding the square**, e.g. `(x+1)\u00b2 \u2212 2x \u2212 1`, still needs a ciphertext multiplication and adds plaintext multiplications and additions.\n- **Multiplying by a constant** costs an extra level and an extra operation.\n\nThe 36.25 ms and 36.40 ms results differ only by measurement noise. I'm resubmitting the same expression because I can't find a candidate that is genuinely faster.\n\nPROPOSED_EXPRESSION:\n(* x x)",
+      "llm_seconds": 4.825947624995024,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 1525,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 427,
+        "output_tokens_details": {
+          "thinking_tokens": 198
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(* x x)",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 36.6854,
+        "latency_samples_ms": [
+          36.6873,
+          36.66,
+          36.6854
+        ],
+        "compilation_time_ms": 0.419375,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 1.999e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 1,
+        "multiplicative_depth": 1,
+        "op_counts": {
+          "mul": 1,
+          "mul_plain": 0,
+          "square": 0,
+          "add": 0,
+          "add_plain": 0,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 1,
+          "rotate": 0,
+          "rescale": 1,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 1.99853e-08,
+        "ckks_levels_consumed": 1,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    },
+    {
+      "iteration": 3,
+      "candidate": "(* x x)",
+      "llm_response": "`(* x x)` is still the minimal form. It uses one ciphertext\u00d7ciphertext multiplication, one relinearization and one rescale, at depth 1. Every equivalent form I can think of adds operations:\n\n- **Expanded forms** such as `(x+1)\u00b2 \u2212 2x \u2212 1` still need a ciphertext multiplication and add plaintext multiplications.\n- **Constant multiplications** cost an extra level and an extra plaintext multiply.\n- **Splitting the product**, e.g. `(x+x)*(x+x)/4`, adds a plaintext multiply and gains nothing.\n\nThe spread across runs (36.25, 36.40, 36.69 ms) is measurement noise on identical generated code, so I'm resubmitting the same expression.\n\nPROPOSED_EXPRESSION:\n(* x x)",
+      "llm_seconds": 4.319094374994165,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 2014,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 402,
+        "output_tokens_details": {
+          "thinking_tokens": 131
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(* x x)",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 36.8295,
+        "latency_samples_ms": [
+          37.0435,
+          36.8295,
+          36.4847
+        ],
+        "compilation_time_ms": 0.809583,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 3.948e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 1,
+        "multiplicative_depth": 1,
+        "op_counts": {
+          "mul": 1,
+          "mul_plain": 0,
+          "square": 0,
+          "add": 0,
+          "add_plain": 0,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 1,
+          "rotate": 0,
+          "rescale": 1,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 3.9475e-08,
+        "ckks_levels_consumed": 1,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    },
+    {
+      "iteration": 4,
+      "candidate": "(* x x)",
+      "llm_response": "`(* x x)` is still the minimal form. Squaring an encrypted value needs one ciphertext\u00d7ciphertext multiplication, which brings one relinearization and one rescale. Any other formulation I can think of either keeps that multiplication and adds operations, or cannot reproduce x\u00b2 from additions and plaintext multiplications alone.\n\nThe four latencies so far (36.25, 36.40, 36.69, 36.83 ms) are all from the same generated code (mul=1, relin=1, rescale=1). The spread is measurement noise, not a real difference. I'm resubmitting the same expression.\n\nPROPOSED_EXPRESSION:\n(* x x)",
+      "llm_seconds": 4.623450582992518,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 2545,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 347,
+        "output_tokens_details": {
+          "thinking_tokens": 130
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(* x x)",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 36.3952,
+        "latency_samples_ms": [
+          36.3952,
+          36.4317,
+          36.198
+        ],
+        "compilation_time_ms": 0.660834,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 2.201e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 1,
+        "multiplicative_depth": 1,
+        "op_counts": {
+          "mul": 1,
+          "mul_plain": 0,
+          "square": 0,
+          "add": 0,
+          "add_plain": 0,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 1,
+          "rotate": 0,
+          "rescale": 1,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 2.20081e-08,
+        "ckks_levels_consumed": 1,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": true
+    },
+    {
+      "iteration": 5,
+      "candidate": "(* x x)",
+      "llm_response": "`(* x x)` is still the minimal form for squaring an encrypted value. It uses one ciphertext\u00d7ciphertext multiplication with its relinearization and rescale, at depth 1. Every equivalent form I can think of keeps that multiplication and adds plaintext multiplications, extra levels or additions. The latencies so far (36.25 to 36.83 ms) all come from identical generated code (mul=1, relin=1, rescale=1), so the spread is measurement noise. I'm resubmitting the same expression.\n\nPROPOSED_EXPRESSION:\n(* x x)",
+      "llm_seconds": 2.765770332989632,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 3022,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 193,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(* x x)",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 36.3269,
+        "latency_samples_ms": [
+          36.079,
+          36.6341,
+          36.3269
+        ],
+        "compilation_time_ms": 0.705667,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 2.927e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 1,
+        "multiplicative_depth": 1,
+        "op_counts": {
+          "mul": 1,
+          "mul_plain": 0,
+          "square": 0,
+          "add": 0,
+          "add_plain": 0,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 1,
+          "rotate": 0,
+          "rescale": 1,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 2.92745e-08,
+        "ckks_levels_consumed": 1,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": true
+    },
+    {
+      "iteration": 6,
+      "candidate": "(* x x)",
+      "llm_response": "`(* x x)` is still the minimal form for squaring an encrypted value. It needs one ciphertext\u00d7ciphertext multiplication, with its relinearization and rescale, at depth 1. Every equivalent form I can think of keeps that multiplication and adds plaintext multiplications, extra levels or additions. The latencies so far (36.25 to 36.83 ms) all come from identical generated code (mul=1, relin=1, rescale=1), so the spread is measurement noise. I'm resubmitting the same expression.\n\nPROPOSED_EXPRESSION:\n(* x x)",
+      "llm_seconds": 2.492783582987613,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 3475,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 194,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(* x x)",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 36.9204,
+        "latency_samples_ms": [
+          37.016,
+          36.7115,
+          36.9204
+        ],
+        "compilation_time_ms": 0.352417,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 4.272e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 1,
+        "multiplicative_depth": 1,
+        "op_counts": {
+          "mul": 1,
+          "mul_plain": 0,
+          "square": 0,
+          "add": 0,
+          "add_plain": 0,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 1,
+          "rotate": 0,
+          "rescale": 1,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 4.27161e-08,
+        "ckks_levels_consumed": 1,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    }
+  ]
+}

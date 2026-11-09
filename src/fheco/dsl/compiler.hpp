@@ -90,6 +90,8 @@ public:
   
   static void call_rl_vectorizer(int vector_width);
 
+  static void call_llm_vectorizer(int vector_width);
+
   static void call_vectorizer(int vector_width, int optimization_method);
 
   static void call_script();

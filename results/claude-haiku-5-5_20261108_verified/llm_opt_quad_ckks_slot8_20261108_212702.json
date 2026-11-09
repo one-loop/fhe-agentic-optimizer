@@ -1,0 +1,530 @@
+{
+  "benchmark": "quad_ckks",
+  "scheme": "CKKS",
+  "slot_count": 8,
+  "iterations": 6,
+  "model": "claude-haiku-5-5",
+  "started": "2026-11-08T21:26:15",
+  "finished": "2026-11-08T21:27:02",
+  "harness_error": null,
+  "methodology": {
+    "bfv_latency": "median end-to-end time of the generated SEAL main (parse+encode+encrypt+evaluate), 1 warmup + 5 measured runs",
+    "ckks_latency": "median over 3 processes of the eval-only median (1 warmup + 5 runs of fhe())",
+    "ckks_tolerance": 1e-06,
+    "host": "Darwin arm64 26.6"
+  },
+  "original_expression": "(* x x)",
+  "unoptimized_baseline": {
+    "success": true,
+    "candidate_expr": "quad_ckks (as written)",
+    "scheme": "CKKS",
+    "stage_failed": null,
+    "error_message": null,
+    "execution_latency_ms": 35.7217,
+    "latency_samples_ms": [
+      35.7027,
+      35.7217,
+      35.7605
+    ],
+    "compilation_time_ms": 0.898542,
+    "correctness_checked": true,
+    "correct": true,
+    "correctness_detail": "max abs error 3.391e-08 vs expected outputs (tolerance 1e-06)",
+    "depth": 1,
+    "multiplicative_depth": 1,
+    "op_counts": {
+      "mul": 1,
+      "mul_plain": 0,
+      "square": 0,
+      "add": 0,
+      "add_plain": 0,
+      "sub": 0,
+      "sub_plain": 0,
+      "negate": 0,
+      "relin": 1,
+      "rotate": 0,
+      "rescale": 1,
+      "mod_switch": 0
+    },
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": 3.39142e-08,
+    "ckks_levels_consumed": 1,
+    "ckks_tolerance": 1e-06,
+    "static_cost": 0.0
+  },
+  "egraph_baseline": {
+    "success": false,
+    "candidate_expr": "",
+    "scheme": "CKKS",
+    "stage_failed": "not_applicable",
+    "error_message": "CHEHAB's e-graph vectorizer is BFV-only (Func::require_bfv); no CKKS e-graph baseline",
+    "execution_latency_ms": 0.0,
+    "latency_samples_ms": [],
+    "compilation_time_ms": 0.0,
+    "correctness_checked": false,
+    "correct": false,
+    "correctness_detail": "",
+    "depth": 0,
+    "multiplicative_depth": 0,
+    "op_counts": {},
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": null,
+    "ckks_levels_consumed": 0,
+    "ckks_tolerance": null,
+    "static_cost": 0.0
+  },
+  "reference_via_candidate_path": {
+    "success": true,
+    "candidate_expr": "(* x x)",
+    "scheme": "CKKS",
+    "stage_failed": null,
+    "error_message": null,
+    "execution_latency_ms": 35.7344,
+    "latency_samples_ms": [
+      35.7344,
+      35.7158,
+      35.7908
+    ],
+    "compilation_time_ms": 0.598583,
+    "correctness_checked": true,
+    "correct": true,
+    "correctness_detail": "max abs error 4.671e-08 vs expected outputs (tolerance 1e-06)",
+    "depth": 1,
+    "multiplicative_depth": 1,
+    "op_counts": {
+      "mul": 1,
+      "mul_plain": 0,
+      "square": 0,
+      "add": 0,
+      "add_plain": 0,
+      "sub": 0,
+      "sub_plain": 0,
+      "negate": 0,
+      "relin": 1,
+      "rotate": 0,
+      "rescale": 1,
+      "mod_switch": 0
+    },
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": 4.67101e-08,
+    "ckks_levels_consumed": 1,
+    "ckks_tolerance": 1e-06,
+    "static_cost": 0.0
+  },
+  "best_result": {
+    "success": true,
+    "candidate_expr": "(* x x)",
+    "scheme": "CKKS",
+    "stage_failed": null,
+    "error_message": null,
+    "execution_latency_ms": 35.772,
+    "latency_samples_ms": [
+      35.772,
+      35.827,
+      35.7215
+    ],
+    "compilation_time_ms": 0.603041,
+    "correctness_checked": true,
+    "correct": true,
+    "correctness_detail": "max abs error 2.928e-08 vs expected outputs (tolerance 1e-06)",
+    "depth": 1,
+    "multiplicative_depth": 1,
+    "op_counts": {
+      "mul": 1,
+      "mul_plain": 0,
+      "square": 0,
+      "add": 0,
+      "add_plain": 0,
+      "sub": 0,
+      "sub_plain": 0,
+      "negate": 0,
+      "relin": 1,
+      "rotate": 0,
+      "rescale": 1,
+      "mod_switch": 0
+    },
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": 2.92752e-08,
+    "ckks_levels_consumed": 1,
+    "ckks_tolerance": 1e-06,
+    "static_cost": 0.0
+  },
+  "speedup_vs_unoptimized": 0.9985938723023594,
+  "speedup_vs_egraph": null,
+  "egraph_speedup_vs_unoptimized": null,
+  "valid_candidates": 6,
+  "history": [
+    {
+      "iteration": 1,
+      "candidate": "(* x x)",
+      "llm_response": "The original `(* x x)` already uses the minimum possible work: one ciphertext-ciphertext multiplication, one relinearization, and one rescale, at multiplicative depth 1. Any rewrite that is still semantically equivalent would need at least one multiplication, so I don't expect a faster schedule. I'm proposing the same expression rather than an artificial rewrite such as `(* (* x x) 1)`, which would add a plaintext multiply and a level. A `let` alias would not change the SEAL op count either. Any gain would have to come from the compiler, not from the expression.\n\nPROPOSED_EXPRESSION:\n(* x x)",
+      "llm_seconds": 2.6368956670048647,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 1101,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 348,
+        "output_tokens_details": {
+          "thinking_tokens": 136
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(* x x)",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 35.7902,
+        "latency_samples_ms": [
+          35.7902,
+          35.702,
+          35.8244
+        ],
+        "compilation_time_ms": 0.700541,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 5.399e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 1,
+        "multiplicative_depth": 1,
+        "op_counts": {
+          "mul": 1,
+          "mul_plain": 0,
+          "square": 0,
+          "add": 0,
+          "add_plain": 0,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 1,
+          "rotate": 0,
+          "rescale": 1,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 5.3986e-08,
+        "ckks_levels_consumed": 1,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": true
+    },
+    {
+      "iteration": 2,
+      "candidate": "(* x x)",
+      "llm_response": "The iteration-1 result matches the baseline: 35.79 ms against 35.72 ms, with the same single multiply, relinearization, and rescale. `(* x x)` is already the minimal circuit for x\u00b2, since it needs one ciphertext-ciphertext multiplication at depth 1. Adding a `let` alias or a multiplication by 1 would only add work. The remaining difference is measurement noise, so I'm keeping the expression unchanged.\n\nPROPOSED_EXPRESSION:\n(* x x)",
+      "llm_seconds": 1.6923493750073249,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 1573,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 207,
+        "output_tokens_details": {
+          "thinking_tokens": 37
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(* x x)",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 35.8119,
+        "latency_samples_ms": [
+          35.6842,
+          35.8905,
+          35.8119
+        ],
+        "compilation_time_ms": 0.3845,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 3.497e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 1,
+        "multiplicative_depth": 1,
+        "op_counts": {
+          "mul": 1,
+          "mul_plain": 0,
+          "square": 0,
+          "add": 0,
+          "add_plain": 0,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 1,
+          "rotate": 0,
+          "rescale": 1,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 3.49667e-08,
+        "ckks_levels_consumed": 1,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    },
+    {
+      "iteration": 3,
+      "candidate": "(* x x)",
+      "llm_response": "The result is again 35.81 ms, within noise of the 35.72 ms baseline, with the same single multiply, relinearization, and rescale. `(* x x)` is the minimal circuit for x\u00b2: one ciphertext-ciphertext multiplication at depth 1. Any alternative would add a plaintext multiply, an extra level, or a `let` with no effect on the SEAL op count. I see no further expression-level gain, so I'm keeping it unchanged.\n\nPROPOSED_EXPRESSION:\n(* x x)",
+      "llm_seconds": 1.7111790420021862,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 2003,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 211,
+        "output_tokens_details": {
+          "thinking_tokens": 37
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(* x x)",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 36.3645,
+        "latency_samples_ms": [
+          36.607,
+          36.3645,
+          36.0998
+        ],
+        "compilation_time_ms": 0.368917,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 3.589e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 1,
+        "multiplicative_depth": 1,
+        "op_counts": {
+          "mul": 1,
+          "mul_plain": 0,
+          "square": 0,
+          "add": 0,
+          "add_plain": 0,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 1,
+          "rotate": 0,
+          "rescale": 1,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 3.58912e-08,
+        "ckks_levels_consumed": 1,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    },
+    {
+      "iteration": 4,
+      "candidate": "(* x x)",
+      "llm_response": "The latest run measured 36.36 ms, which is within the noise band of the 35.72 to 35.81 ms runs. The SEAL op counts are unchanged (mul=1, relin=1, rescale=1), so nothing in the schedule has changed. `(* x x)` is the minimal circuit for x\u00b2: one ciphertext-ciphertext multiplication at depth 1. Every alternative I can write either adds a plaintext multiply and a level or introduces a `let` that CHEHAB will compile to the same operations. I don't see a semantically equivalent expression that would measurably beat the baseline, so I'm keeping the expression unchanged.\n\nPROPOSED_EXPRESSION:\n(* x x)",
+      "llm_seconds": 2.780234500009101,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 2437,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 323,
+        "output_tokens_details": {
+          "thinking_tokens": 89
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(* x x)",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 35.772,
+        "latency_samples_ms": [
+          35.772,
+          35.827,
+          35.7215
+        ],
+        "compilation_time_ms": 0.603041,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 2.928e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 1,
+        "multiplicative_depth": 1,
+        "op_counts": {
+          "mul": 1,
+          "mul_plain": 0,
+          "square": 0,
+          "add": 0,
+          "add_plain": 0,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 1,
+          "rotate": 0,
+          "rescale": 1,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 2.92752e-08,
+        "ckks_levels_consumed": 1,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": true
+    },
+    {
+      "iteration": 5,
+      "candidate": "(* x x)",
+      "llm_response": "The new measurement is 35.77 ms, again within noise of the 35.72 to 36.36 ms range. The SEAL schedule is unchanged: one multiply, one relinearization, one rescale, depth 1. `(* x x)` is already the minimal circuit for x\u00b2, and any rewrite either adds a level or compiles to the same operations. I'm keeping the expression as is.\n\nPROPOSED_EXPRESSION:\n(* x x)",
+      "llm_seconds": 1.5018964589980897,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 2931,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 146,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(* x x)",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 35.9843,
+        "latency_samples_ms": [
+          35.805,
+          35.9843,
+          35.9904
+        ],
+        "compilation_time_ms": 0.533209,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 5.024e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 1,
+        "multiplicative_depth": 1,
+        "op_counts": {
+          "mul": 1,
+          "mul_plain": 0,
+          "square": 0,
+          "add": 0,
+          "add_plain": 0,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 1,
+          "rotate": 0,
+          "rescale": 1,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 5.02353e-08,
+        "ckks_levels_consumed": 1,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    },
+    {
+      "iteration": 6,
+      "candidate": "(* x x)",
+      "llm_response": "The latest run measured 35.98 ms, within the same noise band as the earlier 35.72 to 36.36 ms results. The SEAL schedule is unchanged (one multiply, one relinearization, one rescale, depth 1), and `(* x x)` is already the minimal circuit for x\u00b2. Any equivalent rewrite either adds a plaintext multiply and a level or compiles to identical operations. I'm keeping the expression as is.\n\nPROPOSED_EXPRESSION:\n(* x x)",
+      "llm_seconds": 1.2659857090038713,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 3337,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 165,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(* x x)",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 35.7971,
+        "latency_samples_ms": [
+          35.8245,
+          35.7971,
+          35.7068
+        ],
+        "compilation_time_ms": 0.567291,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 2.692e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 1,
+        "multiplicative_depth": 1,
+        "op_counts": {
+          "mul": 1,
+          "mul_plain": 0,
+          "square": 0,
+          "add": 0,
+          "add_plain": 0,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 1,
+          "rotate": 0,
+          "rescale": 1,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 2.69192e-08,
+        "ckks_levels_consumed": 1,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    }
+  ]
+}

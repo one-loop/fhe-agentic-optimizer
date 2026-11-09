@@ -1,0 +1,530 @@
+{
+  "benchmark": "batchnorm2d_ckks",
+  "scheme": "CKKS",
+  "slot_count": 8,
+  "iterations": 6,
+  "model": "claude-sonnet-5-5",
+  "started": "2026-11-08T21:49:54",
+  "finished": "2026-11-08T21:50:49",
+  "harness_error": null,
+  "methodology": {
+    "bfv_latency": "median end-to-end time of the generated SEAL main (parse+encode+encrypt+evaluate), 1 warmup + 5 measured runs",
+    "ckks_latency": "median over 3 processes of the eval-only median (1 warmup + 5 runs of fhe())",
+    "ckks_tolerance": 1e-06,
+    "host": "Darwin arm64 26.6"
+  },
+  "original_expression": "(+ (* x A) B)",
+  "unoptimized_baseline": {
+    "success": true,
+    "candidate_expr": "batchnorm2d_ckks (as written)",
+    "scheme": "CKKS",
+    "stage_failed": null,
+    "error_message": null,
+    "execution_latency_ms": 10.0407,
+    "latency_samples_ms": [
+      10.0407,
+      10.0142,
+      10.0477
+    ],
+    "compilation_time_ms": 0.898584,
+    "correctness_checked": true,
+    "correct": true,
+    "correctness_detail": "max abs error 2.337e-08 vs expected outputs (tolerance 1e-06)",
+    "depth": 2,
+    "multiplicative_depth": 1,
+    "op_counts": {
+      "mul": 0,
+      "mul_plain": 1,
+      "square": 0,
+      "add": 0,
+      "add_plain": 1,
+      "sub": 0,
+      "sub_plain": 0,
+      "negate": 0,
+      "relin": 0,
+      "rotate": 0,
+      "rescale": 1,
+      "mod_switch": 0
+    },
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": 2.33654e-08,
+    "ckks_levels_consumed": 1,
+    "ckks_tolerance": 1e-06,
+    "static_cost": 0.0
+  },
+  "egraph_baseline": {
+    "success": false,
+    "candidate_expr": "",
+    "scheme": "CKKS",
+    "stage_failed": "not_applicable",
+    "error_message": "CHEHAB's e-graph vectorizer is BFV-only (Func::require_bfv); no CKKS e-graph baseline",
+    "execution_latency_ms": 0.0,
+    "latency_samples_ms": [],
+    "compilation_time_ms": 0.0,
+    "correctness_checked": false,
+    "correct": false,
+    "correctness_detail": "",
+    "depth": 0,
+    "multiplicative_depth": 0,
+    "op_counts": {},
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": null,
+    "ckks_levels_consumed": 0,
+    "ckks_tolerance": null,
+    "static_cost": 0.0
+  },
+  "reference_via_candidate_path": {
+    "success": true,
+    "candidate_expr": "(+ (* x A) B)",
+    "scheme": "CKKS",
+    "stage_failed": null,
+    "error_message": null,
+    "execution_latency_ms": 10.011,
+    "latency_samples_ms": [
+      10.011,
+      10.0477,
+      10.0047
+    ],
+    "compilation_time_ms": 0.376542,
+    "correctness_checked": true,
+    "correct": true,
+    "correctness_detail": "max abs error 3.949e-08 vs expected outputs (tolerance 1e-06)",
+    "depth": 2,
+    "multiplicative_depth": 1,
+    "op_counts": {
+      "mul": 0,
+      "mul_plain": 1,
+      "square": 0,
+      "add": 0,
+      "add_plain": 1,
+      "sub": 0,
+      "sub_plain": 0,
+      "negate": 0,
+      "relin": 0,
+      "rotate": 0,
+      "rescale": 1,
+      "mod_switch": 0
+    },
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": 3.94933e-08,
+    "ckks_levels_consumed": 1,
+    "ckks_tolerance": 1e-06,
+    "static_cost": 0.0
+  },
+  "best_result": {
+    "success": true,
+    "candidate_expr": "(+ (* A x) B)",
+    "scheme": "CKKS",
+    "stage_failed": null,
+    "error_message": null,
+    "execution_latency_ms": 9.79996,
+    "latency_samples_ms": [
+      9.79996,
+      9.76392,
+      9.80254
+    ],
+    "compilation_time_ms": 0.721459,
+    "correctness_checked": true,
+    "correct": true,
+    "correctness_detail": "max abs error 2.010e-08 vs expected outputs (tolerance 1e-06)",
+    "depth": 2,
+    "multiplicative_depth": 1,
+    "op_counts": {
+      "mul": 0,
+      "mul_plain": 1,
+      "square": 0,
+      "add": 0,
+      "add_plain": 1,
+      "sub": 0,
+      "sub_plain": 0,
+      "negate": 0,
+      "relin": 0,
+      "rotate": 0,
+      "rescale": 1,
+      "mod_switch": 0
+    },
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": 2.01049e-08,
+    "ckks_levels_consumed": 1,
+    "ckks_tolerance": 1e-06,
+    "static_cost": 0.0
+  },
+  "speedup_vs_unoptimized": 1.0245654063894136,
+  "speedup_vs_egraph": null,
+  "egraph_speedup_vs_unoptimized": null,
+  "valid_candidates": 6,
+  "history": [
+    {
+      "iteration": 1,
+      "candidate": "(+ (* A x) B)",
+      "llm_response": "The program is already minimal. It needs one plaintext multiply, which costs one level and one rescale, plus one plaintext add. A and B are unknown at run time, so the multiply cannot be removed or folded into the add. I'm proposing the commuted form with the ciphertext-dependent product first. It should compile to the same operations, and it may change operand ordering or encoding slightly. I have not measured it, so I can't promise a speedup over the baseline.\n\nPROPOSED_EXPRESSION:\n(+ (* A x) B)",
+      "llm_seconds": 4.594939999995404,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 1138,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 412,
+        "output_tokens_details": {
+          "thinking_tokens": 239
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(+ (* A x) B)",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 9.85,
+        "latency_samples_ms": [
+          9.85,
+          9.81233,
+          10.2677
+        ],
+        "compilation_time_ms": 0.52925,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 1.526e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 2,
+        "multiplicative_depth": 1,
+        "op_counts": {
+          "mul": 0,
+          "mul_plain": 1,
+          "square": 0,
+          "add": 0,
+          "add_plain": 1,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 0,
+          "rotate": 0,
+          "rescale": 1,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 1.52594e-08,
+        "ckks_levels_consumed": 1,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": true
+    },
+    {
+      "iteration": 2,
+      "candidate": "(+ (* A x) B)",
+      "llm_response": "The program is already at the minimum: one plaintext multiply (with its rescale) and one plaintext add. A and B are unknown at run time, so nothing can be folded, precomputed or removed. Any other form I can think of, such as negations or splitting the multiply, adds operations. The generated SEAL operations are identical in both versions (add_plain=1, mul_plain=1, rescale=1). The 10.04 ms to 9.85 ms difference is within noise for a 3-run median and is not a real improvement. I'm resubmitting the same minimal form, and I don't expect a measurable gain.\n\nPROPOSED_EXPRESSION:\n(+ (* A x) B)",
+      "llm_seconds": 5.360204958007671,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 1576,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 426,
+        "output_tokens_details": {
+          "thinking_tokens": 205
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(+ (* A x) B)",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 9.79996,
+        "latency_samples_ms": [
+          9.79996,
+          9.76392,
+          9.80254
+        ],
+        "compilation_time_ms": 0.721459,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 2.010e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 2,
+        "multiplicative_depth": 1,
+        "op_counts": {
+          "mul": 0,
+          "mul_plain": 1,
+          "square": 0,
+          "add": 0,
+          "add_plain": 1,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 0,
+          "rotate": 0,
+          "rescale": 1,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 2.01049e-08,
+        "ckks_levels_consumed": 1,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": true
+    },
+    {
+      "iteration": 3,
+      "candidate": "(+ (* A x) B)",
+      "llm_response": "The program is already at its minimum: one plaintext multiply with its rescale, and one plaintext add. A and B are unknown at run time, so nothing can be folded or precomputed. The operation counts are identical across all three runs (add_plain=1, mul_plain=1, rescale=1). The 10.04, 9.85 and 9.80 ms results differ only by noise from a 3-run median, not by any real change. I'm resubmitting the same form, and I don't expect any measurable gain.\n\nPROPOSED_EXPRESSION:\n(+ (* A x) B)",
+      "llm_seconds": 2.6815260000003036,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 2062,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 186,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(+ (* A x) B)",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 9.81454,
+        "latency_samples_ms": [
+          9.81454,
+          9.81429,
+          10.0022
+        ],
+        "compilation_time_ms": 0.587333,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 1.796e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 2,
+        "multiplicative_depth": 1,
+        "op_counts": {
+          "mul": 0,
+          "mul_plain": 1,
+          "square": 0,
+          "add": 0,
+          "add_plain": 1,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 0,
+          "rotate": 0,
+          "rescale": 1,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 1.7956e-08,
+        "ckks_levels_consumed": 1,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    },
+    {
+      "iteration": 4,
+      "candidate": "(+ (* A x) B)",
+      "llm_response": "The program is already minimal: one plaintext multiply with its rescale, and one plaintext add. A and B are unknown at run time, so nothing can be folded or precomputed. The operation counts have been identical in every run (add_plain=1, mul_plain=1, rescale=1). The 9.80 to 9.81 ms differences are measurement noise, not real improvements. I have no further transformation that removes an operation, so I'm resubmitting the same form and expect no real change in latency.\n\nPROPOSED_EXPRESSION:\n(+ (* A x) B)",
+      "llm_seconds": 2.686548583995318,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 2513,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 183,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(+ (* A x) B)",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 9.99146,
+        "latency_samples_ms": [
+          9.99146,
+          10.048,
+          9.86108
+        ],
+        "compilation_time_ms": 0.573875,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 2.320e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 2,
+        "multiplicative_depth": 1,
+        "op_counts": {
+          "mul": 0,
+          "mul_plain": 1,
+          "square": 0,
+          "add": 0,
+          "add_plain": 1,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 0,
+          "rotate": 0,
+          "rescale": 1,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 2.3196e-08,
+        "ckks_levels_consumed": 1,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    },
+    {
+      "iteration": 5,
+      "candidate": "(+ (* A x) B)",
+      "llm_response": "The program is already minimal: one plaintext multiply with its rescale, and one plaintext add. A and B are unknown at run time, so nothing can be folded or precomputed. The operation counts are identical in every run (add_plain=1, mul_plain=1, rescale=1). Latencies across runs (9.80 to 10.04 ms) vary only by noise. The 9.99 ms result for this same expression confirms the variation is noise, so the 9.80 ms \"best\" is not a real improvement. I have no transformation that removes an operation, so I'm resubmitting the same form.\n\nPROPOSED_EXPRESSION:\n(+ (* A x) B)",
+      "llm_seconds": 2.706693499989342,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 2961,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 215,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(+ (* A x) B)",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 9.93938,
+        "latency_samples_ms": [
+          10.0713,
+          9.77971,
+          9.93938
+        ],
+        "compilation_time_ms": 0.74225,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 1.598e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 2,
+        "multiplicative_depth": 1,
+        "op_counts": {
+          "mul": 0,
+          "mul_plain": 1,
+          "square": 0,
+          "add": 0,
+          "add_plain": 1,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 0,
+          "rotate": 0,
+          "rescale": 1,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 1.59751e-08,
+        "ckks_levels_consumed": 1,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    },
+    {
+      "iteration": 6,
+      "candidate": "(+ (* A x) B)",
+      "llm_response": "The program is already at its minimum: one plaintext multiply with its rescale, and one plaintext add. A and B are unknown at run time, so nothing can be folded, precomputed or removed. The operation counts are identical in every run (add_plain=1, mul_plain=1, rescale=1). The same expression has measured 9.80, 9.81, 9.99 and 9.94 ms, so the spread is run-to-run noise. The 9.80 ms \"best\" is not a real improvement over the baseline. I have no transformation that removes an operation, so I'm resubmitting the same form.\n\nPROPOSED_EXPRESSION:\n(+ (* A x) B)",
+      "llm_seconds": 2.853014666994568,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 3441,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 216,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(+ (* A x) B)",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 9.83204,
+        "latency_samples_ms": [
+          9.80058,
+          9.92633,
+          9.83204
+        ],
+        "compilation_time_ms": 0.614625,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 2.103e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 2,
+        "multiplicative_depth": 1,
+        "op_counts": {
+          "mul": 0,
+          "mul_plain": 1,
+          "square": 0,
+          "add": 0,
+          "add_plain": 1,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 0,
+          "rotate": 0,
+          "rescale": 1,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 2.10345e-08,
+        "ckks_levels_consumed": 1,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    }
+  ]
+}

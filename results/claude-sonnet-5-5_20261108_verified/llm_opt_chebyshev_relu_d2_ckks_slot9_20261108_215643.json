@@ -1,0 +1,530 @@
+{
+  "benchmark": "chebyshev_relu_d2_ckks",
+  "scheme": "CKKS",
+  "slot_count": 9,
+  "iterations": 6,
+  "model": "claude-sonnet-5-5",
+  "started": "2026-11-08T21:54:22",
+  "finished": "2026-11-08T21:56:43",
+  "harness_error": null,
+  "methodology": {
+    "bfv_latency": "median end-to-end time of the generated SEAL main (parse+encode+encrypt+evaluate), 1 warmup + 5 measured runs",
+    "ckks_latency": "median over 3 processes of the eval-only median (1 warmup + 5 runs of fhe())",
+    "ckks_tolerance": 1e-06,
+    "host": "Darwin arm64 26.6"
+  },
+  "original_expression": "(let z (* x alpha) (let zsq (* z z) (let t2 (- (+ zsq zsq) one) (+ (+ (* z c1) (* t2 c2)) c0))))",
+  "unoptimized_baseline": {
+    "success": true,
+    "candidate_expr": "chebyshev_relu_d2_ckks (as written)",
+    "scheme": "CKKS",
+    "stage_failed": null,
+    "error_message": null,
+    "execution_latency_ms": 59.0928,
+    "latency_samples_ms": [
+      59.102,
+      59.024,
+      59.0928
+    ],
+    "compilation_time_ms": 0.595083,
+    "correctness_checked": true,
+    "correct": true,
+    "correctness_detail": "max abs error 4.170e-08 vs expected outputs (tolerance 1e-06)",
+    "depth": 7,
+    "multiplicative_depth": 3,
+    "op_counts": {
+      "mul": 1,
+      "mul_plain": 4,
+      "square": 0,
+      "add": 2,
+      "add_plain": 1,
+      "sub": 0,
+      "sub_plain": 1,
+      "negate": 0,
+      "relin": 1,
+      "rotate": 0,
+      "rescale": 5,
+      "mod_switch": 0
+    },
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": 4.16956e-08,
+    "ckks_levels_consumed": 3,
+    "ckks_tolerance": 1e-06,
+    "static_cost": 0.0
+  },
+  "egraph_baseline": {
+    "success": false,
+    "candidate_expr": "",
+    "scheme": "CKKS",
+    "stage_failed": "not_applicable",
+    "error_message": "CHEHAB's e-graph vectorizer is BFV-only (Func::require_bfv); no CKKS e-graph baseline",
+    "execution_latency_ms": 0.0,
+    "latency_samples_ms": [],
+    "compilation_time_ms": 0.0,
+    "correctness_checked": false,
+    "correct": false,
+    "correctness_detail": "",
+    "depth": 0,
+    "multiplicative_depth": 0,
+    "op_counts": {},
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": null,
+    "ckks_levels_consumed": 0,
+    "ckks_tolerance": null,
+    "static_cost": 0.0
+  },
+  "reference_via_candidate_path": {
+    "success": true,
+    "candidate_expr": "(let z (* x alpha) (let zsq (* z z) (let t2 (- (+ zsq zsq) one) (+ (+ (* z c1) (* t2 c2)) c0))))",
+    "scheme": "CKKS",
+    "stage_failed": null,
+    "error_message": null,
+    "execution_latency_ms": 59.2573,
+    "latency_samples_ms": [
+      59.2573,
+      59.1898,
+      60.0165
+    ],
+    "compilation_time_ms": 0.347584,
+    "correctness_checked": true,
+    "correct": true,
+    "correctness_detail": "max abs error 3.395e-08 vs expected outputs (tolerance 1e-06)",
+    "depth": 7,
+    "multiplicative_depth": 3,
+    "op_counts": {
+      "mul": 1,
+      "mul_plain": 4,
+      "square": 0,
+      "add": 2,
+      "add_plain": 1,
+      "sub": 0,
+      "sub_plain": 1,
+      "negate": 0,
+      "relin": 1,
+      "rotate": 0,
+      "rescale": 5,
+      "mod_switch": 0
+    },
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": 3.39529e-08,
+    "ckks_levels_consumed": 3,
+    "ckks_tolerance": 1e-06,
+    "static_cost": 0.0
+  },
+  "best_result": {
+    "success": true,
+    "candidate_expr": "(let z (* x alpha) (let zsq (* z z) (let t2 (- (+ zsq zsq) one) (+ (+ (* t2 c2) (* z c1)) c0))))",
+    "scheme": "CKKS",
+    "stage_failed": null,
+    "error_message": null,
+    "execution_latency_ms": 58.8902,
+    "latency_samples_ms": [
+      58.8782,
+      58.9025,
+      58.8902
+    ],
+    "compilation_time_ms": 1.15196,
+    "correctness_checked": true,
+    "correct": true,
+    "correctness_detail": "max abs error 6.000e-08 vs expected outputs (tolerance 1e-06)",
+    "depth": 7,
+    "multiplicative_depth": 3,
+    "op_counts": {
+      "mul": 1,
+      "mul_plain": 4,
+      "square": 0,
+      "add": 2,
+      "add_plain": 1,
+      "sub": 0,
+      "sub_plain": 1,
+      "negate": 0,
+      "relin": 1,
+      "rotate": 0,
+      "rescale": 5,
+      "mod_switch": 0
+    },
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": 6.00023e-08,
+    "ckks_levels_consumed": 3,
+    "ckks_tolerance": 1e-06,
+    "static_cost": 0.0
+  },
+  "speedup_vs_unoptimized": 1.003440300763115,
+  "speedup_vs_egraph": null,
+  "egraph_speedup_vs_unoptimized": null,
+  "valid_candidates": 6,
+  "history": [
+    {
+      "iteration": 1,
+      "candidate": "(let z (* x alpha) (let zsq (* z z) (let t2 (- (+ zsq zsq) one) (+ (* t2 c2) (+ (* z c1) c0)))))",
+      "llm_response": "The program is already close to minimal. Folding the plaintext coefficients into the squared term would need plaintext-only products such as `alpha*alpha` or `c2*one`, and the grammar does not allow those. That leaves the structure as one plaintext multiply, one ciphertext square, and two more plaintext multiplies.\n\nI only reordered the sums. The plaintext constant `c0` is added to the cheap, shallow `z*c1` term, which sits at a higher level than `t2*c2`. The deepest chain, `t2*c2`, takes the final addition last so that it adds no extra level alignment. I have not measured this against the baseline, so any speedup is likely small.\n\nPROPOSED_EXPRESSION:\n(let z (* x alpha)\n (let zsq (* z z)\n  (let t2 (- (+ zsq zsq) one)\n   (+ (* t2 c2) (+ (* z c1) c0)))))",
+      "llm_seconds": 20.201360167004168,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 1268,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 2231,
+        "output_tokens_details": {
+          "thinking_tokens": 1925
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(let z (* x alpha) (let zsq (* z z) (let t2 (- (+ zsq zsq) one) (+ (* t2 c2) (+ (* z c1) c0)))))",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 59.2865,
+        "latency_samples_ms": [
+          59.0659,
+          59.2865,
+          59.5544
+        ],
+        "compilation_time_ms": 1.05812,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 5.687e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 6,
+        "multiplicative_depth": 3,
+        "op_counts": {
+          "mul": 1,
+          "mul_plain": 4,
+          "square": 0,
+          "add": 2,
+          "add_plain": 1,
+          "sub": 0,
+          "sub_plain": 1,
+          "negate": 0,
+          "relin": 1,
+          "rotate": 0,
+          "rescale": 5,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 5.68713e-08,
+        "ckks_levels_consumed": 3,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": true
+    },
+    {
+      "iteration": 2,
+      "candidate": "(let z (* x alpha) (let zsq (* z z) (let t2 (- (+ zsq zsq) one) (+ (+ (* z c1) (* t2 c2)) c0))))",
+      "llm_response": "I could not find a rewrite with fewer expensive operations. The obvious ones, such as folding `c2` and `one` into a single plaintext term or computing `alpha*alpha`, would need plaintext-only products, which the grammar forbids. Horner form would add a ciphertext multiplication and a level.\n\nSo this is the same operation set with a different shape. `z*c1` and `t2*c2` are summed first, and `c0` is added last as a single `add_plain` at the lowest level. I expect the latency to be about the same as before, not better.\n\nPROPOSED_EXPRESSION:\n(let z (* x alpha)\n (let zsq (* z z)\n  (let t2 (- (+ zsq zsq) one)\n   (+ (+ (* z c1) (* t2 c2)) c0))))",
+      "llm_seconds": 15.178249292002874,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 1861,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 1823,
+        "output_tokens_details": {
+          "thinking_tokens": 1561
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(let z (* x alpha) (let zsq (* z z) (let t2 (- (+ zsq zsq) one) (+ (+ (* z c1) (* t2 c2)) c0))))",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 58.8929,
+        "latency_samples_ms": [
+          58.8641,
+          58.8929,
+          59.8267
+        ],
+        "compilation_time_ms": 1.05371,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 1.036e-07 vs expected outputs (tolerance 1e-06)",
+        "depth": 7,
+        "multiplicative_depth": 3,
+        "op_counts": {
+          "mul": 1,
+          "mul_plain": 4,
+          "square": 0,
+          "add": 2,
+          "add_plain": 1,
+          "sub": 0,
+          "sub_plain": 1,
+          "negate": 0,
+          "relin": 1,
+          "rotate": 0,
+          "rescale": 5,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 1.03618e-07,
+        "ckks_levels_consumed": 3,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": true
+    },
+    {
+      "iteration": 3,
+      "candidate": "(let z (* x alpha) (let zsq (* z z) (let t2 (- (+ zsq zsq) one) (+ (+ (* z c1) (* t2 c2)) c0))))",
+      "llm_response": "I don't see a rewrite with fewer expensive operations. A factored form like `z*(c1 + 2*z*c2)` would still need the plaintext-only product `one*c2`, which the grammar forbids. The structure is therefore unchanged: one ct\u00d7ct square plus three plaintext multiplies.\n\nThis candidate is the Iteration 2 form (best so far, 58.89 ms). The only change is that `2*zsq` is written as `(+ zsq zsq)` inside a single `let`, which keeps the cheap addition. Any speedup is probably within measurement noise.\n\nPROPOSED_EXPRESSION:\n(let z (* x alpha)\n (let zsq (* z z)\n  (let t2 (- (+ zsq zsq) one)\n   (+ (+ (* z c1) (* t2 c2)) c0))))",
+      "llm_seconds": 15.80005354101013,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 2410,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 1845,
+        "output_tokens_details": {
+          "thinking_tokens": 1568
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(let z (* x alpha) (let zsq (* z z) (let t2 (- (+ zsq zsq) one) (+ (+ (* z c1) (* t2 c2)) c0))))",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 59.2283,
+        "latency_samples_ms": [
+          59.2283,
+          58.9494,
+          59.5356
+        ],
+        "compilation_time_ms": 0.805292,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 5.228e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 7,
+        "multiplicative_depth": 3,
+        "op_counts": {
+          "mul": 1,
+          "mul_plain": 4,
+          "square": 0,
+          "add": 2,
+          "add_plain": 1,
+          "sub": 0,
+          "sub_plain": 1,
+          "negate": 0,
+          "relin": 1,
+          "rotate": 0,
+          "rescale": 5,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 5.22759e-08,
+        "ckks_levels_consumed": 3,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    },
+    {
+      "iteration": 4,
+      "candidate": "(let z (* x alpha) (let zsq (* z z) (let t2 (- (+ zsq zsq) one) (+ (+ (* t2 c2) (* z c1)) c0))))",
+      "llm_response": "I still see no rewrite that cuts the expensive operations. The remaining ideas, such as folding `one*c2` or `alpha*c1` into one plaintext, need plaintext-only products, which the grammar forbids. Latency differences across iterations (58.9 to 59.3 ms) are measurement noise, since the operation counts are identical.\n\nThis candidate keeps the best-measured form from Iteration 2, which has depth (7, 3). It reorders the sum so `t2*c2` and `z*c1` are added first, with `c0` last.\n\nPROPOSED_EXPRESSION:\n(let z (* x alpha)\n (let zsq (* z z)\n  (let t2 (- (+ zsq zsq) one)\n   (+ (+ (* t2 c2) (* z c1)) c0))))",
+      "llm_seconds": 15.976436917000683,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 2974,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 1915,
+        "output_tokens_details": {
+          "thinking_tokens": 1650
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(let z (* x alpha) (let zsq (* z z) (let t2 (- (+ zsq zsq) one) (+ (+ (* t2 c2) (* z c1)) c0))))",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 58.8902,
+        "latency_samples_ms": [
+          58.8782,
+          58.9025,
+          58.8902
+        ],
+        "compilation_time_ms": 1.15196,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 6.000e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 7,
+        "multiplicative_depth": 3,
+        "op_counts": {
+          "mul": 1,
+          "mul_plain": 4,
+          "square": 0,
+          "add": 2,
+          "add_plain": 1,
+          "sub": 0,
+          "sub_plain": 1,
+          "negate": 0,
+          "relin": 1,
+          "rotate": 0,
+          "rescale": 5,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 6.00023e-08,
+        "ckks_levels_consumed": 3,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": true
+    },
+    {
+      "iteration": 5,
+      "candidate": "(let z (* x alpha) (let zsq (* z z) (let t2 (- (+ zsq zsq) one) (+ (+ (* z c1) (* t2 c2)) c0))))",
+      "llm_response": "I still can't find a rewrite with fewer expensive operations. The factored form `z*(c1 + 2*c2*z) + (c0 - c2*one)` would save a multiplication, but it needs the plaintext-only product `c2*one`, which the grammar forbids. The Horner-style forms add a ciphertext multiplication and a level.\n\nOperation counts have been identical across all four runs, and latency varies only from 58.89 to 59.29 ms. That spread is noise, so I'm resubmitting the best-measured form (58.89 ms), which has depth (7, 3).\n\nPROPOSED_EXPRESSION:\n(let z (* x alpha)\n (let zsq (* z z)\n  (let t2 (- (+ zsq zsq) one)\n   (+ (+ (* z c1) (* t2 c2)) c0))))",
+      "llm_seconds": 17.594226375003927,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 3526,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 2036,
+        "output_tokens_details": {
+          "thinking_tokens": 1759
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(let z (* x alpha) (let zsq (* z z) (let t2 (- (+ zsq zsq) one) (+ (+ (* z c1) (* t2 c2)) c0))))",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 59.3537,
+        "latency_samples_ms": [
+          59.381,
+          58.8615,
+          59.3537
+        ],
+        "compilation_time_ms": 0.874334,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 4.515e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 7,
+        "multiplicative_depth": 3,
+        "op_counts": {
+          "mul": 1,
+          "mul_plain": 4,
+          "square": 0,
+          "add": 2,
+          "add_plain": 1,
+          "sub": 0,
+          "sub_plain": 1,
+          "negate": 0,
+          "relin": 1,
+          "rotate": 0,
+          "rescale": 5,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 4.51518e-08,
+        "ckks_levels_consumed": 3,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    },
+    {
+      "iteration": 6,
+      "candidate": "(let z (* x alpha) (let zsq (* z z) (let t2 (- (+ zsq zsq) one) (+ (+ (* z c1) (* t2 c2)) c0))))",
+      "llm_response": "I still can't find a rewrite that removes an expensive operation. The factored form `z*(c1 + 2*c2*z) + (c0 - c2*one)` would need the plaintext-only product `c2*one`, which the grammar forbids. Squaring through `x*x` first would add plaintext multiplications and depth.\n\nAll five runs have identical operation counts, and latency varies only between 58.89 and 59.35 ms. That spread is noise. I'm resubmitting the best-measured form (58.89 ms), which has depth (7, 3), rather than guess at a variant that may not help.\n\nPROPOSED_EXPRESSION:\n(let z (* x alpha)\n (let zsq (* z z)\n  (let t2 (- (+ zsq zsq) one)\n   (+ (+ (* z c1) (* t2 c2)) c0))))",
+      "llm_seconds": 14.89600175000669,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 4090,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 1690,
+        "output_tokens_details": {
+          "thinking_tokens": 1411
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(let z (* x alpha) (let zsq (* z z) (let t2 (- (+ zsq zsq) one) (+ (+ (* z c1) (* t2 c2)) c0))))",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 58.9906,
+        "latency_samples_ms": [
+          58.9464,
+          59.0017,
+          58.9906
+        ],
+        "compilation_time_ms": 1.2845,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 1.038e-07 vs expected outputs (tolerance 1e-06)",
+        "depth": 7,
+        "multiplicative_depth": 3,
+        "op_counts": {
+          "mul": 1,
+          "mul_plain": 4,
+          "square": 0,
+          "add": 2,
+          "add_plain": 1,
+          "sub": 0,
+          "sub_plain": 1,
+          "negate": 0,
+          "relin": 1,
+          "rotate": 0,
+          "rescale": 5,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 1.038e-07,
+        "ckks_levels_consumed": 3,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    }
+  ]
+}

@@ -1,0 +1,462 @@
+{
+  "benchmark": "chebyshev_sigmoid_d5_ckks",
+  "scheme": "CKKS",
+  "slot_count": 9,
+  "iterations": 6,
+  "model": "claude-haiku-5-5",
+  "started": "2026-11-08T21:28:27",
+  "finished": "2026-11-08T21:30:09",
+  "harness_error": null,
+  "methodology": {
+    "bfv_latency": "median end-to-end time of the generated SEAL main (parse+encode+encrypt+evaluate), 1 warmup + 5 measured runs",
+    "ckks_latency": "median over 3 processes of the eval-only median (1 warmup + 5 runs of fhe())",
+    "ckks_tolerance": 1e-06,
+    "host": "Darwin arm64 26.6"
+  },
+  "original_expression": "(let z (* x alpha) (let zsq (* z z) (let t2 (- (+ zsq zsq) one) (let zt3 (* z t2) (let t3 (- (+ zt3 zt3) z) (let zt4 (* z t3) (let t4 (- (+ zt4 zt4) t2) (let zt5 (* z t4) (let t5 (- (+ zt5 zt5) t3) (+ (+ (+ (* z c1) (* t3 c3)) (* t5 c5)) c0))))))))))",
+  "unoptimized_baseline": {
+    "success": true,
+    "candidate_expr": "chebyshev_sigmoid_d5_ckks (as written)",
+    "scheme": "CKKS",
+    "stage_failed": null,
+    "error_message": null,
+    "execution_latency_ms": 146.669,
+    "latency_samples_ms": [
+      144.174,
+      148.165,
+      146.669
+    ],
+    "compilation_time_ms": 0.63125,
+    "correctness_checked": true,
+    "correct": true,
+    "correctness_detail": "max abs error 4.443e-08 vs expected outputs (tolerance 1e-06)",
+    "depth": 16,
+    "multiplicative_depth": 6,
+    "op_counts": {
+      "mul": 4,
+      "mul_plain": 9,
+      "square": 0,
+      "add": 6,
+      "add_plain": 1,
+      "sub": 3,
+      "sub_plain": 1,
+      "negate": 0,
+      "relin": 4,
+      "rotate": 0,
+      "rescale": 13,
+      "mod_switch": 8
+    },
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": 4.44331e-08,
+    "ckks_levels_consumed": 6,
+    "ckks_tolerance": 1e-06,
+    "static_cost": 0.0
+  },
+  "egraph_baseline": {
+    "success": false,
+    "candidate_expr": "",
+    "scheme": "CKKS",
+    "stage_failed": "not_applicable",
+    "error_message": "CHEHAB's e-graph vectorizer is BFV-only (Func::require_bfv); no CKKS e-graph baseline",
+    "execution_latency_ms": 0.0,
+    "latency_samples_ms": [],
+    "compilation_time_ms": 0.0,
+    "correctness_checked": false,
+    "correct": false,
+    "correctness_detail": "",
+    "depth": 0,
+    "multiplicative_depth": 0,
+    "op_counts": {},
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": null,
+    "ckks_levels_consumed": 0,
+    "ckks_tolerance": null,
+    "static_cost": 0.0
+  },
+  "reference_via_candidate_path": {
+    "success": true,
+    "candidate_expr": "(let z (* x alpha) (let zsq (* z z) (let t2 (- (+ zsq zsq) one) (let zt3 (* z t2) (let t3 (- (+ zt3 zt3) z) (let zt4 (* z t3) (let t4 (- (+ zt4 zt4) t2) (let zt5 (* z t4) (let t5 (- (+ zt5 zt5) t3) (+ (+ (+ (* z c1) (* t3 c3)) (* t5 c5)) c0))))))))))",
+    "scheme": "CKKS",
+    "stage_failed": null,
+    "error_message": null,
+    "execution_latency_ms": 145.336,
+    "latency_samples_ms": [
+      145.336,
+      146.439,
+      145.274
+    ],
+    "compilation_time_ms": 0.64575,
+    "correctness_checked": true,
+    "correct": true,
+    "correctness_detail": "max abs error 2.863e-08 vs expected outputs (tolerance 1e-06)",
+    "depth": 16,
+    "multiplicative_depth": 6,
+    "op_counts": {
+      "mul": 4,
+      "mul_plain": 9,
+      "square": 0,
+      "add": 6,
+      "add_plain": 1,
+      "sub": 3,
+      "sub_plain": 1,
+      "negate": 0,
+      "relin": 4,
+      "rotate": 0,
+      "rescale": 13,
+      "mod_switch": 8
+    },
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": 2.86305e-08,
+    "ckks_levels_consumed": 6,
+    "ckks_tolerance": 1e-06,
+    "static_cost": 0.0
+  },
+  "best_result": {
+    "success": true,
+    "candidate_expr": "(let z (* x alpha) (let z2 (* z z) (let z3 (* z2 z) (let z4 (* z2 z2) (let z5 (* z4 z) (let a1 (* c1 z) (let a3 (* c3 z3) (let a3b (* c3 z) (let a5 (* c5 z5) (let a5b (* c5 z3) (let a5c (* c5 z) (let a3d (+ a3 a3) (let a3q (+ a3d a3d) (let a3bd (+ a3b a3b) (let a3t (+ a3bd a3b) (let a5d (+ a5 a5) (let a5q (+ a5d a5d) (let a5o (+ a5q a5q) (let a5h (+ a5o a5o) (let a5bd (+ a5b a5b) (let a5bq (+ a5bd a5bd) (let a5bo (+ a5bq a5bq) (let a5b16 (+ a5bo a5bo) (let a5b20 (+ a5b16 a5bq) (let a5cd (+ a5c a5c) (let a5cq (+ a5cd a5cd) (let a5c5 (+ a5cq a5c) (+ (+ (+ (+ c0 a1) (- a3q a3t)) (- a5h a5b20)) a5c5) )))))))))))))))))))))))))))",
+    "scheme": "CKKS",
+    "stage_failed": null,
+    "error_message": null,
+    "execution_latency_ms": 171.9,
+    "latency_samples_ms": [
+      171.9,
+      172.321,
+      171.387
+    ],
+    "compilation_time_ms": 1.24188,
+    "correctness_checked": true,
+    "correct": true,
+    "correctness_detail": "max abs error 4.990e-07 vs expected outputs (tolerance 1e-06)",
+    "depth": 12,
+    "multiplicative_depth": 5,
+    "op_counts": {
+      "mul": 4,
+      "mul_plain": 12,
+      "square": 0,
+      "add": 19,
+      "add_plain": 1,
+      "sub": 2,
+      "sub_plain": 0,
+      "negate": 0,
+      "relin": 4,
+      "rotate": 0,
+      "rescale": 16,
+      "mod_switch": 6
+    },
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": 4.99025e-07,
+    "ckks_levels_consumed": 5,
+    "ckks_tolerance": 1e-06,
+    "static_cost": 0.0
+  },
+  "speedup_vs_unoptimized": 0.8532228039557883,
+  "speedup_vs_egraph": null,
+  "egraph_speedup_vs_unoptimized": null,
+  "valid_candidates": 1,
+  "history": [
+    {
+      "iteration": 1,
+      "candidate": "(let z (* x alpha) (let z2 (* z z) (let z3 (* z2 z) (let z4 (* z2 z2) (let cA (- c1 (* 3 c3)) (let cB (+ cA (* 5 c5)) (let cC (- (* 4 c3) (* 20 c5)) (let zc5 (* z (* 16 c5)) (+ (+ (+ c0 (* z cB)) (* z3 cC)) (* z4 zc5))))))))))",
+      "llm_response": "This rewrites the Chebyshev recurrence in closed form. With z = x\u00b7alpha, the recurrence gives t3 = 4z\u00b3 \u2212 3z, t4 = 8z\u2074 \u2212 8z\u00b2 + 1, and t5 = 16z\u2075 \u2212 20z\u00b3 + 5z. The result is therefore c0 + z\u00b7(c1 \u2212 3c3 + 5c5) + z\u00b3\u00b7(4c3 \u2212 20c5) + z\u2074\u00b7(16c5\u00b7z). Powers come from a shallow tree (z\u00b2, z\u00b3 = z\u00b2\u00b7z, z\u2074 = z\u00b2\u00b7z\u00b2), so the multiplicative depth drops from 6 to about 4. The coefficient combinations are plaintext-only, so they add no ciphertext depth. I haven't run the CHEHAB/SEAL pipeline, so the latency gain is unmeasured.\n\nPROPOSED_EXPRESSION:\n(let z (* x alpha)\n(let z2 (* z z)\n(let z3 (* z2 z)\n(let z4 (* z2 z2)\n(let cA (- c1 (* 3 c3))\n(let cB (+ cA (* 5 c5))\n(let cC (- (* 4 c3) (* 20 c5))\n(let zc5 (* z (* 16 c5))\n(+ (+ (+ c0 (* z cB)) (* z3 cC)) (* z4 zc5))))))))))",
+      "llm_seconds": 10.468705334002152,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 1433,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 2224,
+        "output_tokens_details": {
+          "thinking_tokens": 1770
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": false,
+        "candidate_expr": "(let z (* x alpha) (let z2 (* z z) (let z3 (* z2 z) (let z4 (* z2 z2) (let cA (- c1 (* 3 c3)) (let cB (+ cA (* 5 c5)) (let cC (- (* 4 c3) (* 20 c5)) (let zc5 (* z (* 16 c5)) (+ (+ (+ c0 (* z cB)) (* z3 cC)) (* z4 zc5))))))))))",
+        "scheme": "CKKS",
+        "stage_failed": "chehab_compiler",
+        "error_message": "CHEHAB exited with status 1:\ncandidate error: operation '*' between two plaintext operands: at least one operand must depend on a ciphertext",
+        "execution_latency_ms": 0.0,
+        "latency_samples_ms": [],
+        "compilation_time_ms": 0.0,
+        "correctness_checked": false,
+        "correct": false,
+        "correctness_detail": "",
+        "depth": 0,
+        "multiplicative_depth": 0,
+        "op_counts": {},
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": null,
+        "ckks_levels_consumed": 0,
+        "ckks_tolerance": null,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    },
+    {
+      "iteration": 2,
+      "candidate": "(let z (* x alpha) (let z2 (* z z) (let z3 (* z2 z) (let z4 (* z2 z2) (let p3 (- (* 4 z3) (* 3 z)) (let p5 (- (* z4 (* 16 z)) (- (* 20 z3) (* 5 z))) (+ (+ (+ c0 (* z c1)) (* c3 p3)) (* c5 p5))))))))",
+      "llm_response": "The error came from products like `(* 3 c3)` and `(* 16 c5)`, where a literal multiplies a plaintext vector. Every operation needs a ciphertext operand, so I moved the scalars onto ciphertext terms.\n\nThe closed form is unchanged: T3 = 4z\u00b3\u22123z and T5 = 16z\u2075\u221220z\u00b3+5z, so the result is c0 + z\u00b7c1 + c3\u00b7T3(z) + c5\u00b7T5(z). The ciphertext-only polynomials T3 and T5 are built from z, z\u00b2, z\u00b3, z\u2074 with literal scalars, and the coefficients enter only as ciphertext\u00d7plaintext products. The scalar `16` is folded into `(* z4 (* 16 z))` to keep the depth at about 5 instead of 6. I have not run CHEHAB or SEAL, so the latency is unmeasured.\n\nPROPOSED_EXPRESSION:\n(let z (* x alpha)\n(let z2 (* z z)\n(let z3 (* z2 z)\n(let z4 (* z2 z2)\n(let p3 (- (* 4 z3) (* 3 z))\n(let p5 (- (* z4 (* 16 z)) (- (* 20 z3) (* 5 z)))\n(+ (+ (+ c0 (* z c1)) (* c3 p3)) (* c5 p5)))))))))",
+      "llm_seconds": 12.55743091700424,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 2079,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 2776,
+        "output_tokens_details": {
+          "thinking_tokens": 2325
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": false,
+        "candidate_expr": "(let z (* x alpha) (let z2 (* z z) (let z3 (* z2 z) (let z4 (* z2 z2) (let p3 (- (* 4 z3) (* 3 z)) (let p5 (- (* z4 (* 16 z)) (- (* 20 z3) (* 5 z))) (+ (+ (+ c0 (* z c1)) (* c3 p3)) (* c5 p5))))))))",
+        "scheme": "CKKS",
+        "stage_failed": "chehab_compiler",
+        "error_message": "CHEHAB exited with status 1:\ncandidate error: CKKS scale mismatch: ciphertext operands of '-' (term 28) are at the same level 4 with different scales; aligning them would need an extra level",
+        "execution_latency_ms": 0.0,
+        "latency_samples_ms": [],
+        "compilation_time_ms": 0.0,
+        "correctness_checked": false,
+        "correct": false,
+        "correctness_detail": "",
+        "depth": 0,
+        "multiplicative_depth": 0,
+        "op_counts": {},
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": null,
+        "ckks_levels_consumed": 0,
+        "ckks_tolerance": null,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    },
+    {
+      "iteration": 3,
+      "candidate": "(let z (* x alpha) (let z2 (* z z) (let z3 (* z2 z) (let z4 (* z2 z2) (let z5 (* z4 z) (let a1 (* c1 z) (let a3 (* c3 z3) (let a3b (* c3 z) (let a5 (* c5 z5) (let a5b (* c5 z3) (let a5c (* c5 z) (let a3x4 (+ (+ a3 a3) (+ a3 a3)) (let a3x3 (+ a3b (+ a3b a3b)) (let a5x16 (+ (+ (+ a5 a5) (+ a5 a5)) (+ (+ a5 a5) (+ a5 a5))) (let a5x20 (+ (+ (+ a5b a5b) (+ a5b a5b)) (+ (+ a5b a5b) (+ a5b a5b))) (let a5x5 (+ a5c (+ (+ a5c a5c) (+ a5c a5c))) (+ (+ (+ (+ c0 a1) (- a3x4 a3x3)) (- a5x16 a5x20)) a5x5) ))))))))))))))))",
+      "llm_response": "The previous failure was a scale mismatch in `(- (* 4 z3) (* 3 z))`. The two operands reached the subtraction with different scales. To avoid that, I removed the literal multiplications on the ciphertext path. Small integer multiples (4, 3, 16, 20, 5) are now built from doubling and addition, so the only multiplications left are ciphertext\u00d7ciphertext for the powers and ciphertext\u00d7plaintext for the coefficients c1, c3, c5. The polynomial is unchanged: c0 + c1\u00b7z + c3\u00b7(4z\u00b3 \u2212 3z) + c5\u00b7(16z\u2075 \u2212 20z\u00b3 + 5z). Multiplicative depth is 4. I have not run CHEHAB or SEAL, so this is untested.\n\nPROPOSED_EXPRESSION:\n(let z (* x alpha)\n(let z2 (* z z)\n(let z3 (* z2 z)\n(let z4 (* z2 z2)\n(let z5 (* z4 z)\n(let a1 (* c1 z)\n(let a3 (* c3 z3)\n(let a3b (* c3 z)\n(let a5 (* c5 z5)\n(let a5b (* c5 z3)\n(let a5c (* c5 z)\n(let a3x4 (+ (+ a3 a3) (+ a3 a3))\n(let a3x3 (+ a3b (+ a3b a3b))\n(let a5x16 (+ (+ (+ a5 a5) (+ a5 a5)) (+ (+ a5 a5) (+ a5 a5)))\n(let a5x20 (+ (+ (+ a5b a5b) (+ a5b a5b)) (+ (+ a5b a5b) (+ a5b a5b)))\n(let a5x5 (+ a5c (+ (+ a5c a5c) (+ a5c a5c)))\n(+ (+ (+ (+ c0 a1) (- a3x4 a3x3)) (- a5x16 a5x20)) a5x5)\n))))))))))))))))",
+      "llm_seconds": 11.379295375008951,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 2743,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 2485,
+        "output_tokens_details": {
+          "thinking_tokens": 1813
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": false,
+        "candidate_expr": "(let z (* x alpha) (let z2 (* z z) (let z3 (* z2 z) (let z4 (* z2 z2) (let z5 (* z4 z) (let a1 (* c1 z) (let a3 (* c3 z3) (let a3b (* c3 z) (let a5 (* c5 z5) (let a5b (* c5 z3) (let a5c (* c5 z) (let a3x4 (+ (+ a3 a3) (+ a3 a3)) (let a3x3 (+ a3b (+ a3b a3b)) (let a5x16 (+ (+ (+ a5 a5) (+ a5 a5)) (+ (+ a5 a5) (+ a5 a5))) (let a5x20 (+ (+ (+ a5b a5b) (+ a5b a5b)) (+ (+ a5b a5b) (+ a5b a5b))) (let a5x5 (+ a5c (+ (+ a5c a5c) (+ a5c a5c))) (+ (+ (+ (+ c0 a1) (- a3x4 a3x3)) (- a5x16 a5x20)) a5x5) ))))))))))))))))",
+        "scheme": "CKKS",
+        "stage_failed": "correctness",
+        "error_message": null,
+        "execution_latency_ms": 170.862,
+        "latency_samples_ms": [
+          170.862,
+          171.073,
+          170.718
+        ],
+        "compilation_time_ms": 1.09029,
+        "correctness_checked": true,
+        "correct": false,
+        "correctness_detail": "max abs error 9.625e-02 vs expected outputs (tolerance 1e-06)",
+        "depth": 11,
+        "multiplicative_depth": 5,
+        "op_counts": {
+          "mul": 4,
+          "mul_plain": 12,
+          "square": 0,
+          "add": 16,
+          "add_plain": 1,
+          "sub": 2,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 4,
+          "rotate": 0,
+          "rescale": 16,
+          "mod_switch": 6
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 0.0962455,
+        "ckks_levels_consumed": 5,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    },
+    {
+      "iteration": 4,
+      "candidate": "(let z (* x alpha) (let z2 (* z z) (let z3 (* z2 z) (let z4 (* z2 z2) (let z5 (* z4 z) (let a1 (* c1 z) (let a3 (* c3 z3) (let a3b (* c3 z) (let a5 (* c5 z5) (let a5b (* c5 z3) (let a5c (* c5 z) (let a3d (+ a3 a3) (let a3q (+ a3d a3d) (let a3bd (+ a3b a3b) (let a3t (+ a3bd a3b) (let a5d (+ a5 a5) (let a5q (+ a5d a5d) (let a5o (+ a5q a5q) (let a5h (+ a5o a5o) (let a5bd (+ a5b a5b) (let a5bq (+ a5bd a5bd) (let a5bo (+ a5bq a5bq) (let a5b16 (+ a5bo a5bo) (let a5b20 (+ a5b16 a5bq) (let a5cd (+ a5c a5c) (let a5cq (+ a5cd a5cd) (let a5c5 (+ a5cq a5c) (+ (+ (+ (+ c0 a1) (- a3q a3t)) (- a5h a5b20)) a5c5) )))))))))))))))))))))))))))",
+      "llm_response": "The error was in my constant multiples, not the polynomial. The closed form is c0 + c1\u00b7z + c3\u00b7(4z\u00b3 \u2212 3z) + c5\u00b7(16z\u2075 \u2212 20z\u00b3 + 5z), which matches the original recurrence. But my doubling chains were off: the 16\u00b7c5\u00b7z\u2075 term summed to 8\u00b7c5\u00b7z\u2075, and the 20\u00b7c5\u00b7z\u00b3 term summed to 8\u00b7c5\u00b7z\u00b3 + 12 mismatch. Both are now built from explicit doubling steps: 16 = ((2\u00b72)\u00b72)\u00b72 and 20 = 16 + 4. The 3, 4, and 5 multiples are fixed the same way. The structure otherwise matches iteration 3. I have not run CHEHAB or SEAL.\n\nPROPOSED_EXPRESSION:\n(let z (* x alpha)\n(let z2 (* z z)\n(let z3 (* z2 z)\n(let z4 (* z2 z2)\n(let z5 (* z4 z)\n(let a1 (* c1 z)\n(let a3 (* c3 z3)\n(let a3b (* c3 z)\n(let a5 (* c5 z5)\n(let a5b (* c5 z3)\n(let a5c (* c5 z)\n(let a3d (+ a3 a3)\n(let a3q (+ a3d a3d)\n(let a3bd (+ a3b a3b)\n(let a3t (+ a3bd a3b)\n(let a5d (+ a5 a5)\n(let a5q (+ a5d a5d)\n(let a5o (+ a5q a5q)\n(let a5h (+ a5o a5o)\n(let a5bd (+ a5b a5b)\n(let a5bq (+ a5bd a5bd)\n(let a5bo (+ a5bq a5bq)\n(let a5b16 (+ a5bo a5bo)\n(let a5b20 (+ a5b16 a5bq)\n(let a5cd (+ a5c a5c)\n(let a5cq (+ a5cd a5cd)\n(let a5c5 (+ a5cq a5c)\n(+ (+ (+ (+ c0 a1) (- a3q a3t)) (- a5h a5b20)) a5c5)\n)))))))))))))))))))))))))))))",
+      "llm_seconds": 15.147510750000947,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 3637,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 3788,
+        "output_tokens_details": {
+          "thinking_tokens": 3044
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(let z (* x alpha) (let z2 (* z z) (let z3 (* z2 z) (let z4 (* z2 z2) (let z5 (* z4 z) (let a1 (* c1 z) (let a3 (* c3 z3) (let a3b (* c3 z) (let a5 (* c5 z5) (let a5b (* c5 z3) (let a5c (* c5 z) (let a3d (+ a3 a3) (let a3q (+ a3d a3d) (let a3bd (+ a3b a3b) (let a3t (+ a3bd a3b) (let a5d (+ a5 a5) (let a5q (+ a5d a5d) (let a5o (+ a5q a5q) (let a5h (+ a5o a5o) (let a5bd (+ a5b a5b) (let a5bq (+ a5bd a5bd) (let a5bo (+ a5bq a5bq) (let a5b16 (+ a5bo a5bo) (let a5b20 (+ a5b16 a5bq) (let a5cd (+ a5c a5c) (let a5cq (+ a5cd a5cd) (let a5c5 (+ a5cq a5c) (+ (+ (+ (+ c0 a1) (- a3q a3t)) (- a5h a5b20)) a5c5) )))))))))))))))))))))))))))",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 171.9,
+        "latency_samples_ms": [
+          171.9,
+          172.321,
+          171.387
+        ],
+        "compilation_time_ms": 1.24188,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 4.990e-07 vs expected outputs (tolerance 1e-06)",
+        "depth": 12,
+        "multiplicative_depth": 5,
+        "op_counts": {
+          "mul": 4,
+          "mul_plain": 12,
+          "square": 0,
+          "add": 19,
+          "add_plain": 1,
+          "sub": 2,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 4,
+          "rotate": 0,
+          "rescale": 16,
+          "mod_switch": 6
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 4.99025e-07,
+        "ckks_levels_consumed": 5,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": true
+    },
+    {
+      "iteration": 5,
+      "candidate": "(let z (* x alpha) (let z2 (* z z) (let z4 (* z2 z2) (let c3d (+ c3 c3) (let c3_3 (+ c3d c3) (let c3_4 (+ c3d c3d) (let c5d (+ c5 c5) (let c5q (+ c5d c5d) (let c5o (+ c5q c5q) (let c5_16 (+ c5o c5o) (let c5_20 (+ c5_16 c5q) (let c5_5 (+ c5q c5) (let k1 (+ (- c1 c3_3) c5_5) (let k3 (- c3_4 c5_20) (let k5 c5_16 (let zk1 (* z k1) (let zk3 (* z k3) (let zk5 (* z k5) (let z3k3 (* z2 zk3) (let z5k5 (* z4 zk5) (+ (+ (+ c0 zk1) z3k3) z5k5) ))))))))))))))))))))",
+      "llm_response": "The iteration-4 result was correct but slower than the baseline (171.9 ms vs 146.7 ms), with 12 plaintext multiplications. This version folds the coefficients into plaintext-only sums built by addition, so no literal scales multiply plaintext operands. The polynomial is c0 + z\u00b7k1 + z\u00b3\u00b7k3 + z\u2075\u00b7k5, where k1 = c1 \u2212 3c3 + 5c5, k3 = 4c3 \u2212 20c5, and k5 = 16c5. Each power term is one ciphertext\u00d7plaintext product against a power that is already available, so there are 4 ciphertext multiplications and 4 plaintext multiplications, with depth about 4. I have not run CHEHAB or SEAL, so the latency is unmeasured.\n\nPROPOSED_EXPRESSION:\n(let z (* x alpha)\n(let z2 (* z z)\n(let z4 (* z2 z2)\n(let c3d (+ c3 c3)\n(let c3_3 (+ c3d c3)\n(let c3_4 (+ c3d c3d)\n(let c5d (+ c5 c5)\n(let c5q (+ c5d c5d)\n(let c5o (+ c5q c5q)\n(let c5_16 (+ c5o c5o)\n(let c5_20 (+ c5_16 c5q)\n(let c5_5 (+ c5q c5)\n(let k1 (+ (- c1 c3_3) c5_5)\n(let k3 (- c3_4 c5_20)\n(let k5 c5_16\n(let zk1 (* z k1)\n(let zk3 (* z k3)\n(let zk5 (* z k5)\n(let z3k3 (* z2 zk3)\n(let z5k5 (* z4 zk5)\n(+ (+ (+ c0 zk1) z3k3) z5k5)\n))))))))))))))))))))))",
+      "llm_seconds": 12.760936417005723,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 4673,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 2810,
+        "output_tokens_details": {
+          "thinking_tokens": 2189
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": false,
+        "candidate_expr": "(let z (* x alpha) (let z2 (* z z) (let z4 (* z2 z2) (let c3d (+ c3 c3) (let c3_3 (+ c3d c3) (let c3_4 (+ c3d c3d) (let c5d (+ c5 c5) (let c5q (+ c5d c5d) (let c5o (+ c5q c5q) (let c5_16 (+ c5o c5o) (let c5_20 (+ c5_16 c5q) (let c5_5 (+ c5q c5) (let k1 (+ (- c1 c3_3) c5_5) (let k3 (- c3_4 c5_20) (let k5 c5_16 (let zk1 (* z k1) (let zk3 (* z k3) (let zk5 (* z k5) (let z3k3 (* z2 zk3) (let z5k5 (* z4 zk5) (+ (+ (+ c0 zk1) z3k3) z5k5) ))))))))))))))))))))",
+        "scheme": "CKKS",
+        "stage_failed": "chehab_compiler",
+        "error_message": "CHEHAB exited with status 1:\ncandidate error: operation '+' between two plaintext operands: at least one operand must depend on a ciphertext",
+        "execution_latency_ms": 0.0,
+        "latency_samples_ms": [],
+        "compilation_time_ms": 0.0,
+        "correctness_checked": false,
+        "correct": false,
+        "correctness_detail": "",
+        "depth": 0,
+        "multiplicative_depth": 0,
+        "op_counts": {},
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": null,
+        "ckks_levels_consumed": 0,
+        "ckks_tolerance": null,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    },
+    {
+      "iteration": 6,
+      "candidate": "(let z (* x alpha) (let z2 (* z z) (let z3 (* z2 z) (let z4 (* z2 z2) (let z5 (* z4 z) (let c1z (* c1 z) (let a (* c3 z) (let b (* c3 z3) (let c (* c5 z) (let d (* c5 z3) (let e (* c5 z5) (let a2 (+ a a)) (let a3 (+ a2 a)) (let b2 (+ b b)) (let b4 (+ b2 b2)) (let c2 (+ c c)) (let c4 (+ c2 c2)) (let c5t (+ c4 c)) (let d2 (+ d d)) (let d4 (+ d2 d2)) (let d8 (+ d4 d4)) (let d16 (+ d8 d8)) (let d20 (+ d16 d4)) (let e2 (+ e e)) (let e4 (+ e2 e2)) (let e8 (+ e4 e4)) (let e16 (+ e8 e8)) (+ (+ (+ c0 c1z) (- b4 a3)) (- (+ c5t e16) d20)) )))))))))))",
+      "llm_response": "The error means a sum or difference was built from plaintext operands only, such as `(+ c3 c3)` or `(- c1 c3_3)`. I moved every coefficient onto a ciphertext product. Each term is now `c_i * (power of z)`, and the integer multiples (3, 4, 5, 16, 20) are built from ciphertext additions. The polynomial is unchanged: c0 + c1\u00b7z + c3\u00b7(4z\u00b3 \u2212 3z) + c5\u00b7(16z\u2075 \u2212 20z\u00b3 + 5z). Depth stays at about 4. I have not run CHEHAB or SEAL, so the latency is unmeasured.\n\nPROPOSED_EXPRESSION:\n(let z (* x alpha)\n(let z2 (* z z)\n(let z3 (* z2 z)\n(let z4 (* z2 z2)\n(let z5 (* z4 z)\n(let c1z (* c1 z)\n(let a (* c3 z)\n(let b (* c3 z3)\n(let c (* c5 z)\n(let d (* c5 z3)\n(let e (* c5 z5)\n(let a2 (+ a a))\n(let a3 (+ a2 a))\n(let b2 (+ b b))\n(let b4 (+ b2 b2))\n(let c2 (+ c c))\n(let c4 (+ c2 c2))\n(let c5t (+ c4 c))\n(let d2 (+ d d))\n(let d4 (+ d2 d2))\n(let d8 (+ d4 d4))\n(let d16 (+ d8 d8))\n(let d20 (+ d16 d4))\n(let e2 (+ e e))\n(let e4 (+ e2 e2))\n(let e8 (+ e4 e4))\n(let e16 (+ e8 e8))\n(+ (+ (+ c0 c1z) (- b4 a3)) (- (+ c5t e16) d20))\n))))))))))))))))))))))))))))",
+      "llm_seconds": 9.820024500004365,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 5507,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 2229,
+        "output_tokens_details": {
+          "thinking_tokens": 1593
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": false,
+        "candidate_expr": "(let z (* x alpha) (let z2 (* z z) (let z3 (* z2 z) (let z4 (* z2 z2) (let z5 (* z4 z) (let c1z (* c1 z) (let a (* c3 z) (let b (* c3 z3) (let c (* c5 z) (let d (* c5 z3) (let e (* c5 z5) (let a2 (+ a a)) (let a3 (+ a2 a)) (let b2 (+ b b)) (let b4 (+ b2 b2)) (let c2 (+ c c)) (let c4 (+ c2 c2)) (let c5t (+ c4 c)) (let d2 (+ d d)) (let d4 (+ d2 d2)) (let d8 (+ d4 d4)) (let d16 (+ d8 d8)) (let d20 (+ d16 d4)) (let e2 (+ e e)) (let e4 (+ e2 e2)) (let e8 (+ e4 e4)) (let e16 (+ e8 e8)) (+ (+ (+ c0 c1z) (- b4 a3)) (- (+ c5t e16) d20)) )))))))))))",
+        "scheme": "CKKS",
+        "stage_failed": "syntax_validation",
+        "error_message": "let must be written (let name value body) with a symbol as name",
+        "execution_latency_ms": 0.0,
+        "latency_samples_ms": [],
+        "compilation_time_ms": 0.0,
+        "correctness_checked": false,
+        "correct": false,
+        "correctness_detail": "",
+        "depth": 0,
+        "multiplicative_depth": 0,
+        "op_counts": {},
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": null,
+        "ckks_levels_consumed": 0,
+        "ckks_tolerance": null,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    }
+  ]
+}

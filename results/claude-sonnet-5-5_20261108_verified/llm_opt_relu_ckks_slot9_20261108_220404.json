@@ -1,0 +1,513 @@
+{
+  "benchmark": "relu_ckks",
+  "scheme": "CKKS",
+  "slot_count": 9,
+  "iterations": 6,
+  "model": "claude-sonnet-5-5",
+  "started": "2026-11-08T21:59:25",
+  "finished": "2026-11-08T22:04:04",
+  "harness_error": null,
+  "methodology": {
+    "bfv_latency": "median end-to-end time of the generated SEAL main (parse+encode+encrypt+evaluate), 1 warmup + 5 measured runs",
+    "ckks_latency": "median over 3 processes of the eval-only median (1 warmup + 5 runs of fhe())",
+    "ckks_tolerance": 1e-06,
+    "host": "Darwin arm64 26.6"
+  },
+  "original_expression": "(let s1p2 (* x x) (let s1p4 (* s1p2 s1p2) (let t1 (+ (+ (* x s1c1) (* (* x s1c3) s1p2)) (* (+ (* x s1c5) (* (* x s1c7) s1p2)) s1p4)) (let s2p2 (* t1 t1) (let s2p4 (* s2p2 s2p2) (let t2 (+ (+ (* t1 s2c1) (* (* t1 s2c3) s2p2)) (* (+ (* t1 s2c5) (* (* t1 s2c7) s2p2)) s2p4)) (let s3p2 (* t2 t2) (let s3p4 (* s3p2 s3p2) (let t3 (+ (+ (* t2 s3c1) (* (* t2 s3c3) s3p2)) (* (+ (* t2 s3c5) (* (* t2 s3c7) s3p2)) s3p4)) (* x (+ t3 half)))))))))))",
+  "unoptimized_baseline": {
+    "success": true,
+    "candidate_expr": "relu_ckks (as written)",
+    "scheme": "CKKS",
+    "stage_failed": null,
+    "error_message": null,
+    "execution_latency_ms": 360.912,
+    "latency_samples_ms": [
+      360.912,
+      365.005,
+      359.444
+    ],
+    "compilation_time_ms": 1.17171,
+    "correctness_checked": true,
+    "correct": true,
+    "correctness_detail": "max abs error 9.496e-08 vs expected outputs (tolerance 1e-06)",
+    "depth": 17,
+    "multiplicative_depth": 10,
+    "op_counts": {
+      "mul": 16,
+      "mul_plain": 21,
+      "square": 0,
+      "add": 9,
+      "add_plain": 1,
+      "sub": 0,
+      "sub_plain": 0,
+      "negate": 0,
+      "relin": 16,
+      "rotate": 0,
+      "rescale": 37,
+      "mod_switch": 9
+    },
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": 9.49606e-08,
+    "ckks_levels_consumed": 10,
+    "ckks_tolerance": 1e-06,
+    "static_cost": 0.0
+  },
+  "egraph_baseline": {
+    "success": false,
+    "candidate_expr": "",
+    "scheme": "CKKS",
+    "stage_failed": "not_applicable",
+    "error_message": "CHEHAB's e-graph vectorizer is BFV-only (Func::require_bfv); no CKKS e-graph baseline",
+    "execution_latency_ms": 0.0,
+    "latency_samples_ms": [],
+    "compilation_time_ms": 0.0,
+    "correctness_checked": false,
+    "correct": false,
+    "correctness_detail": "",
+    "depth": 0,
+    "multiplicative_depth": 0,
+    "op_counts": {},
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": null,
+    "ckks_levels_consumed": 0,
+    "ckks_tolerance": null,
+    "static_cost": 0.0
+  },
+  "reference_via_candidate_path": {
+    "success": true,
+    "candidate_expr": "(let s1p2 (* x x) (let s1p4 (* s1p2 s1p2) (let t1 (+ (+ (* x s1c1) (* (* x s1c3) s1p2)) (* (+ (* x s1c5) (* (* x s1c7) s1p2)) s1p4)) (let s2p2 (* t1 t1) (let s2p4 (* s2p2 s2p2) (let t2 (+ (+ (* t1 s2c1) (* (* t1 s2c3) s2p2)) (* (+ (* t1 s2c5) (* (* t1 s2c7) s2p2)) s2p4)) (let s3p2 (* t2 t2) (let s3p4 (* s3p2 s3p2) (let t3 (+ (+ (* t2 s3c1) (* (* t2 s3c3) s3p2)) (* (+ (* t2 s3c5) (* (* t2 s3c7) s3p2)) s3p4)) (* x (+ t3 half)))))))))))",
+    "scheme": "CKKS",
+    "stage_failed": null,
+    "error_message": null,
+    "execution_latency_ms": 359.152,
+    "latency_samples_ms": [
+      359.481,
+      359.152,
+      358.722
+    ],
+    "compilation_time_ms": 0.743,
+    "correctness_checked": true,
+    "correct": true,
+    "correctness_detail": "max abs error 1.071e-07 vs expected outputs (tolerance 1e-06)",
+    "depth": 17,
+    "multiplicative_depth": 10,
+    "op_counts": {
+      "mul": 16,
+      "mul_plain": 21,
+      "square": 0,
+      "add": 9,
+      "add_plain": 1,
+      "sub": 0,
+      "sub_plain": 0,
+      "negate": 0,
+      "relin": 16,
+      "rotate": 0,
+      "rescale": 37,
+      "mod_switch": 9
+    },
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": 1.07108e-07,
+    "ckks_levels_consumed": 10,
+    "ckks_tolerance": 1e-06,
+    "static_cost": 0.0
+  },
+  "best_result": {
+    "success": true,
+    "candidate_expr": "(let s1p2 (* x x) (let s1p4 (* s1p2 s1p2) (let t1 (+ (+ (* x s1c1) (* (* x s1c3) s1p2)) (* (+ (* x s1c5) (* (* x s1c7) s1p2)) s1p4)) (let s2p2 (* t1 t1) (let s2p4 (* s2p2 s2p2) (let t2 (+ (+ (* t1 s2c1) (* (* t1 s2c3) s2p2)) (* (+ (* t1 s2c5) (* (* t1 s2c7) s2p2)) s2p4)) (let s3p2 (* t2 t2) (let s3p4 (* s3p2 s3p2) (let t3 (+ (+ (* t2 s3c1) (* (* t2 s3c3) s3p2)) (* (+ (* t2 s3c5) (* (* t2 s3c7) s3p2)) s3p4)) (* x (+ t3 half)))))))))))",
+    "scheme": "CKKS",
+    "stage_failed": null,
+    "error_message": null,
+    "execution_latency_ms": 358.702,
+    "latency_samples_ms": [
+      358.967,
+      358.446,
+      358.702
+    ],
+    "compilation_time_ms": 0.63675,
+    "correctness_checked": true,
+    "correct": true,
+    "correctness_detail": "max abs error 7.884e-08 vs expected outputs (tolerance 1e-06)",
+    "depth": 17,
+    "multiplicative_depth": 10,
+    "op_counts": {
+      "mul": 16,
+      "mul_plain": 21,
+      "square": 0,
+      "add": 9,
+      "add_plain": 1,
+      "sub": 0,
+      "sub_plain": 0,
+      "negate": 0,
+      "relin": 16,
+      "rotate": 0,
+      "rescale": 37,
+      "mod_switch": 9
+    },
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": 7.88414e-08,
+    "ckks_levels_consumed": 10,
+    "ckks_tolerance": 1e-06,
+    "static_cost": 0.0
+  },
+  "speedup_vs_unoptimized": 1.0061611030883575,
+  "speedup_vs_egraph": null,
+  "egraph_speedup_vs_unoptimized": null,
+  "valid_candidates": 5,
+  "history": [
+    {
+      "iteration": 1,
+      "candidate": "(let s1p2 (* x x) (let s1p4 (* s1p2 s1p2) (let t1 (+ (* x s1c1) (+ (* (* x s1c3) s1p2) (* (+ (* x s1c5) (* (* x s1c7) s1p2)) s1p4))) (let s2p2 (* t1 t1) (let s2p4 (* s2p2 s2p2) (let t2 (+ (* t1 s2c1) (+ (* (* t1 s2c3) s2p2) (* (+ (* t1 s2c5) (* (* t1 s2c7) s2p2)) s2p4))) (let s3p2 (* t2 t2) (let s3p4 (* s3p2 s3p2) (let t3 (+ (* t2 s3c1) (+ (* (* t2 s3c3) s3p2) (* (+ (* t2 s3c5) (* (* t2 s3c7) s3p2)) s3p4))) (* x (+ t3 half)))))))))))",
+      "llm_response": "The program is already close to the minimum depth. Each odd degree-7 stage needs 3 levels, and the final `x*(t3+half)` needs one more, so 10 levels is the floor with ciphertext multiplications. I looked for cheaper schedules (Horner form, sharing `x^3`, folding `x` into the last stage). Every one pushed the depth past 10 or added multiplications.\n\nI kept the level-optimal structure and rewrote it with `let` bindings that factor each stage as `c1\u00b7x + y\u00b7(c3\u00b7x) + y\u00b2\u00b7(c5\u00b7x + y\u00b7(c7\u00b7x))`, where `y = x\u00b2`. The plaintext scalars are applied to the shallow value, so they cost the least level. I have not measured this, and it may not beat the baseline.\n\nPROPOSED_EXPRESSION:\n(let s1p2 (* x x)\n(let s1p4 (* s1p2 s1p2)\n(let t1 (+ (* x s1c1) (+ (* (* x s1c3) s1p2) (* (+ (* x s1c5) (* (* x s1c7) s1p2)) s1p4)))\n(let s2p2 (* t1 t1)\n(let s2p4 (* s2p2 s2p2)\n(let t2 (+ (* t1 s2c1) (+ (* (* t1 s2c3) s2p2) (* (+ (* t1 s2c5) (* (* t1 s2c7) s2p2)) s2p4)))\n(let s3p2 (* t2 t2)\n(let s3p4 (* s3p2 s3p2)\n(let t3 (+ (* t2 s3c1) (+ (* (* t2 s3c3) s3p2) (* (+ (* t2 s3c5) (* (* t2 s3c7) s3p2)) s3p4)))\n(* x (+ t3 half)))))))))))",
+      "llm_seconds": 35.2318119170086,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 1656,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 3654,
+        "output_tokens_details": {
+          "thinking_tokens": 3042
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(let s1p2 (* x x) (let s1p4 (* s1p2 s1p2) (let t1 (+ (* x s1c1) (+ (* (* x s1c3) s1p2) (* (+ (* x s1c5) (* (* x s1c7) s1p2)) s1p4))) (let s2p2 (* t1 t1) (let s2p4 (* s2p2 s2p2) (let t2 (+ (* t1 s2c1) (+ (* (* t1 s2c3) s2p2) (* (+ (* t1 s2c5) (* (* t1 s2c7) s2p2)) s2p4))) (let s3p2 (* t2 t2) (let s3p4 (* s3p2 s3p2) (let t3 (+ (* t2 s3c1) (+ (* (* t2 s3c3) s3p2) (* (+ (* t2 s3c5) (* (* t2 s3c7) s3p2)) s3p4))) (* x (+ t3 half)))))))))))",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 359.608,
+        "latency_samples_ms": [
+          359.608,
+          365.373,
+          358.982
+        ],
+        "compilation_time_ms": 1.28642,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 6.045e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 20,
+        "multiplicative_depth": 10,
+        "op_counts": {
+          "mul": 16,
+          "mul_plain": 21,
+          "square": 0,
+          "add": 9,
+          "add_plain": 1,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 16,
+          "rotate": 0,
+          "rescale": 37,
+          "mod_switch": 12
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 6.04508e-08,
+        "ckks_levels_consumed": 10,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": true
+    },
+    {
+      "iteration": 2,
+      "candidate": "(let s1p2 (* x x) (let s1p4 (* s1p2 s1p2) (let t1 (+ (* x (+ (* s1p2 s1c3) s1c1)) (* (+ (* x s1c5) (* (* x s1c7) s1p2)) s1p4)) (let s2p2 (* t1 t1) (let s2p4 (* s2p2 s2p2) (let t2 (+ (* t1 (+ (* s2p2 s2c3) s2c1)) (* (+ (* t1 s2c5) (* (* t1 s2c7) s2p2)) s2p4)) (let s3p2 (* t2 t2) (let s3p4 (* s3p2 s3p2) (let t3 (+ (* t2 (+ (* s3p2 s3c3) s3c1)) (* (+ (* t2 s3c5) (* (* t2 s3c7) s3p2)) s3p4)) (* x (+ t3 half)))))))))))",
+      "llm_response": "The ciphertext multiplication count per stage (5) and the depth (10) look hard to reduce, so I trimmed plaintext multiplications instead. In the lower part of each stage I now compute `x*(c1 + c3*y)`. That needs one plaintext multiply (`c3*y`), with `c1` added as a plaintext add, instead of two plaintext multiplies on `x`. The upper part stays `y\u00b2*(c5*x + (c7*x)*y)`. Both parts land at level 3, so each stage still uses 3 levels. This saves one plaintext multiply per stage, and the alignment mod-switches should drop too. I have not measured it.\n\nPROPOSED_EXPRESSION:\n(let s1p2 (* x x)\n(let s1p4 (* s1p2 s1p2)\n(let t1 (+ (* x (+ (* s1p2 s1c3) s1c1)) (* (+ (* x s1c5) (* (* x s1c7) s1p2)) s1p4))\n(let s2p2 (* t1 t1)\n(let s2p4 (* s2p2 s2p2)\n(let t2 (+ (* t1 (+ (* s2p2 s2c3) s2c1)) (* (+ (* t1 s2c5) (* (* t1 s2c7) s2p2)) s2p4))\n(let s3p2 (* t2 t2)\n(let s3p4 (* s3p2 s3p2)\n(let t3 (+ (* t2 (+ (* s3p2 s3c3) s3c1)) (* (+ (* t2 s3c5) (* (* t2 s3c7) s3p2)) s3p4))\n(* x (+ t3 half)))))))))))",
+      "llm_seconds": 34.42955079200328,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 2555,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 3649,
+        "output_tokens_details": {
+          "thinking_tokens": 3082
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": false,
+        "candidate_expr": "(let s1p2 (* x x) (let s1p4 (* s1p2 s1p2) (let t1 (+ (* x (+ (* s1p2 s1c3) s1c1)) (* (+ (* x s1c5) (* (* x s1c7) s1p2)) s1p4)) (let s2p2 (* t1 t1) (let s2p4 (* s2p2 s2p2) (let t2 (+ (* t1 (+ (* s2p2 s2c3) s2c1)) (* (+ (* t1 s2c5) (* (* t1 s2c7) s2p2)) s2p4)) (let s3p2 (* t2 t2) (let s3p4 (* s3p2 s3p2) (let t3 (+ (* t2 (+ (* s3p2 s3c3) s3c1)) (* (+ (* t2 s3c5) (* (* t2 s3c7) s3p2)) s3p4)) (* x (+ t3 half)))))))))))",
+        "scheme": "CKKS",
+        "stage_failed": "chehab_compiler",
+        "error_message": "CHEHAB exited with status 1:\ncandidate error: CKKS scale mismatch: ciphertext operands of '+' (term 25) are at the same level 3 with different scales; aligning them would need an extra level",
+        "execution_latency_ms": 0.0,
+        "latency_samples_ms": [],
+        "compilation_time_ms": 0.0,
+        "correctness_checked": false,
+        "correct": false,
+        "correctness_detail": "",
+        "depth": 0,
+        "multiplicative_depth": 0,
+        "op_counts": {},
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": null,
+        "ckks_levels_consumed": 0,
+        "ckks_tolerance": null,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    },
+    {
+      "iteration": 3,
+      "candidate": "(let s1p2 (* x x) (let s1p4 (* s1p2 s1p2) (let t1 (+ (+ (* x s1c1) (* (* x s1c3) s1p2)) (* (+ (* x s1c5) (* (* x s1c7) s1p2)) s1p4)) (let s2p2 (* t1 t1) (let s2p4 (* s2p2 s2p2) (let t2 (+ (+ (* t1 s2c1) (* (* t1 s2c3) s2p2)) (* (+ (* t1 s2c5) (* (* t1 s2c7) s2p2)) s2p4)) (let s3p2 (* t2 t2) (let s3p4 (* s3p2 s3p2) (let t3 (+ (+ (* t2 s3c1) (* (* t2 s3c3) s3p2)) (* (+ (* t2 s3c5) (* (* t2 s3c7) s3p2)) s3p4)) (* x (+ t3 half)))))))))))",
+      "llm_response": "The iteration 2 candidate failed because both halves of each stage's sum ended at level 3 with different scale histories. One half was `x*(c1 + c3*y)`, a ciphertext product. The other was `y\u00b2*(...)`, also a ciphertext product. Their rescale histories differ, so CHEHAB cannot add them without spending another level.\n\nIn the verified form, the lower half sits at level 2 and the upper half at level 3. CHEHAB can align that pair with a mod-switch. I am therefore going back to that level-staggered structure, which is known to compile. I keep the shared `y = x\u00b2` and `y\u00b2` bindings. I add the low-order terms first, so the level-2 terms are summed before one mod-switch to the upper half's level. This should give the same operation counts as the verified version, with possibly fewer mod-switches. I have not measured it.\n\nPROPOSED_EXPRESSION:\n(let s1p2 (* x x)\n(let s1p4 (* s1p2 s1p2)\n(let t1 (+ (+ (* x s1c1) (* (* x s1c3) s1p2)) (* (+ (* x s1c5) (* (* x s1c7) s1p2)) s1p4))\n(let s2p2 (* t1 t1)\n(let s2p4 (* s2p2 s2p2)\n(let t2 (+ (+ (* t1 s2c1) (* (* t1 s2c3) s2p2)) (* (+ (* t1 s2c5) (* (* t1 s2c7) s2p2)) s2p4))\n(let s3p2 (* t2 t2)\n(let s3p4 (* s3p2 s3p2)\n(let t3 (+ (+ (* t2 s3c1) (* (* t2 s3c3) s3p2)) (* (+ (* t2 s3c5) (* (* t2 s3c7) s3p2)) s3p4))\n(* x (+ t3 half)))))))))))",
+      "llm_seconds": 22.137096832986572,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 3356,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 2435,
+        "output_tokens_details": {
+          "thinking_tokens": 1794
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(let s1p2 (* x x) (let s1p4 (* s1p2 s1p2) (let t1 (+ (+ (* x s1c1) (* (* x s1c3) s1p2)) (* (+ (* x s1c5) (* (* x s1c7) s1p2)) s1p4)) (let s2p2 (* t1 t1) (let s2p4 (* s2p2 s2p2) (let t2 (+ (+ (* t1 s2c1) (* (* t1 s2c3) s2p2)) (* (+ (* t1 s2c5) (* (* t1 s2c7) s2p2)) s2p4)) (let s3p2 (* t2 t2) (let s3p4 (* s3p2 s3p2) (let t3 (+ (+ (* t2 s3c1) (* (* t2 s3c3) s3p2)) (* (+ (* t2 s3c5) (* (* t2 s3c7) s3p2)) s3p4)) (* x (+ t3 half)))))))))))",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 358.702,
+        "latency_samples_ms": [
+          358.967,
+          358.446,
+          358.702
+        ],
+        "compilation_time_ms": 0.63675,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 7.884e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 17,
+        "multiplicative_depth": 10,
+        "op_counts": {
+          "mul": 16,
+          "mul_plain": 21,
+          "square": 0,
+          "add": 9,
+          "add_plain": 1,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 16,
+          "rotate": 0,
+          "rescale": 37,
+          "mod_switch": 9
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 7.88414e-08,
+        "ckks_levels_consumed": 10,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": true
+    },
+    {
+      "iteration": 4,
+      "candidate": "(let s1p2 (* x x) (let s1p4 (* s1p2 s1p2) (let t1 (+ (+ (* x s1c1) (* (* x s1c3) s1p2)) (* s1p4 (+ (* x s1c5) (* (* x s1c7) s1p2)))) (let s2p2 (* t1 t1) (let s2p4 (* s2p2 s2p2) (let t2 (+ (+ (* t1 s2c1) (* (* t1 s2c3) s2p2)) (* s2p4 (+ (* t1 s2c5) (* (* t1 s2c7) s2p2)))) (let s3p2 (* t2 t2) (let s3p4 (* s3p2 s3p2) (let t3 (+ (+ (* t2 s3c1) (* (* t2 s3c3) s3p2)) (* s3p4 (+ (* t2 s3c5) (* (* t2 s3c7) s3p2)))) (* x (+ t3 half)))))))))))",
+      "llm_response": "The ciphertext-multiplication count (5 per stage, 16 total) and the depth of 10 look like the floor for this structure. Every factoring I tried to cut a multiplication either pushed depth past 10 or caused the scale mismatch seen in iteration 2.\n\nThis candidate keeps the verified level layout and only reassociates the sums. Each stage's level-2 terms are combined first. The level-1 term `x*c1` is added to `(x*c3)*y` before the result meets the level-3 upper half. That should keep mod-switches and alignments at the minimum. The final `x*(t3+half)` is unchanged. I expect any gain to be small and have not measured it.\n\nPROPOSED_EXPRESSION:\n(let s1p2 (* x x)\n(let s1p4 (* s1p2 s1p2)\n(let t1 (+ (+ (* x s1c1) (* (* x s1c3) s1p2)) (* s1p4 (+ (* x s1c5) (* (* x s1c7) s1p2))))\n(let s2p2 (* t1 t1)\n(let s2p4 (* s2p2 s2p2)\n(let t2 (+ (+ (* t1 s2c1) (* (* t1 s2c3) s2p2)) (* s2p4 (+ (* t1 s2c5) (* (* t1 s2c7) s2p2))))\n(let s3p2 (* t2 t2)\n(let s3p4 (* s3p2 s3p2)\n(let t3 (+ (+ (* t2 s3c1) (* (* t2 s3c3) s3p2)) (* s3p4 (+ (* t2 s3c5) (* (* t2 s3c7) s3p2))))\n(* x (+ t3 half)))))))))))",
+      "llm_seconds": 42.6390665830113,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 4284,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 4393,
+        "output_tokens_details": {
+          "thinking_tokens": 3808
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(let s1p2 (* x x) (let s1p4 (* s1p2 s1p2) (let t1 (+ (+ (* x s1c1) (* (* x s1c3) s1p2)) (* s1p4 (+ (* x s1c5) (* (* x s1c7) s1p2)))) (let s2p2 (* t1 t1) (let s2p4 (* s2p2 s2p2) (let t2 (+ (+ (* t1 s2c1) (* (* t1 s2c3) s2p2)) (* s2p4 (+ (* t1 s2c5) (* (* t1 s2c7) s2p2)))) (let s3p2 (* t2 t2) (let s3p4 (* s3p2 s3p2) (let t3 (+ (+ (* t2 s3c1) (* (* t2 s3c3) s3p2)) (* s3p4 (+ (* t2 s3c5) (* (* t2 s3c7) s3p2)))) (* x (+ t3 half)))))))))))",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 358.85,
+        "latency_samples_ms": [
+          366.617,
+          358.72,
+          358.85
+        ],
+        "compilation_time_ms": 1.24796,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 1.240e-07 vs expected outputs (tolerance 1e-06)",
+        "depth": 17,
+        "multiplicative_depth": 10,
+        "op_counts": {
+          "mul": 16,
+          "mul_plain": 21,
+          "square": 0,
+          "add": 9,
+          "add_plain": 1,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 16,
+          "rotate": 0,
+          "rescale": 37,
+          "mod_switch": 9
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 1.24043e-07,
+        "ckks_levels_consumed": 10,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    },
+    {
+      "iteration": 5,
+      "candidate": "(let s1p2 (* x x) (let s1p4 (* s1p2 s1p2) (let t1 (+ (+ (* (* x s1c3) s1p2) (* (+ (* x s1c5) (* (* x s1c7) s1p2)) s1p4)) (* x s1c1)) (let s2p2 (* t1 t1) (let s2p4 (* s2p2 s2p2) (let t2 (+ (+ (* (* t1 s2c3) s2p2) (* (+ (* t1 s2c5) (* (* t1 s2c7) s2p2)) s2p4)) (* t1 s2c1)) (let s3p2 (* t2 t2) (let s3p4 (* s3p2 s3p2) (let t3 (+ (+ (* (* t2 s3c3) s3p2) (* (+ (* t2 s3c5) (* (* t2 s3c7) s3p2)) s3p4)) (* t2 s3c1)) (* x (+ t3 half)))))))))))",
+      "llm_response": "The multiplication structure looks minimal for the depth budget. Each stage needs 5 ciphertext multiplications at depth 3, and the whole program uses all 10 levels. Factorings that use `x*(c1+c3*y)` or Horner's rule either exceed depth 10 or hit the same-level scale mismatch from iteration 2. The last two reassociations measured within noise of each other.\n\nThis candidate keeps the verified level layout. It adds the shallow `x*c1` term last, after the level-2 `(x*c3)*y` term has been combined with the level-3 upper half. That may change mod-switch placement slightly. I expect at most a small gain and have not measured it.\n\nPROPOSED_EXPRESSION:\n(let s1p2 (* x x)\n(let s1p4 (* s1p2 s1p2)\n(let t1 (+ (+ (* (* x s1c3) s1p2) (* (+ (* x s1c5) (* (* x s1c7) s1p2)) s1p4)) (* x s1c1))\n(let s2p2 (* t1 t1)\n(let s2p4 (* s2p2 s2p2)\n(let t2 (+ (+ (* (* t1 s2c3) s2p2) (* (+ (* t1 s2c5) (* (* t1 s2c7) s2p2)) s2p4)) (* t1 s2c1))\n(let s3p2 (* t2 t2)\n(let s3p4 (* s3p2 s3p2)\n(let t3 (+ (+ (* (* t2 s3c3) s3p2) (* (+ (* t2 s3c5) (* (* t2 s3c7) s3p2)) s3p4)) (* t2 s3c1))\n(* x (+ t3 half)))))))))))",
+      "llm_seconds": 42.034032583003864,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 5156,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 4434,
+        "output_tokens_details": {
+          "thinking_tokens": 3848
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(let s1p2 (* x x) (let s1p4 (* s1p2 s1p2) (let t1 (+ (+ (* (* x s1c3) s1p2) (* (+ (* x s1c5) (* (* x s1c7) s1p2)) s1p4)) (* x s1c1)) (let s2p2 (* t1 t1) (let s2p4 (* s2p2 s2p2) (let t2 (+ (+ (* (* t1 s2c3) s2p2) (* (+ (* t1 s2c5) (* (* t1 s2c7) s2p2)) s2p4)) (* t1 s2c1)) (let s3p2 (* t2 t2) (let s3p4 (* s3p2 s3p2) (let t3 (+ (+ (* (* t2 s3c3) s3p2) (* (+ (* t2 s3c5) (* (* t2 s3c7) s3p2)) s3p4)) (* t2 s3c1)) (* x (+ t3 half)))))))))))",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 359.167,
+        "latency_samples_ms": [
+          358.966,
+          359.167,
+          360.476
+        ],
+        "compilation_time_ms": 1.61379,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 1.080e-07 vs expected outputs (tolerance 1e-06)",
+        "depth": 20,
+        "multiplicative_depth": 10,
+        "op_counts": {
+          "mul": 16,
+          "mul_plain": 21,
+          "square": 0,
+          "add": 9,
+          "add_plain": 1,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 16,
+          "rotate": 0,
+          "rescale": 37,
+          "mod_switch": 12
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 1.08027e-07,
+        "ckks_levels_consumed": 10,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    },
+    {
+      "iteration": 6,
+      "candidate": "(let s1p2 (* x x) (let s1p4 (* s1p2 s1p2) (let t1 (+ (* x s1c1) (* (* x s1c3) s1p2) (* (+ (* x s1c5) (* (* x s1c7) s1p2)) s1p4)) (let s2p2 (* t1 t1) (let s2p4 (* s2p2 s2p2) (let t2 (+ (* t1 s2c1) (* (* t1 s2c3) s2p2) (* (+ (* t1 s2c5) (* (* t1 s2c7) s2p2)) s2p4)) (let s3p2 (* t2 t2) (let s3p4 (* s3p2 s3p2) (let t3 (+ (* t2 s3c1) (* (* t2 s3c3) s3p2) (* (+ (* t2 s3c5) (* (* t2 s3c7) s3p2)) s3p4)) (* x (+ t3 half)))))))))))",
+      "llm_response": "I don't see a way to cut the ciphertext multiplication count or the depth of 10. Three variants measured within noise of each other (358.7, 358.9 and 359.2 ms), so the remaining differences are mostly scheduling. Each stage needs 5 ciphertext multiplications at depth 3, and the final `x*(...)` takes the last level.\n\nFolding the coefficients into `y` or using Horner form pushes the depth past 10. The `x*(c1+c3*y)` form gave the scale mismatch seen in iteration 2.\n\nThis candidate is a small variation on the best verified form (iteration 3). It uses a flat n-ary `+` for each stage's three groups, so CHEHAB can choose its own alignment order. I expect at most a negligible gain and have not measured it.\n\nPROPOSED_EXPRESSION:\n(let s1p2 (* x x)\n(let s1p4 (* s1p2 s1p2)\n(let t1 (+ (* x s1c1) (* (* x s1c3) s1p2) (* (+ (* x s1c5) (* (* x s1c7) s1p2)) s1p4))\n(let s2p2 (* t1 t1)\n(let s2p4 (* s2p2 s2p2)\n(let t2 (+ (* t1 s2c1) (* (* t1 s2c3) s2p2) (* (+ (* t1 s2c5) (* (* t1 s2c7) s2p2)) s2p4))\n(let s3p2 (* t2 t2)\n(let s3p4 (* s3p2 s3p2)\n(let t3 (+ (* t2 s3c1) (* (* t2 s3c3) s3p2) (* (+ (* t2 s3c5) (* (* t2 s3c7) s3p2)) s3p4))\n(* x (+ t3 half)))))))))))",
+      "llm_seconds": 20.77057020799839,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 6029,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 1944,
+        "output_tokens_details": {
+          "thinking_tokens": 1333
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(let s1p2 (* x x) (let s1p4 (* s1p2 s1p2) (let t1 (+ (* x s1c1) (* (* x s1c3) s1p2) (* (+ (* x s1c5) (* (* x s1c7) s1p2)) s1p4)) (let s2p2 (* t1 t1) (let s2p4 (* s2p2 s2p2) (let t2 (+ (* t1 s2c1) (* (* t1 s2c3) s2p2) (* (+ (* t1 s2c5) (* (* t1 s2c7) s2p2)) s2p4)) (let s3p2 (* t2 t2) (let s3p4 (* s3p2 s3p2) (let t3 (+ (* t2 s3c1) (* (* t2 s3c3) s3p2) (* (+ (* t2 s3c5) (* (* t2 s3c7) s3p2)) s3p4)) (* x (+ t3 half)))))))))))",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 359.445,
+        "latency_samples_ms": [
+          359.445,
+          358.46,
+          359.888
+        ],
+        "compilation_time_ms": 1.31662,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 1.247e-07 vs expected outputs (tolerance 1e-06)",
+        "depth": 17,
+        "multiplicative_depth": 10,
+        "op_counts": {
+          "mul": 16,
+          "mul_plain": 21,
+          "square": 0,
+          "add": 9,
+          "add_plain": 1,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 16,
+          "rotate": 0,
+          "rescale": 37,
+          "mod_switch": 9
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 1.24655e-07,
+        "ckks_levels_consumed": 10,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    }
+  ]
+}

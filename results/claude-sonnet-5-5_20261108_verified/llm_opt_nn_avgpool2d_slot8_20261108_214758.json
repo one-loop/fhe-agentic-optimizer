@@ -1,0 +1,528 @@
+{
+  "benchmark": "nn_avgpool2d",
+  "scheme": "BFV",
+  "slot_count": 8,
+  "iterations": 6,
+  "model": "claude-sonnet-5-5",
+  "started": "2026-11-08T21:45:36",
+  "finished": "2026-11-08T21:47:58",
+  "harness_error": null,
+  "methodology": {
+    "bfv_latency": "median end-to-end time of the generated SEAL main (parse+encode+encrypt+evaluate), 1 warmup + 5 measured runs",
+    "ckks_latency": "median over 3 processes of the eval-only median (1 warmup + 5 runs of fhe())",
+    "ckks_tolerance": 1e-06,
+    "host": "Darwin arm64 26.6"
+  },
+  "original_expression": "(Vec ( + ( + x_1_1 x_1_0 ) ( + x_0_0 x_0_1 ) ) ( + ( + x_1_3 x_1_2 ) ( + x_0_2 x_0_3 ) ) ( + ( + x_1_5 x_1_4 ) ( + x_0_4 x_0_5 ) ) ( + ( + x_1_7 x_1_6 ) ( + x_0_6 x_0_7 ) ) ( + ( + x_3_1 x_3_0 ) ( + x_2_0 x_2_1 ) ) ( + ( + x_3_3 x_3_2 ) ( + x_2_2 x_2_3 ) ) ( + ( + x_3_5 x_3_4 ) ( + x_2_4 x_2_5 ) ) ( + ( + x_3_7 x_3_6 ) ( + x_2_6 x_2_7 ) ) ( + ( + x_5_1 x_5_0 ) ( + x_4_0 x_4_1 ) ) ( + ( + x_5_3 x_5_2 ) ( + x_4_2 x_4_3 ) ) ( + ( + x_5_5 x_5_4 ) ( + x_4_4 x_4_5 ) ) ( + ( + x_5_7 x_5_6 ) ( + x_4_6 x_4_7 ) ) ( + ( + x_7_1 x_7_0 ) ( + x_6_0 x_6_1 ) ) ( + ( + x_7_3 x_7_2 ) ( + x_6_2 x_6_3 ) ) ( + ( + x_7_5 x_7_4 ) ( + x_6_4 x_6_5 ) ) ( + ( + x_7_7 x_7_6 ) ( + x_6_6 x_6_7 ) ) )",
+  "unoptimized_baseline": {
+    "success": true,
+    "candidate_expr": "unoptimized (scalar)",
+    "scheme": "BFV",
+    "stage_failed": null,
+    "error_message": null,
+    "execution_latency_ms": 310.758,
+    "latency_samples_ms": [
+      310.638,
+      311.971,
+      308.686,
+      314.97,
+      310.758
+    ],
+    "compilation_time_ms": 1.54412,
+    "correctness_checked": true,
+    "correct": true,
+    "correctness_detail": "CHEHAB golden check: every output equals the generator's expected value",
+    "depth": 3,
+    "multiplicative_depth": 0,
+    "op_counts": {
+      "mul": 0,
+      "mul_plain": 0,
+      "square": 0,
+      "add": 48,
+      "add_plain": 0,
+      "sub": 0,
+      "sub_plain": 0,
+      "negate": 0,
+      "relin": 0,
+      "rotate": 0,
+      "rescale": 0,
+      "mod_switch": 0
+    },
+    "remaining_noise_budget": 360,
+    "ckks_max_abs_error": null,
+    "ckks_levels_consumed": 0,
+    "ckks_tolerance": null,
+    "static_cost": 0.0
+  },
+  "egraph_baseline": {
+    "success": true,
+    "candidate_expr": "(VecAddRot (VecAdd (Vec x_1_1 x_1_3 x_1_5 x_1_7 x_3_1 x_3_3 x_3_5 x_3_7 x_5_1 x_5_3 x_5_5 x_5_7 x_7_1 x_7_3 x_7_5 x_7_7 x_0_0 x_0_2 x_0_4 x_0_6 x_2_0 x_2_2 x_2_4 x_2_6 x_4_0 x_4_2 x_4_4 x_4_6 x_6_0 x_6_2 x_6_4 x_6_6) (Vec x_1_0 x_1_2 x_1_4 x_1_6 x_3_0 x_3_2 x_3_4 x_3_6 x_5_0 x_5_2 x_5_4 x_5_6 x_7_0 x_7_2 x_7_4 x_7_6 x_0_1 x_0_3 x_0_5 x_0_7 x_2_1 x_2_3 x_2_5 x_2_7 x_4_1 x_4_3 x_4_5 x_4_7 x_6_1 x_6_3 x_6_5 x_6_7)) 16)",
+    "scheme": "BFV",
+    "stage_failed": null,
+    "error_message": null,
+    "execution_latency_ms": 19.5252,
+    "latency_samples_ms": [
+      19.5932,
+      19.4803,
+      19.5252,
+      19.8245,
+      18.87
+    ],
+    "compilation_time_ms": 0.0,
+    "correctness_checked": true,
+    "correct": true,
+    "correctness_detail": "all 16 output slots equal the reference values",
+    "depth": 3,
+    "multiplicative_depth": 0,
+    "op_counts": {
+      "mul": 0,
+      "mul_plain": 0,
+      "square": 0,
+      "add": 2,
+      "add_plain": 0,
+      "sub": 0,
+      "sub_plain": 0,
+      "negate": 0,
+      "relin": 0,
+      "rotate": 1,
+      "rescale": 0,
+      "mod_switch": 0
+    },
+    "remaining_noise_budget": 357,
+    "ckks_max_abs_error": null,
+    "ckks_levels_consumed": 0,
+    "ckks_tolerance": null,
+    "static_cost": 0.0
+  },
+  "reference_via_candidate_path": null,
+  "best_result": {
+    "success": true,
+    "candidate_expr": "(VecAddRot (VecAdd (Vec x_0_0 x_0_2 x_0_4 x_0_6 x_2_0 x_2_2 x_2_4 x_2_6 x_4_0 x_4_2 x_4_4 x_4_6 x_6_0 x_6_2 x_6_4 x_6_6 x_0_1 x_0_3 x_0_5 x_0_7 x_2_1 x_2_3 x_2_5 x_2_7 x_4_1 x_4_3 x_4_5 x_4_7 x_6_1 x_6_3 x_6_5 x_6_7) (Vec x_1_0 x_1_2 x_1_4 x_1_6 x_3_0 x_3_2 x_3_4 x_3_6 x_5_0 x_5_2 x_5_4 x_5_6 x_7_0 x_7_2 x_7_4 x_7_6 x_1_1 x_1_3 x_1_5 x_1_7 x_3_1 x_3_3 x_3_5 x_3_7 x_5_1 x_5_3 x_5_5 x_5_7 x_7_1 x_7_3 x_7_5 x_7_7)) 16)",
+    "scheme": "BFV",
+    "stage_failed": null,
+    "error_message": null,
+    "execution_latency_ms": 18.858,
+    "latency_samples_ms": [
+      18.7878,
+      19.1825,
+      18.858,
+      18.5433,
+      19.5918
+    ],
+    "compilation_time_ms": 0.0,
+    "correctness_checked": true,
+    "correct": true,
+    "correctness_detail": "all 16 output slots equal the reference values",
+    "depth": 3,
+    "multiplicative_depth": 0,
+    "op_counts": {
+      "mul": 0,
+      "mul_plain": 0,
+      "square": 0,
+      "add": 2,
+      "add_plain": 0,
+      "sub": 0,
+      "sub_plain": 0,
+      "negate": 0,
+      "relin": 0,
+      "rotate": 1,
+      "rescale": 0,
+      "mod_switch": 0
+    },
+    "remaining_noise_budget": 357,
+    "ckks_max_abs_error": null,
+    "ckks_levels_consumed": 0,
+    "ckks_tolerance": null,
+    "static_cost": 2052
+  },
+  "speedup_vs_unoptimized": 16.478841870824052,
+  "speedup_vs_egraph": 1.035380209990455,
+  "egraph_speedup_vs_unoptimized": 15.91573965951693,
+  "valid_candidates": 6,
+  "history": [
+    {
+      "iteration": 1,
+      "candidate": "(VecAdd (VecAdd (Vec x_0_0 x_0_2 x_0_4 x_0_6 x_2_0 x_2_2 x_2_4 x_2_6 x_4_0 x_4_2 x_4_4 x_4_6 x_6_0 x_6_2 x_6_4 x_6_6) (Vec x_0_1 x_0_3 x_0_5 x_0_7 x_2_1 x_2_3 x_2_5 x_2_7 x_4_1 x_4_3 x_4_5 x_4_7 x_6_1 x_6_3 x_6_5 x_6_7)) (VecAdd (Vec x_1_0 x_1_2 x_1_4 x_1_6 x_3_0 x_3_2 x_3_4 x_3_6 x_5_0 x_5_2 x_5_4 x_5_6 x_7_0 x_7_2 x_7_4 x_7_6) (Vec x_1_1 x_1_3 x_1_5 x_1_7 x_3_1 x_3_3 x_3_5 x_3_7 x_5_1 x_5_3 x_5_5 x_5_7 x_7_1 x_7_3 x_7_5 x_7_7)))",
+      "llm_response": "Each output is the sum of one 2x2 block of the 8x8 input. I pack the four block corners into four width-16 vectors, one per corner position. Their sum then gives all 16 outputs with 3 `VecAdd`s and no rotations, against the e-graph baseline's 2 adds plus 1 rotate.\n\nPROPOSED_EXPRESSION:\n(VecAdd (VecAdd (Vec x_0_0 x_0_2 x_0_4 x_0_6 x_2_0 x_2_2 x_2_4 x_2_6 x_4_0 x_4_2 x_4_4 x_4_6 x_6_0 x_6_2 x_6_4 x_6_6) (Vec x_0_1 x_0_3 x_0_5 x_0_7 x_2_1 x_2_3 x_2_5 x_2_7 x_4_1 x_4_3 x_4_5 x_4_7 x_6_1 x_6_3 x_6_5 x_6_7)) (VecAdd (Vec x_1_0 x_1_2 x_1_4 x_1_6 x_3_0 x_3_2 x_3_4 x_3_6 x_5_0 x_5_2 x_5_4 x_5_6 x_7_0 x_7_2 x_7_4 x_7_6) (Vec x_1_1 x_1_3 x_1_5 x_1_7 x_3_1 x_3_3 x_3_5 x_3_7 x_5_1 x_5_3 x_5_5 x_5_7 x_7_1 x_7_3 x_7_5 x_7_7)))",
+      "llm_seconds": 8.25764091599558,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 2850,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 1195,
+        "output_tokens_details": {
+          "thinking_tokens": 652
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(VecAdd (VecAdd (Vec x_0_0 x_0_2 x_0_4 x_0_6 x_2_0 x_2_2 x_2_4 x_2_6 x_4_0 x_4_2 x_4_4 x_4_6 x_6_0 x_6_2 x_6_4 x_6_6) (Vec x_0_1 x_0_3 x_0_5 x_0_7 x_2_1 x_2_3 x_2_5 x_2_7 x_4_1 x_4_3 x_4_5 x_4_7 x_6_1 x_6_3 x_6_5 x_6_7)) (VecAdd (Vec x_1_0 x_1_2 x_1_4 x_1_6 x_3_0 x_3_2 x_3_4 x_3_6 x_5_0 x_5_2 x_5_4 x_5_6 x_7_0 x_7_2 x_7_4 x_7_6) (Vec x_1_1 x_1_3 x_1_5 x_1_7 x_3_1 x_3_3 x_3_5 x_3_7 x_5_1 x_5_3 x_5_5 x_5_7 x_7_1 x_7_3 x_7_5 x_7_7)))",
+        "scheme": "BFV",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 20.215,
+        "latency_samples_ms": [
+          20.0845,
+          20.8454,
+          20.215,
+          20.1312,
+          20.3084
+        ],
+        "compilation_time_ms": 0.0,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "all 16 output slots equal the reference values",
+        "depth": 2,
+        "multiplicative_depth": 0,
+        "op_counts": {
+          "mul": 0,
+          "mul_plain": 0,
+          "square": 0,
+          "add": 3,
+          "add_plain": 0,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 0,
+          "rotate": 0,
+          "rescale": 0,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 360,
+        "ckks_max_abs_error": null,
+        "ckks_levels_consumed": 0,
+        "ckks_tolerance": null,
+        "static_cost": 3
+      },
+      "is_best": true
+    },
+    {
+      "iteration": 2,
+      "candidate": "(VecAddRot (VecAdd (Vec x_0_0 x_0_2 x_0_4 x_0_6 x_2_0 x_2_2 x_2_4 x_2_6 x_4_0 x_4_2 x_4_4 x_4_6 x_6_0 x_6_2 x_6_4 x_6_6 x_0_1 x_0_3 x_0_5 x_0_7 x_2_1 x_2_3 x_2_5 x_2_7 x_4_1 x_4_3 x_4_5 x_4_7 x_6_1 x_6_3 x_6_5 x_6_7) (Vec x_1_0 x_1_2 x_1_4 x_1_6 x_3_0 x_3_2 x_3_4 x_3_6 x_5_0 x_5_2 x_5_4 x_5_6 x_7_0 x_7_2 x_7_4 x_7_6 x_1_1 x_1_3 x_1_5 x_1_7 x_3_1 x_3_3 x_3_5 x_3_7 x_5_1 x_5_3 x_5_5 x_5_7 x_7_1 x_7_3 x_7_5 x_7_7)) 16)",
+      "llm_response": "The output is 2x2 block sums of the 8x8 input. I pack the four corner positions into two width-32 vectors. The first holds the top-left corners in slots 0-15 and the top-right corners in slots 16-31. The second holds the bottom-left and bottom-right corners the same way. One `VecAdd` followed by one `VecAddRot` by 16 puts all 16 block sums in slots 0-15. That is 2 adds and 1 rotation, with no multiplications.\n\nPROPOSED_EXPRESSION:\n(VecAddRot (VecAdd (Vec x_0_0 x_0_2 x_0_4 x_0_6 x_2_0 x_2_2 x_2_4 x_2_6 x_4_0 x_4_2 x_4_4 x_4_6 x_6_0 x_6_2 x_6_4 x_6_6 x_0_1 x_0_3 x_0_5 x_0_7 x_2_1 x_2_3 x_2_5 x_2_7 x_4_1 x_4_3 x_4_5 x_4_7 x_6_1 x_6_3 x_6_5 x_6_7) (Vec x_1_0 x_1_2 x_1_4 x_1_6 x_3_0 x_3_2 x_3_4 x_3_6 x_5_0 x_5_2 x_5_4 x_5_6 x_7_0 x_7_2 x_7_4 x_7_6 x_1_1 x_1_3 x_1_5 x_1_7 x_3_1 x_3_3 x_3_5 x_3_7 x_5_1 x_5_3 x_5_5 x_5_7 x_7_1 x_7_3 x_7_5 x_7_7)) 16)",
+      "llm_seconds": 13.56767133300309,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 3622,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 1687,
+        "output_tokens_details": {
+          "thinking_tokens": 1102
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(VecAddRot (VecAdd (Vec x_0_0 x_0_2 x_0_4 x_0_6 x_2_0 x_2_2 x_2_4 x_2_6 x_4_0 x_4_2 x_4_4 x_4_6 x_6_0 x_6_2 x_6_4 x_6_6 x_0_1 x_0_3 x_0_5 x_0_7 x_2_1 x_2_3 x_2_5 x_2_7 x_4_1 x_4_3 x_4_5 x_4_7 x_6_1 x_6_3 x_6_5 x_6_7) (Vec x_1_0 x_1_2 x_1_4 x_1_6 x_3_0 x_3_2 x_3_4 x_3_6 x_5_0 x_5_2 x_5_4 x_5_6 x_7_0 x_7_2 x_7_4 x_7_6 x_1_1 x_1_3 x_1_5 x_1_7 x_3_1 x_3_3 x_3_5 x_3_7 x_5_1 x_5_3 x_5_5 x_5_7 x_7_1 x_7_3 x_7_5 x_7_7)) 16)",
+        "scheme": "BFV",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 19.5246,
+        "latency_samples_ms": [
+          19.0032,
+          20.4683,
+          19.7314,
+          19.5246,
+          19.3058
+        ],
+        "compilation_time_ms": 0.0,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "all 16 output slots equal the reference values",
+        "depth": 3,
+        "multiplicative_depth": 0,
+        "op_counts": {
+          "mul": 0,
+          "mul_plain": 0,
+          "square": 0,
+          "add": 2,
+          "add_plain": 0,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 0,
+          "rotate": 1,
+          "rescale": 0,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 357,
+        "ckks_max_abs_error": null,
+        "ckks_levels_consumed": 0,
+        "ckks_tolerance": null,
+        "static_cost": 2052
+      },
+      "is_best": true
+    },
+    {
+      "iteration": 3,
+      "candidate": "(VecAddRot (VecAddRot (Vec x_0_0 x_0_2 x_0_4 x_0_6 x_2_0 x_2_2 x_2_4 x_2_6 x_4_0 x_4_2 x_4_4 x_4_6 x_6_0 x_6_2 x_6_4 x_6_6 x_0_1 x_0_3 x_0_5 x_0_7 x_2_1 x_2_3 x_2_5 x_2_7 x_4_1 x_4_3 x_4_5 x_4_7 x_6_1 x_6_3 x_6_5 x_6_7 x_1_0 x_1_2 x_1_4 x_1_6 x_3_0 x_3_2 x_3_4 x_3_6 x_5_0 x_5_2 x_5_4 x_5_6 x_7_0 x_7_2 x_7_4 x_7_6 x_1_1 x_1_3 x_1_5 x_1_7 x_3_1 x_3_3 x_3_5 x_3_7 x_5_1 x_5_3 x_5_5 x_5_7 x_7_1 x_7_3 x_7_5 x_7_7) 32) 16)",
+      "llm_response": "Each output is a 2x2 block sum of the 8x8 input. This version packs all 64 inputs into a single width-64 vector, ordered as top-left, top-right, bottom-left, bottom-right corners of the 16 blocks. A rotate-add by 32 followed by a rotate-add by 16 leaves every block sum in slots 0-15. That means 1 packed ciphertext, 2 rotations and 2 adds, instead of 2 packed ciphertexts with 1 rotation. I expect a small gain at best, since latency seems dominated by input packing and encryption.\n\nPROPOSED_EXPRESSION:\n(VecAddRot (VecAddRot (Vec x_0_0 x_0_2 x_0_4 x_0_6 x_2_0 x_2_2 x_2_4 x_2_6 x_4_0 x_4_2 x_4_4 x_4_6 x_6_0 x_6_2 x_6_4 x_6_6 x_0_1 x_0_3 x_0_5 x_0_7 x_2_1 x_2_3 x_2_5 x_2_7 x_4_1 x_4_3 x_4_5 x_4_7 x_6_1 x_6_3 x_6_5 x_6_7 x_1_0 x_1_2 x_1_4 x_1_6 x_3_0 x_3_2 x_3_4 x_3_6 x_5_0 x_5_2 x_5_4 x_5_6 x_7_0 x_7_2 x_7_4 x_7_6 x_1_1 x_1_3 x_1_5 x_1_7 x_3_1 x_3_3 x_3_5 x_3_7 x_5_1 x_5_3 x_5_5 x_5_7 x_7_1 x_7_3 x_7_5 x_7_7) 32) 16)",
+      "llm_seconds": 14.042311084005632,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 4442,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 1945,
+        "output_tokens_details": {
+          "thinking_tokens": 1328
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(VecAddRot (VecAddRot (Vec x_0_0 x_0_2 x_0_4 x_0_6 x_2_0 x_2_2 x_2_4 x_2_6 x_4_0 x_4_2 x_4_4 x_4_6 x_6_0 x_6_2 x_6_4 x_6_6 x_0_1 x_0_3 x_0_5 x_0_7 x_2_1 x_2_3 x_2_5 x_2_7 x_4_1 x_4_3 x_4_5 x_4_7 x_6_1 x_6_3 x_6_5 x_6_7 x_1_0 x_1_2 x_1_4 x_1_6 x_3_0 x_3_2 x_3_4 x_3_6 x_5_0 x_5_2 x_5_4 x_5_6 x_7_0 x_7_2 x_7_4 x_7_6 x_1_1 x_1_3 x_1_5 x_1_7 x_3_1 x_3_3 x_3_5 x_3_7 x_5_1 x_5_3 x_5_5 x_5_7 x_7_1 x_7_3 x_7_5 x_7_7) 32) 16)",
+        "scheme": "BFV",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 22.4151,
+        "latency_samples_ms": [
+          24.9998,
+          22.9684,
+          22.4151,
+          21.7874,
+          22.1695
+        ],
+        "compilation_time_ms": 0.0,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "all 16 output slots equal the reference values",
+        "depth": 4,
+        "multiplicative_depth": 0,
+        "op_counts": {
+          "mul": 0,
+          "mul_plain": 0,
+          "square": 0,
+          "add": 2,
+          "add_plain": 0,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 0,
+          "rotate": 2,
+          "rescale": 0,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 356,
+        "ckks_max_abs_error": null,
+        "ckks_levels_consumed": 0,
+        "ckks_tolerance": null,
+        "static_cost": 4102
+      },
+      "is_best": false
+    },
+    {
+      "iteration": 4,
+      "candidate": "(VecAddRot (VecAdd (Vec x_0_0 x_0_2 x_0_4 x_0_6 x_2_0 x_2_2 x_2_4 x_2_6 x_4_0 x_4_2 x_4_4 x_4_6 x_6_0 x_6_2 x_6_4 x_6_6 x_0_1 x_0_3 x_0_5 x_0_7 x_2_1 x_2_3 x_2_5 x_2_7 x_4_1 x_4_3 x_4_5 x_4_7 x_6_1 x_6_3 x_6_5 x_6_7) (Vec x_1_0 x_1_2 x_1_4 x_1_6 x_3_0 x_3_2 x_3_4 x_3_6 x_5_0 x_5_2 x_5_4 x_5_6 x_7_0 x_7_2 x_7_4 x_7_6 x_1_1 x_1_3 x_1_5 x_1_7 x_3_1 x_3_3 x_3_5 x_3_7 x_5_1 x_5_3 x_5_5 x_5_7 x_7_1 x_7_3 x_7_5 x_7_7)) 16)",
+      "llm_response": "The measurements suggest latency is roughly a fixed overhead plus about 3 ms per vector op, with adds and rotations costing about the same. Each output needs four inputs combined, so three ops is the minimum:\n\n- **Width 16:** three `VecAdd`s, no rotations.\n- **Width 32:** one `VecAdd` plus one `VecAddRot`, which is also three ops.\n- **Width 64:** two rotate-adds, which is four ops. This was the slowest at 22.42 ms.\n\nI'm resubmitting the width-32 layout (19.52 ms), the best verified result, since I can't see a cheaper form.\n\nPROPOSED_EXPRESSION:\n(VecAddRot (VecAdd (Vec x_0_0 x_0_2 x_0_4 x_0_6 x_2_0 x_2_2 x_2_4 x_2_6 x_4_0 x_4_2 x_4_4 x_4_6 x_6_0 x_6_2 x_6_4 x_6_6 x_0_1 x_0_3 x_0_5 x_0_7 x_2_1 x_2_3 x_2_5 x_2_7 x_4_1 x_4_3 x_4_5 x_4_7 x_6_1 x_6_3 x_6_5 x_6_7) (Vec x_1_0 x_1_2 x_1_4 x_1_6 x_3_0 x_3_2 x_3_4 x_3_6 x_5_0 x_5_2 x_5_4 x_5_6 x_7_0 x_7_2 x_7_4 x_7_6 x_1_1 x_1_3 x_1_5 x_1_7 x_3_1 x_3_3 x_3_5 x_3_7 x_5_1 x_5_3 x_5_5 x_5_7 x_7_1 x_7_3 x_7_5 x_7_7)) 16)",
+      "llm_seconds": 14.387160416008555,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 5294,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 1816,
+        "output_tokens_details": {
+          "thinking_tokens": 1180
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(VecAddRot (VecAdd (Vec x_0_0 x_0_2 x_0_4 x_0_6 x_2_0 x_2_2 x_2_4 x_2_6 x_4_0 x_4_2 x_4_4 x_4_6 x_6_0 x_6_2 x_6_4 x_6_6 x_0_1 x_0_3 x_0_5 x_0_7 x_2_1 x_2_3 x_2_5 x_2_7 x_4_1 x_4_3 x_4_5 x_4_7 x_6_1 x_6_3 x_6_5 x_6_7) (Vec x_1_0 x_1_2 x_1_4 x_1_6 x_3_0 x_3_2 x_3_4 x_3_6 x_5_0 x_5_2 x_5_4 x_5_6 x_7_0 x_7_2 x_7_4 x_7_6 x_1_1 x_1_3 x_1_5 x_1_7 x_3_1 x_3_3 x_3_5 x_3_7 x_5_1 x_5_3 x_5_5 x_5_7 x_7_1 x_7_3 x_7_5 x_7_7)) 16)",
+        "scheme": "BFV",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 18.858,
+        "latency_samples_ms": [
+          18.7878,
+          19.1825,
+          18.858,
+          18.5433,
+          19.5918
+        ],
+        "compilation_time_ms": 0.0,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "all 16 output slots equal the reference values",
+        "depth": 3,
+        "multiplicative_depth": 0,
+        "op_counts": {
+          "mul": 0,
+          "mul_plain": 0,
+          "square": 0,
+          "add": 2,
+          "add_plain": 0,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 0,
+          "rotate": 1,
+          "rescale": 0,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 357,
+        "ckks_max_abs_error": null,
+        "ckks_levels_consumed": 0,
+        "ckks_tolerance": null,
+        "static_cost": 2052
+      },
+      "is_best": true
+    },
+    {
+      "iteration": 5,
+      "candidate": "(VecAddRot (VecAdd (Vec x_0_0 x_0_2 x_0_4 x_0_6 x_2_0 x_2_2 x_2_4 x_2_6 x_4_0 x_4_2 x_4_4 x_4_6 x_6_0 x_6_2 x_6_4 x_6_6 x_0_1 x_0_3 x_0_5 x_0_7 x_2_1 x_2_3 x_2_5 x_2_7 x_4_1 x_4_3 x_4_5 x_4_7 x_6_1 x_6_3 x_6_5 x_6_7) (Vec x_1_0 x_1_2 x_1_4 x_1_6 x_3_0 x_3_2 x_3_4 x_3_6 x_5_0 x_5_2 x_5_4 x_5_6 x_7_0 x_7_2 x_7_4 x_7_6 x_1_1 x_1_3 x_1_5 x_1_7 x_3_1 x_3_3 x_3_5 x_3_7 x_5_1 x_5_3 x_5_5 x_5_7 x_7_1 x_7_3 x_7_5 x_7_7)) 16)",
+      "llm_response": "Each output needs four inputs combined, which takes at least three vector ops (the width-32 form is one `VecAdd` plus one `VecAddRot`). No cheaper form is available: the Vec elements would need scalar adds, which would cost more than the vector ops. The 18.86 ms, 19.52 ms and 20.21 ms runs differ mostly by measurement noise. I'm resubmitting the best verified layout, the width-32 packing.\n\nPROPOSED_EXPRESSION:\n(VecAddRot (VecAdd (Vec x_0_0 x_0_2 x_0_4 x_0_6 x_2_0 x_2_2 x_2_4 x_2_6 x_4_0 x_4_2 x_4_4 x_4_6 x_6_0 x_6_2 x_6_4 x_6_6 x_0_1 x_0_3 x_0_5 x_0_7 x_2_1 x_2_3 x_2_5 x_2_7 x_4_1 x_4_3 x_4_5 x_4_7 x_6_1 x_6_3 x_6_5 x_6_7) (Vec x_1_0 x_1_2 x_1_4 x_1_6 x_3_0 x_3_2 x_3_4 x_3_6 x_5_0 x_5_2 x_5_4 x_5_6 x_7_0 x_7_2 x_7_4 x_7_6 x_1_1 x_1_3 x_1_5 x_1_7 x_3_1 x_3_3 x_3_5 x_3_7 x_5_1 x_5_3 x_5_5 x_5_7 x_7_1 x_7_3 x_7_5 x_7_7)) 16)",
+      "llm_seconds": 12.050656250008615,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 6165,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 1445,
+        "output_tokens_details": {
+          "thinking_tokens": 871
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(VecAddRot (VecAdd (Vec x_0_0 x_0_2 x_0_4 x_0_6 x_2_0 x_2_2 x_2_4 x_2_6 x_4_0 x_4_2 x_4_4 x_4_6 x_6_0 x_6_2 x_6_4 x_6_6 x_0_1 x_0_3 x_0_5 x_0_7 x_2_1 x_2_3 x_2_5 x_2_7 x_4_1 x_4_3 x_4_5 x_4_7 x_6_1 x_6_3 x_6_5 x_6_7) (Vec x_1_0 x_1_2 x_1_4 x_1_6 x_3_0 x_3_2 x_3_4 x_3_6 x_5_0 x_5_2 x_5_4 x_5_6 x_7_0 x_7_2 x_7_4 x_7_6 x_1_1 x_1_3 x_1_5 x_1_7 x_3_1 x_3_3 x_3_5 x_3_7 x_5_1 x_5_3 x_5_5 x_5_7 x_7_1 x_7_3 x_7_5 x_7_7)) 16)",
+        "scheme": "BFV",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 19.4763,
+        "latency_samples_ms": [
+          19.7821,
+          19.4763,
+          19.7448,
+          19.2912,
+          18.8762
+        ],
+        "compilation_time_ms": 0.0,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "all 16 output slots equal the reference values",
+        "depth": 3,
+        "multiplicative_depth": 0,
+        "op_counts": {
+          "mul": 0,
+          "mul_plain": 0,
+          "square": 0,
+          "add": 2,
+          "add_plain": 0,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 0,
+          "rotate": 1,
+          "rescale": 0,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 357,
+        "ckks_max_abs_error": null,
+        "ckks_levels_consumed": 0,
+        "ckks_tolerance": null,
+        "static_cost": 2052
+      },
+      "is_best": false
+    },
+    {
+      "iteration": 6,
+      "candidate": "(VecAddRot (VecAdd (Vec x_0_0 x_0_2 x_0_4 x_0_6 x_2_0 x_2_2 x_2_4 x_2_6 x_4_0 x_4_2 x_4_4 x_4_6 x_6_0 x_6_2 x_6_4 x_6_6 x_0_1 x_0_3 x_0_5 x_0_7 x_2_1 x_2_3 x_2_5 x_2_7 x_4_1 x_4_3 x_4_5 x_4_7 x_6_1 x_6_3 x_6_5 x_6_7) (Vec x_1_0 x_1_2 x_1_4 x_1_6 x_3_0 x_3_2 x_3_4 x_3_6 x_5_0 x_5_2 x_5_4 x_5_6 x_7_0 x_7_2 x_7_4 x_7_6 x_1_1 x_1_3 x_1_5 x_1_7 x_3_1 x_3_3 x_3_5 x_3_7 x_5_1 x_5_3 x_5_5 x_5_7 x_7_1 x_7_3 x_7_5 x_7_7)) 16)",
+      "llm_response": "The 2x2 block sums need four inputs combined per output slot. That takes at least three vector ops: the width-32 layout uses one `VecAdd` and one `VecAddRot`, which is an add, a rotate and an add. I see no way to do it in two ops. The 18.86 to 19.5 ms spread between identical resubmissions looks like measurement noise, so I'm resubmitting the same layout.\n\nPROPOSED_EXPRESSION:\n(VecAddRot (VecAdd (Vec x_0_0 x_0_2 x_0_4 x_0_6 x_2_0 x_2_2 x_2_4 x_2_6 x_4_0 x_4_2 x_4_4 x_4_6 x_6_0 x_6_2 x_6_4 x_6_6 x_0_1 x_0_3 x_0_5 x_0_7 x_2_1 x_2_3 x_2_5 x_2_7 x_4_1 x_4_3 x_4_5 x_4_7 x_6_1 x_6_3 x_6_5 x_6_7) (Vec x_1_0 x_1_2 x_1_4 x_1_6 x_3_0 x_3_2 x_3_4 x_3_6 x_5_0 x_5_2 x_5_4 x_5_6 x_7_0 x_7_2 x_7_4 x_7_6 x_1_1 x_1_3 x_1_5 x_1_7 x_3_1 x_3_3 x_3_5 x_3_7 x_5_1 x_5_3 x_5_5 x_5_7 x_7_1 x_7_3 x_7_5 x_7_7)) 16)",
+      "llm_seconds": 9.811237916001119,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 6974,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 1185,
+        "output_tokens_details": {
+          "thinking_tokens": 625
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(VecAddRot (VecAdd (Vec x_0_0 x_0_2 x_0_4 x_0_6 x_2_0 x_2_2 x_2_4 x_2_6 x_4_0 x_4_2 x_4_4 x_4_6 x_6_0 x_6_2 x_6_4 x_6_6 x_0_1 x_0_3 x_0_5 x_0_7 x_2_1 x_2_3 x_2_5 x_2_7 x_4_1 x_4_3 x_4_5 x_4_7 x_6_1 x_6_3 x_6_5 x_6_7) (Vec x_1_0 x_1_2 x_1_4 x_1_6 x_3_0 x_3_2 x_3_4 x_3_6 x_5_0 x_5_2 x_5_4 x_5_6 x_7_0 x_7_2 x_7_4 x_7_6 x_1_1 x_1_3 x_1_5 x_1_7 x_3_1 x_3_3 x_3_5 x_3_7 x_5_1 x_5_3 x_5_5 x_5_7 x_7_1 x_7_3 x_7_5 x_7_7)) 16)",
+        "scheme": "BFV",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 18.9683,
+        "latency_samples_ms": [
+          19.4217,
+          19.2172,
+          18.549,
+          18.9683,
+          18.602
+        ],
+        "compilation_time_ms": 0.0,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "all 16 output slots equal the reference values",
+        "depth": 3,
+        "multiplicative_depth": 0,
+        "op_counts": {
+          "mul": 0,
+          "mul_plain": 0,
+          "square": 0,
+          "add": 2,
+          "add_plain": 0,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 0,
+          "rotate": 1,
+          "rescale": 0,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 357,
+        "ckks_max_abs_error": null,
+        "ckks_levels_consumed": 0,
+        "ckks_tolerance": null,
+        "static_cost": 2052
+      },
+      "is_best": false
+    }
+  ]
+}

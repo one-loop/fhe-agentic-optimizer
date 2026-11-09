@@ -86,6 +86,8 @@ void parse_inputs_outputs_file(
   }
   expected_outputs = outputs;
   have_expected_outputs = true;
+  // Lets external checkers reduce reference values modulo t.
+  cout << "plain_modulus: " << plain_modulus << "\n" << flush;
 }
 
 vector<string> split(const string &str, char delim)
@@ -170,6 +172,18 @@ void get_clear_outputs(
     clear_output.resize(func_slot_count);
     clear_outputs.emplace(encoded_output.first, ClearArgInfo{move(clear_output), false, false});
   }
+
+  // Print every decrypted output so that callers can check results against an
+  // independent reference. This matters for vectorized programs: their adapted
+  // io file only holds placeholder (zero) expected outputs.
+  for (const auto &[label, info] : clear_outputs)
+  {
+    cout << "decrypted_output: " << label;
+    for (auto v : get<vector<uint64_t>>(info.value_))
+      cout << ' ' << v;
+    cout << '\n';
+  }
+  cout << flush;
 
   if (have_expected_outputs)
   {

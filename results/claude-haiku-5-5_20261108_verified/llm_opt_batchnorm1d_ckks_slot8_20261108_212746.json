@@ -1,0 +1,530 @@
+{
+  "benchmark": "batchnorm1d_ckks",
+  "scheme": "CKKS",
+  "slot_count": 8,
+  "iterations": 6,
+  "model": "claude-haiku-5-5",
+  "started": "2026-11-08T21:27:02",
+  "finished": "2026-11-08T21:27:46",
+  "harness_error": null,
+  "methodology": {
+    "bfv_latency": "median end-to-end time of the generated SEAL main (parse+encode+encrypt+evaluate), 1 warmup + 5 measured runs",
+    "ckks_latency": "median over 3 processes of the eval-only median (1 warmup + 5 runs of fhe())",
+    "ckks_tolerance": 1e-06,
+    "host": "Darwin arm64 26.6"
+  },
+  "original_expression": "(+ (* x A) B)",
+  "unoptimized_baseline": {
+    "success": true,
+    "candidate_expr": "batchnorm1d_ckks (as written)",
+    "scheme": "CKKS",
+    "stage_failed": null,
+    "error_message": null,
+    "execution_latency_ms": 9.75212,
+    "latency_samples_ms": [
+      9.75212,
+      9.74825,
+      9.79729
+    ],
+    "compilation_time_ms": 1.25658,
+    "correctness_checked": true,
+    "correct": true,
+    "correctness_detail": "max abs error 2.422e-08 vs expected outputs (tolerance 1e-06)",
+    "depth": 2,
+    "multiplicative_depth": 1,
+    "op_counts": {
+      "mul": 0,
+      "mul_plain": 1,
+      "square": 0,
+      "add": 0,
+      "add_plain": 1,
+      "sub": 0,
+      "sub_plain": 0,
+      "negate": 0,
+      "relin": 0,
+      "rotate": 0,
+      "rescale": 1,
+      "mod_switch": 0
+    },
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": 2.42157e-08,
+    "ckks_levels_consumed": 1,
+    "ckks_tolerance": 1e-06,
+    "static_cost": 0.0
+  },
+  "egraph_baseline": {
+    "success": false,
+    "candidate_expr": "",
+    "scheme": "CKKS",
+    "stage_failed": "not_applicable",
+    "error_message": "CHEHAB's e-graph vectorizer is BFV-only (Func::require_bfv); no CKKS e-graph baseline",
+    "execution_latency_ms": 0.0,
+    "latency_samples_ms": [],
+    "compilation_time_ms": 0.0,
+    "correctness_checked": false,
+    "correct": false,
+    "correctness_detail": "",
+    "depth": 0,
+    "multiplicative_depth": 0,
+    "op_counts": {},
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": null,
+    "ckks_levels_consumed": 0,
+    "ckks_tolerance": null,
+    "static_cost": 0.0
+  },
+  "reference_via_candidate_path": {
+    "success": true,
+    "candidate_expr": "(+ (* x A) B)",
+    "scheme": "CKKS",
+    "stage_failed": null,
+    "error_message": null,
+    "execution_latency_ms": 9.75896,
+    "latency_samples_ms": [
+      9.75871,
+      10.121,
+      9.75896
+    ],
+    "compilation_time_ms": 0.422,
+    "correctness_checked": true,
+    "correct": true,
+    "correctness_detail": "max abs error 4.712e-08 vs expected outputs (tolerance 1e-06)",
+    "depth": 2,
+    "multiplicative_depth": 1,
+    "op_counts": {
+      "mul": 0,
+      "mul_plain": 1,
+      "square": 0,
+      "add": 0,
+      "add_plain": 1,
+      "sub": 0,
+      "sub_plain": 0,
+      "negate": 0,
+      "relin": 0,
+      "rotate": 0,
+      "rescale": 1,
+      "mod_switch": 0
+    },
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": 4.71222e-08,
+    "ckks_levels_consumed": 1,
+    "ckks_tolerance": 1e-06,
+    "static_cost": 0.0
+  },
+  "best_result": {
+    "success": true,
+    "candidate_expr": "(+ (* x A) B)",
+    "scheme": "CKKS",
+    "stage_failed": null,
+    "error_message": null,
+    "execution_latency_ms": 9.75238,
+    "latency_samples_ms": [
+      9.75238,
+      9.96308,
+      9.74033
+    ],
+    "compilation_time_ms": 1.07646,
+    "correctness_checked": true,
+    "correct": true,
+    "correctness_detail": "max abs error 2.284e-08 vs expected outputs (tolerance 1e-06)",
+    "depth": 2,
+    "multiplicative_depth": 1,
+    "op_counts": {
+      "mul": 0,
+      "mul_plain": 1,
+      "square": 0,
+      "add": 0,
+      "add_plain": 1,
+      "sub": 0,
+      "sub_plain": 0,
+      "negate": 0,
+      "relin": 0,
+      "rotate": 0,
+      "rescale": 1,
+      "mod_switch": 0
+    },
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": 2.28436e-08,
+    "ckks_levels_consumed": 1,
+    "ckks_tolerance": 1e-06,
+    "static_cost": 0.0
+  },
+  "speedup_vs_unoptimized": 0.9999733398411463,
+  "speedup_vs_egraph": null,
+  "egraph_speedup_vs_unoptimized": null,
+  "valid_candidates": 6,
+  "history": [
+    {
+      "iteration": 1,
+      "candidate": "(+ (* x A) B)",
+      "llm_response": "The program is already minimal. It needs one ciphertext-plaintext multiplication (`x*A`), which is unavoidable because `A` is unknown at compile time, and one plaintext addition (`+ B`). Its multiplicative depth is 1, the lowest possible for a non-trivial product. Alternatives such as `(- (* x A) (- B))` or distributing through a let add operations without removing the multiplication, so they cannot beat the baseline. I'm proposing the same expression rather than a rewrite that would only add cost.\n\nPROPOSED_EXPRESSION:\n(+ (* x A) B)",
+      "llm_seconds": 2.4717214579868596,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 1138,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 356,
+        "output_tokens_details": {
+          "thinking_tokens": 155
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(+ (* x A) B)",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 9.76437,
+        "latency_samples_ms": [
+          9.77683,
+          9.76437,
+          9.76333
+        ],
+        "compilation_time_ms": 0.338667,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 2.426e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 2,
+        "multiplicative_depth": 1,
+        "op_counts": {
+          "mul": 0,
+          "mul_plain": 1,
+          "square": 0,
+          "add": 0,
+          "add_plain": 1,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 0,
+          "rotate": 0,
+          "rescale": 1,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 2.42553e-08,
+        "ckks_levels_consumed": 1,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": true
+    },
+    {
+      "iteration": 2,
+      "candidate": "(+ (* x A) B)",
+      "llm_response": "The candidate was correct (max error 2.43e-08) and ran at 9.76 ms, matching the 9.75 ms baseline within noise. The compiled program already has the minimum work: one ciphertext-plaintext multiplication (`x*A`), one plaintext addition (`+ B`), and one rescale. Depth is 1, the lowest possible for a product whose plaintext factor `A` is unknown at compile time.\n\nCandidate rewrites don't help. Factoring or distributing would add operations, and a let-binding only pays off when a value is reused, which this program doesn't do. I found no change that would plausibly beat the baseline, so I'm resubmitting the same expression.\n\nPROPOSED_EXPRESSION:\n(+ (* x A) B)",
+      "llm_seconds": 2.448041541996645,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 1604,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 320,
+        "output_tokens_details": {
+          "thinking_tokens": 70
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(+ (* x A) B)",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 9.76925,
+        "latency_samples_ms": [
+          9.75704,
+          9.78371,
+          9.76925
+        ],
+        "compilation_time_ms": 0.636917,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 1.440e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 2,
+        "multiplicative_depth": 1,
+        "op_counts": {
+          "mul": 0,
+          "mul_plain": 1,
+          "square": 0,
+          "add": 0,
+          "add_plain": 1,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 0,
+          "rotate": 0,
+          "rescale": 1,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 1.43959e-08,
+        "ckks_levels_consumed": 1,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    },
+    {
+      "iteration": 3,
+      "candidate": "(+ (* x A) B)",
+      "llm_response": "The result is 9.77 ms, within noise of the baseline and the previous run. The program still uses one ciphertext-plaintext multiplication, one plaintext addition, and one rescale, at depth 1. Batch normalization at inference reduces to the affine map `x*A + B`, and `A` and `B` are unknown at compile time, so they can't be folded together. The only other candidates I considered either add operations or leave the multiplication count unchanged, so I see no rewrite likely to beat the baseline. I'm resubmitting the same expression.\n\nPROPOSED_EXPRESSION:\n(+ (* x A) B)",
+      "llm_seconds": 2.2296074999903794,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 2119,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 325,
+        "output_tokens_details": {
+          "thinking_tokens": 121
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(+ (* x A) B)",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 9.77308,
+        "latency_samples_ms": [
+          9.77308,
+          9.86479,
+          9.74
+        ],
+        "compilation_time_ms": 0.613166,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 1.254e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 2,
+        "multiplicative_depth": 1,
+        "op_counts": {
+          "mul": 0,
+          "mul_plain": 1,
+          "square": 0,
+          "add": 0,
+          "add_plain": 1,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 0,
+          "rotate": 0,
+          "rescale": 1,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 1.25376e-08,
+        "ckks_levels_consumed": 1,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    },
+    {
+      "iteration": 4,
+      "candidate": "(+ (* x A) B)",
+      "llm_response": "The result is 9.77 ms, within noise of the baseline and the earlier runs. The compiled program has the minimum work for this computation: one ciphertext-plaintext multiplication (`x*A`), one plaintext addition (`+ B`), and one rescale, at depth 1. Since `A` and `B` are unknown at compile time, nothing can be folded or precomputed, and any rewrite would add operations or leave the count unchanged. I'm resubmitting the same expression.\n\nPROPOSED_EXPRESSION:\n(+ (* x A) B)",
+      "llm_seconds": 1.8724267919897102,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 2588,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 236,
+        "output_tokens_details": {
+          "thinking_tokens": 52
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(+ (* x A) B)",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 9.93496,
+        "latency_samples_ms": [
+          9.99621,
+          9.93496,
+          9.93392
+        ],
+        "compilation_time_ms": 0.5875,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 3.662e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 2,
+        "multiplicative_depth": 1,
+        "op_counts": {
+          "mul": 0,
+          "mul_plain": 1,
+          "square": 0,
+          "add": 0,
+          "add_plain": 1,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 0,
+          "rotate": 0,
+          "rescale": 1,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 3.66197e-08,
+        "ckks_levels_consumed": 1,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    },
+    {
+      "iteration": 5,
+      "candidate": "(+ (* x A) B)",
+      "llm_response": "The latest run measured 9.93 ms, which is within the run-to-run spread of the earlier results (9.75 to 9.77 ms) and does not indicate a real change. The compiled program is unchanged: one ciphertext-plaintext multiplication, one plaintext addition, one rescale, and depth 1. Batch normalization at inference is the affine map `x*A + B`, and since `A` and `B` are unknown at compile time, no rewrite can remove the multiplication or reduce depth. I don't see a candidate that would plausibly beat the baseline, so I'm resubmitting the same expression.\n\nPROPOSED_EXPRESSION:\n(+ (* x A) B)",
+      "llm_seconds": 2.3865273330011405,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 3037,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 312,
+        "output_tokens_details": {
+          "thinking_tokens": 87
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(+ (* x A) B)",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 9.75238,
+        "latency_samples_ms": [
+          9.75238,
+          9.96308,
+          9.74033
+        ],
+        "compilation_time_ms": 1.07646,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 2.284e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 2,
+        "multiplicative_depth": 1,
+        "op_counts": {
+          "mul": 0,
+          "mul_plain": 1,
+          "square": 0,
+          "add": 0,
+          "add_plain": 1,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 0,
+          "rotate": 0,
+          "rescale": 1,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 2.28436e-08,
+        "ckks_levels_consumed": 1,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": true
+    },
+    {
+      "iteration": 6,
+      "candidate": "(+ (* x A) B)",
+      "llm_response": "The latest run measured 9.75 ms, the same as the baseline within noise. The compiled program is unchanged: one ciphertext-plaintext multiplication, one plaintext addition, one rescale, depth 1. Since `A` and `B` are unknown at compile time, nothing can be folded, and the multiplication cannot be removed or made shallower. I'm resubmitting the same expression.\n\nPROPOSED_EXPRESSION:\n(+ (* x A) B)",
+      "llm_seconds": 1.81984337499307,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 3527,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 156,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(+ (* x A) B)",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 9.80692,
+        "latency_samples_ms": [
+          9.77917,
+          9.80692,
+          9.83029
+        ],
+        "compilation_time_ms": 1.02533,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 1.301e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 2,
+        "multiplicative_depth": 1,
+        "op_counts": {
+          "mul": 0,
+          "mul_plain": 1,
+          "square": 0,
+          "add": 0,
+          "add_plain": 1,
+          "sub": 0,
+          "sub_plain": 0,
+          "negate": 0,
+          "relin": 0,
+          "rotate": 0,
+          "rescale": 1,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 1.30061e-08,
+        "ckks_levels_consumed": 1,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    }
+  ]
+}

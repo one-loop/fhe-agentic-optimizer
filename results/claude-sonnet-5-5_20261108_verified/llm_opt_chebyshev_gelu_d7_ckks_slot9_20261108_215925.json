@@ -1,0 +1,496 @@
+{
+  "benchmark": "chebyshev_gelu_d7_ckks",
+  "scheme": "CKKS",
+  "slot_count": 9,
+  "iterations": 6,
+  "model": "claude-sonnet-5-5",
+  "started": "2026-11-08T21:56:43",
+  "finished": "2026-11-08T21:59:25",
+  "harness_error": null,
+  "methodology": {
+    "bfv_latency": "median end-to-end time of the generated SEAL main (parse+encode+encrypt+evaluate), 1 warmup + 5 measured runs",
+    "ckks_latency": "median over 3 processes of the eval-only median (1 warmup + 5 runs of fhe())",
+    "ckks_tolerance": 1e-06,
+    "host": "Darwin arm64 26.6"
+  },
+  "original_expression": "(let z (* x alpha) (let zsq (* z z) (let t2 (- (+ zsq zsq) one) (let zt3 (* z t2) (let t3 (- (+ zt3 zt3) z) (let zt4 (* z t3) (let t4 (- (+ zt4 zt4) t2) (let zt5 (* z t4) (let t5 (- (+ zt5 zt5) t3) (let zt6 (* z t5) (let t6 (- (+ zt6 zt6) t4) (let zt7 (* z t6) (let t7 (- (+ zt7 zt7) t5) (+ (+ (+ (+ (* z c1) (* t2 c2)) (* t4 c4)) (* t6 c6)) c0))))))))))))))",
+  "unoptimized_baseline": {
+    "success": true,
+    "candidate_expr": "chebyshev_gelu_d7_ckks (as written)",
+    "scheme": "CKKS",
+    "stage_failed": null,
+    "error_message": null,
+    "execution_latency_ms": 169.569,
+    "latency_samples_ms": [
+      169.569,
+      169.847,
+      169.547
+    ],
+    "compilation_time_ms": 0.469875,
+    "correctness_checked": true,
+    "correct": true,
+    "correctness_detail": "max abs error 5.750e-08 vs expected outputs (tolerance 1e-06)",
+    "depth": 19,
+    "multiplicative_depth": 7,
+    "op_counts": {
+      "mul": 5,
+      "mul_plain": 12,
+      "square": 0,
+      "add": 8,
+      "add_plain": 1,
+      "sub": 4,
+      "sub_plain": 1,
+      "negate": 0,
+      "relin": 5,
+      "rotate": 0,
+      "rescale": 17,
+      "mod_switch": 10
+    },
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": 5.75035e-08,
+    "ckks_levels_consumed": 7,
+    "ckks_tolerance": 1e-06,
+    "static_cost": 0.0
+  },
+  "egraph_baseline": {
+    "success": false,
+    "candidate_expr": "",
+    "scheme": "CKKS",
+    "stage_failed": "not_applicable",
+    "error_message": "CHEHAB's e-graph vectorizer is BFV-only (Func::require_bfv); no CKKS e-graph baseline",
+    "execution_latency_ms": 0.0,
+    "latency_samples_ms": [],
+    "compilation_time_ms": 0.0,
+    "correctness_checked": false,
+    "correct": false,
+    "correctness_detail": "",
+    "depth": 0,
+    "multiplicative_depth": 0,
+    "op_counts": {},
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": null,
+    "ckks_levels_consumed": 0,
+    "ckks_tolerance": null,
+    "static_cost": 0.0
+  },
+  "reference_via_candidate_path": {
+    "success": true,
+    "candidate_expr": "(let z (* x alpha) (let zsq (* z z) (let t2 (- (+ zsq zsq) one) (let zt3 (* z t2) (let t3 (- (+ zt3 zt3) z) (let zt4 (* z t3) (let t4 (- (+ zt4 zt4) t2) (let zt5 (* z t4) (let t5 (- (+ zt5 zt5) t3) (let zt6 (* z t5) (let t6 (- (+ zt6 zt6) t4) (let zt7 (* z t6) (let t7 (- (+ zt7 zt7) t5) (+ (+ (+ (+ (* z c1) (* t2 c2)) (* t4 c4)) (* t6 c6)) c0))))))))))))))",
+    "scheme": "CKKS",
+    "stage_failed": null,
+    "error_message": null,
+    "execution_latency_ms": 169.997,
+    "latency_samples_ms": [
+      170.839,
+      169.997,
+      169.56
+    ],
+    "compilation_time_ms": 0.468334,
+    "correctness_checked": true,
+    "correct": true,
+    "correctness_detail": "max abs error 1.124e-07 vs expected outputs (tolerance 1e-06)",
+    "depth": 19,
+    "multiplicative_depth": 7,
+    "op_counts": {
+      "mul": 5,
+      "mul_plain": 12,
+      "square": 0,
+      "add": 8,
+      "add_plain": 1,
+      "sub": 4,
+      "sub_plain": 1,
+      "negate": 0,
+      "relin": 5,
+      "rotate": 0,
+      "rescale": 17,
+      "mod_switch": 10
+    },
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": 1.12379e-07,
+    "ckks_levels_consumed": 7,
+    "ckks_tolerance": 1e-06,
+    "static_cost": 0.0
+  },
+  "best_result": {
+    "success": true,
+    "candidate_expr": "(let z (* x alpha) (let zsq (* z z) (let u (- (+ zsq zsq) one) (let q (* u u) (let w (* u c6) (let p (+ (+ w w) c4) (let m (* q (+ p p)) (let w3 (+ (+ w w) w) (let low (- (- (+ (+ (* z c1) (* u c2)) c0) w3) c4) (+ low m))))))))))",
+    "scheme": "CKKS",
+    "stage_failed": null,
+    "error_message": null,
+    "execution_latency_ms": 120.771,
+    "latency_samples_ms": [
+      120.715,
+      120.875,
+      120.771
+    ],
+    "compilation_time_ms": 1.24004,
+    "correctness_checked": true,
+    "correct": true,
+    "correctness_detail": "max abs error 1.294e-07 vs expected outputs (tolerance 1e-06)",
+    "depth": 10,
+    "multiplicative_depth": 4,
+    "op_counts": {
+      "mul": 3,
+      "mul_plain": 6,
+      "square": 0,
+      "add": 6,
+      "add_plain": 2,
+      "sub": 1,
+      "sub_plain": 2,
+      "negate": 0,
+      "relin": 3,
+      "rotate": 0,
+      "rescale": 9,
+      "mod_switch": 0
+    },
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": 1.29371e-07,
+    "ckks_levels_consumed": 4,
+    "ckks_tolerance": 1e-06,
+    "static_cost": 0.0
+  },
+  "speedup_vs_unoptimized": 1.4040539533497278,
+  "speedup_vs_egraph": null,
+  "egraph_speedup_vs_unoptimized": null,
+  "valid_candidates": 4,
+  "history": [
+    {
+      "iteration": 1,
+      "candidate": "(let z (* x alpha) (let zsq (* z z) (let t2 (- (+ zsq zsq) one) (let q (* t2 t2) (let t4 (- (+ q q) one) (let a (* t2 c6) (let b (- (+ t4 t4) one) (let t6c (* a b) (+ (+ (+ (+ (* z c1) (* t2 c2)) (* t4 c4)) t6c) c0))))))))",
+      "llm_response": "The output only uses z, t2, t4 and t6, so the odd terms (c3, c5, c7, beta) are dead and t3, t5 and t7 need not be computed. I use Chebyshev identities instead of the long recurrence:\n\n- t2 = 2z\u00b2 \u2212 1\n- t4 = 2\u00b7t2\u00b2 \u2212 1\n- t6 = 2\u00b7t2\u00b7t4 \u2212 t2 = t2\u00b7(2\u00b7t4 \u2212 1)\n\nI fold c6 into t2 first, so the final ciphertext product has depth 4.\n\nThis takes 4 ciphertext\u00d7ciphertext multiplications (z\u00b2, t2\u00b2, and t2\u00b7c6 times (2\u00b7t4 \u2212 1) counts as one, so 3 in the chain, plus none for z) instead of 5 and cuts the multiplicative depth from 7 to about 5. I have not measured the latency.\n\nPROPOSED_EXPRESSION:\n(let z (* x alpha)\n(let zsq (* z z)\n(let t2 (- (+ zsq zsq) one)\n(let q (* t2 t2)\n(let t4 (- (+ q q) one)\n(let a (* t2 c6)\n(let b (- (+ t4 t4) one)\n(let t6c (* a b)\n(+ (+ (+ (+ (* z c1) (* t2 c2)) (* t4 c4)) t6c) c0))))))))",
+      "llm_seconds": 14.452626165992115,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 1535,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 1855,
+        "output_tokens_details": {
+          "thinking_tokens": 1413
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": false,
+        "candidate_expr": "(let z (* x alpha) (let zsq (* z z) (let t2 (- (+ zsq zsq) one) (let q (* t2 t2) (let t4 (- (+ q q) one) (let a (* t2 c6) (let b (- (+ t4 t4) one) (let t6c (* a b) (+ (+ (+ (+ (* z c1) (* t2 c2)) (* t4 c4)) t6c) c0))))))))",
+        "scheme": "CKKS",
+        "stage_failed": "syntax_validation",
+        "error_message": "Syntax Error: Missing closing parenthesis for operator '(let'.",
+        "execution_latency_ms": 0.0,
+        "latency_samples_ms": [],
+        "compilation_time_ms": 0.0,
+        "correctness_checked": false,
+        "correct": false,
+        "correctness_detail": "",
+        "depth": 0,
+        "multiplicative_depth": 0,
+        "op_counts": {},
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": null,
+        "ckks_levels_consumed": 0,
+        "ckks_tolerance": null,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    },
+    {
+      "iteration": 2,
+      "candidate": "(let z (* x alpha) (let zsq (* z z) (let t2 (- (+ zsq zsq) one) (let q (* t2 t2) (let t4 (- (+ q q) one) (let a (* t2 c6) (let b (- (+ t4 t4) one) (let t6c (* a b) (+ (+ (+ (+ (* z c1) (* t2 c2)) (* t4 c4)) t6c) c0) ))))))))",
+      "llm_response": "The previous candidate was missing closing parentheses: it had eight nested `let`s but closed only seven. The fix is eight closing parentheses after the body.\n\nThe math is unchanged. The dead odd terms (c3, c5, c7, beta) are dropped, and t4 and t6 come from Chebyshev product identities, which assume `one` = 1:\n\n- t4 = 2\u00b7t2\u00b2 \u2212 1\n- t6 = t2\u00b7(2\u00b7t4 \u2212 1)\n\nI have not measured the latency.\n\nPROPOSED_EXPRESSION:\n(let z (* x alpha)\n(let zsq (* z z)\n(let t2 (- (+ zsq zsq) one)\n(let q (* t2 t2)\n(let t4 (- (+ q q) one)\n(let a (* t2 c6)\n(let b (- (+ t4 t4) one)\n(let t6c (* a b)\n(+ (+ (+ (+ (* z c1) (* t2 c2)) (* t4 c4)) t6c) c0)\n))))))))",
+      "llm_seconds": 9.63858875000733,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 2145,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 1178,
+        "output_tokens_details": {
+          "thinking_tokens": 844
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": false,
+        "candidate_expr": "(let z (* x alpha) (let zsq (* z z) (let t2 (- (+ zsq zsq) one) (let q (* t2 t2) (let t4 (- (+ q q) one) (let a (* t2 c6) (let b (- (+ t4 t4) one) (let t6c (* a b) (+ (+ (+ (+ (* z c1) (* t2 c2)) (* t4 c4)) t6c) c0) ))))))))",
+        "scheme": "CKKS",
+        "stage_failed": "chehab_compiler",
+        "error_message": "CHEHAB exited with status 1:\ncandidate error: CKKS scale mismatch: ciphertext operands of '+' (term 29) are at the same level 4 with different scales; aligning them would need an extra level",
+        "execution_latency_ms": 0.0,
+        "latency_samples_ms": [],
+        "compilation_time_ms": 0.0,
+        "correctness_checked": false,
+        "correct": false,
+        "correctness_detail": "",
+        "depth": 0,
+        "multiplicative_depth": 0,
+        "op_counts": {},
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": null,
+        "ckks_levels_consumed": 0,
+        "ckks_tolerance": null,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    },
+    {
+      "iteration": 3,
+      "candidate": "(let z (* x alpha) (let zsq (* z z) (let t2 (- (+ zsq zsq) one) (let q (* t2 t2) (let t4 (- (+ q q) one) (let b (- (+ t4 t4) one) (let t6 (* t2 b) (+ (+ (+ (+ (* z c1) (* t2 c2)) (* t4 c4)) (* t6 c6)) c0))))))))",
+      "llm_response": "The scale mismatch came from adding two level-4 terms with different histories: `t4*c4` is a plaintext multiply and `(t2*c6)*b` is a ciphertext product. I now compute t6\u00b7c6 as `(t2*b)*c6`. That puts it at level 5, so every term in the sum sits at a different level (z\u00b7c1 at 2, t2\u00b7c2 at 3, t4\u00b7c4 at 4, t6\u00b7c6 at 5) and no two terms are added at the same level. This costs one more level than before but keeps the same multiplication count. I have not measured the latency.\n\nPROPOSED_EXPRESSION:\n(let z (* x alpha)\n(let zsq (* z z)\n(let t2 (- (+ zsq zsq) one)\n(let q (* t2 t2)\n(let t4 (- (+ q q) one)\n(let b (- (+ t4 t4) one)\n(let t6 (* t2 b)\n(+ (+ (+ (+ (* z c1) (* t2 c2)) (* t4 c4)) (* t6 c6)) c0))))))))",
+      "llm_seconds": 15.56892187500489,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 2692,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 1658,
+        "output_tokens_details": {
+          "thinking_tokens": 1302
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(let z (* x alpha) (let zsq (* z z) (let t2 (- (+ zsq zsq) one) (let q (* t2 t2) (let t4 (- (+ q q) one) (let b (- (+ t4 t4) one) (let t6 (* t2 b) (+ (+ (+ (+ (* z c1) (* t2 c2)) (* t4 c4)) (* t6 c6)) c0))))))))",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 127.481,
+        "latency_samples_ms": [
+          127.511,
+          127.481,
+          127.096
+        ],
+        "compilation_time_ms": 1.25713,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 5.982e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 13,
+        "multiplicative_depth": 5,
+        "op_counts": {
+          "mul": 3,
+          "mul_plain": 8,
+          "square": 0,
+          "add": 6,
+          "add_plain": 1,
+          "sub": 0,
+          "sub_plain": 3,
+          "negate": 0,
+          "relin": 3,
+          "rotate": 0,
+          "rescale": 11,
+          "mod_switch": 1
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 5.98204e-08,
+        "ckks_levels_consumed": 5,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": true
+    },
+    {
+      "iteration": 4,
+      "candidate": "(let z (* x alpha) (let zsq (* z z) (let t2 (- (+ zsq zsq) one) (let q (* t2 t2) (let t4 (- (+ q q) one) (let w (* t2 c6) (let m (* t4 (+ (+ w w) c4)) (- (+ (+ (+ (* z c1) (* t2 c2)) m) c0) w))))))))",
+      "llm_response": "I fold the t4\u00b7c4 and t6\u00b7c6 terms into a single ciphertext product. Using t6 = t2\u00b7(2\u00b7t4 \u2212 1):\n\nc4\u00b7t4 + c6\u00b7t6 = t4\u00b7(c4 + 2\u00b7w) \u2212 w, where w = t2\u00b7c6.\n\nThis takes 3 ciphertext\u00d7ciphertext multiplications (z\u00b2, t2\u00b2, and the fused product) and 4 plaintext multiplications (alpha, c1, c2, c6). The multiplicative depth drops from 5 to 4. The terms are added at different levels, which avoids the earlier same-level scale mismatch, though I have not confirmed the compiler accepts this. I have not measured the latency.\n\nPROPOSED_EXPRESSION:\n(let z (* x alpha)\n(let zsq (* z z)\n(let t2 (- (+ zsq zsq) one)\n(let q (* t2 t2)\n(let t4 (- (+ q q) one)\n(let w (* t2 c6)\n(let m (* t4 (+ (+ w w) c4))\n(- (+ (+ (+ (* z c1) (* t2 c2)) m) c0) w))))))))",
+      "llm_seconds": 25.727019500001916,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 3343,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 3007,
+        "output_tokens_details": {
+          "thinking_tokens": 2629
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(let z (* x alpha) (let zsq (* z z) (let t2 (- (+ zsq zsq) one) (let q (* t2 t2) (let t4 (- (+ q q) one) (let w (* t2 c6) (let m (* t4 (+ (+ w w) c4)) (- (+ (+ (+ (* z c1) (* t2 c2)) m) c0) w))))))))",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 123.759,
+        "latency_samples_ms": [
+          124.694,
+          123.749,
+          123.759
+        ],
+        "compilation_time_ms": 1.33262,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 7.402e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 11,
+        "multiplicative_depth": 4,
+        "op_counts": {
+          "mul": 3,
+          "mul_plain": 7,
+          "square": 0,
+          "add": 5,
+          "add_plain": 2,
+          "sub": 1,
+          "sub_plain": 2,
+          "negate": 0,
+          "relin": 3,
+          "rotate": 0,
+          "rescale": 10,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 7.40193e-08,
+        "ckks_levels_consumed": 4,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": true
+    },
+    {
+      "iteration": 5,
+      "candidate": "(let z (* x alpha) (let zsq (* z z) (let u (- (+ zsq zsq) one) (let q (* u u) (let w (* u c6) (let p (+ (+ w w) c4) (let p2 (+ p p) (let m (* q p2) (let w3 (+ (+ w w) w) (- (- (+ (+ (+ (* z c1) (* u c2)) m) c0) w3) c4))))))))))",
+      "llm_response": "I dropped t4 entirely. Substituting t4 = 2u\u00b2 \u2212 1 and t6 = 4u\u00b3 \u2212 3u, with u = t2 and q = u\u00b2, gives:\n\nc4\u00b7t4 + c6\u00b7t6 = (2c4 + 4w)\u00b7q \u2212 c4 \u2212 3w, where w = u\u00b7c6.\n\nThis keeps 3 ciphertext\u00d7ciphertext multiplications (z\u00b2, q, and the fused product) and depth 4. It removes the t4 computation and its sub_plain, at the cost of a few cheap additions. I have not measured the latency, and the gain may be small.\n\nPROPOSED_EXPRESSION:\n(let z (* x alpha)\n(let zsq (* z z)\n(let u (- (+ zsq zsq) one)\n(let q (* u u)\n(let w (* u c6)\n(let p (+ (+ w w) c4)\n(let p2 (+ p p)\n(let m (* q p2)\n(let w3 (+ (+ w w) w)\n(- (- (+ (+ (+ (* z c1) (* u c2)) m) c0) w3) c4))))))))))",
+      "llm_seconds": 28.797444290990825,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 4013,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 3218,
+        "output_tokens_details": {
+          "thinking_tokens": 2857
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(let z (* x alpha) (let zsq (* z z) (let u (- (+ zsq zsq) one) (let q (* u u) (let w (* u c6) (let p (+ (+ w w) c4) (let p2 (+ p p) (let m (* q p2) (let w3 (+ (+ w w) w) (- (- (+ (+ (+ (* z c1) (* u c2)) m) c0) w3) c4))))))))))",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 124.08,
+        "latency_samples_ms": [
+          124.08,
+          124.504,
+          123.988
+        ],
+        "compilation_time_ms": 0.799208,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 5.846e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 13,
+        "multiplicative_depth": 4,
+        "op_counts": {
+          "mul": 3,
+          "mul_plain": 7,
+          "square": 0,
+          "add": 6,
+          "add_plain": 2,
+          "sub": 1,
+          "sub_plain": 2,
+          "negate": 0,
+          "relin": 3,
+          "rotate": 0,
+          "rescale": 10,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 5.84576e-08,
+        "ckks_levels_consumed": 4,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    },
+    {
+      "iteration": 6,
+      "candidate": "(let z (* x alpha) (let zsq (* z z) (let u (- (+ zsq zsq) one) (let q (* u u) (let w (* u c6) (let p (+ (+ w w) c4) (let m (* q (+ p p)) (let w3 (+ (+ w w) w) (let low (- (- (+ (+ (* z c1) (* u c2)) c0) w3) c4) (+ low m))))))))))",
+      "llm_response": "The best result so far is 123.76 ms (iteration 4). Iteration 5 was essentially equal, so the math is already near its minimum of 3 ciphertext\u00d7ciphertext multiplications and depth 4.\n\nThe only change here is the order of the additions. I sum all the cheap, lower-level terms first (z\u00b7c1, u\u00b7c2, c0, and the \u22123w and \u2212c4 corrections) and add the deep product m last. That should leave fewer level-alignment and mod-switch operations. The expression is mathematically identical to iteration 5. I have not measured it, and the gain may be marginal.\n\nPROPOSED_EXPRESSION:\n(let z (* x alpha)\n(let zsq (* z z)\n(let u (- (+ zsq zsq) one)\n(let q (* u u)\n(let w (* u c6)\n(let p (+ (+ w w) c4)\n(let m (* q (+ p p))\n(let w3 (+ (+ w w) w)\n(let low (- (- (+ (+ (* z c1) (* u c2)) c0) w3) c4)\n(+ low m)))))))))))",
+      "llm_seconds": 24.748221333997208,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 4666,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 2768,
+        "output_tokens_details": {
+          "thinking_tokens": 2407
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(let z (* x alpha) (let zsq (* z z) (let u (- (+ zsq zsq) one) (let q (* u u) (let w (* u c6) (let p (+ (+ w w) c4) (let m (* q (+ p p)) (let w3 (+ (+ w w) w) (let low (- (- (+ (+ (* z c1) (* u c2)) c0) w3) c4) (+ low m))))))))))",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 120.771,
+        "latency_samples_ms": [
+          120.715,
+          120.875,
+          120.771
+        ],
+        "compilation_time_ms": 1.24004,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 1.294e-07 vs expected outputs (tolerance 1e-06)",
+        "depth": 10,
+        "multiplicative_depth": 4,
+        "op_counts": {
+          "mul": 3,
+          "mul_plain": 6,
+          "square": 0,
+          "add": 6,
+          "add_plain": 2,
+          "sub": 1,
+          "sub_plain": 2,
+          "negate": 0,
+          "relin": 3,
+          "rotate": 0,
+          "rescale": 9,
+          "mod_switch": 0
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 1.29371e-07,
+        "ckks_levels_consumed": 4,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": true
+    }
+  ]
+}

@@ -53,3 +53,5 @@ __pycache__/
 *.pyd
 /build-ckks-operators/
 /build-ckks/
+.env
+*.env

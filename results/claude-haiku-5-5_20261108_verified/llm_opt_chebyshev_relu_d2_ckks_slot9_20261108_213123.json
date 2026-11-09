@@ -1,0 +1,513 @@
+{
+  "benchmark": "chebyshev_relu_d2_ckks",
+  "scheme": "CKKS",
+  "slot_count": 9,
+  "iterations": 6,
+  "model": "claude-haiku-5-5",
+  "started": "2026-11-08T21:30:09",
+  "finished": "2026-11-08T21:31:23",
+  "harness_error": null,
+  "methodology": {
+    "bfv_latency": "median end-to-end time of the generated SEAL main (parse+encode+encrypt+evaluate), 1 warmup + 5 measured runs",
+    "ckks_latency": "median over 3 processes of the eval-only median (1 warmup + 5 runs of fhe())",
+    "ckks_tolerance": 1e-06,
+    "host": "Darwin arm64 26.6"
+  },
+  "original_expression": "(let z (* x alpha) (let zsq (* z z) (let t2 (- (+ zsq zsq) one) (+ (+ (* z c1) (* t2 c2)) c0))))",
+  "unoptimized_baseline": {
+    "success": true,
+    "candidate_expr": "chebyshev_relu_d2_ckks (as written)",
+    "scheme": "CKKS",
+    "stage_failed": null,
+    "error_message": null,
+    "execution_latency_ms": 59.0059,
+    "latency_samples_ms": [
+      59.0681,
+      59.0059,
+      58.9831
+    ],
+    "compilation_time_ms": 0.794375,
+    "correctness_checked": true,
+    "correct": true,
+    "correctness_detail": "max abs error 3.751e-08 vs expected outputs (tolerance 1e-06)",
+    "depth": 7,
+    "multiplicative_depth": 3,
+    "op_counts": {
+      "mul": 1,
+      "mul_plain": 4,
+      "square": 0,
+      "add": 2,
+      "add_plain": 1,
+      "sub": 0,
+      "sub_plain": 1,
+      "negate": 0,
+      "relin": 1,
+      "rotate": 0,
+      "rescale": 5,
+      "mod_switch": 0
+    },
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": 3.751e-08,
+    "ckks_levels_consumed": 3,
+    "ckks_tolerance": 1e-06,
+    "static_cost": 0.0
+  },
+  "egraph_baseline": {
+    "success": false,
+    "candidate_expr": "",
+    "scheme": "CKKS",
+    "stage_failed": "not_applicable",
+    "error_message": "CHEHAB's e-graph vectorizer is BFV-only (Func::require_bfv); no CKKS e-graph baseline",
+    "execution_latency_ms": 0.0,
+    "latency_samples_ms": [],
+    "compilation_time_ms": 0.0,
+    "correctness_checked": false,
+    "correct": false,
+    "correctness_detail": "",
+    "depth": 0,
+    "multiplicative_depth": 0,
+    "op_counts": {},
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": null,
+    "ckks_levels_consumed": 0,
+    "ckks_tolerance": null,
+    "static_cost": 0.0
+  },
+  "reference_via_candidate_path": {
+    "success": true,
+    "candidate_expr": "(let z (* x alpha) (let zsq (* z z) (let t2 (- (+ zsq zsq) one) (+ (+ (* z c1) (* t2 c2)) c0))))",
+    "scheme": "CKKS",
+    "stage_failed": null,
+    "error_message": null,
+    "execution_latency_ms": 59.2838,
+    "latency_samples_ms": [
+      59.0649,
+      59.2838,
+      59.3904
+    ],
+    "compilation_time_ms": 0.355333,
+    "correctness_checked": true,
+    "correct": true,
+    "correctness_detail": "max abs error 4.679e-08 vs expected outputs (tolerance 1e-06)",
+    "depth": 7,
+    "multiplicative_depth": 3,
+    "op_counts": {
+      "mul": 1,
+      "mul_plain": 4,
+      "square": 0,
+      "add": 2,
+      "add_plain": 1,
+      "sub": 0,
+      "sub_plain": 1,
+      "negate": 0,
+      "relin": 1,
+      "rotate": 0,
+      "rescale": 5,
+      "mod_switch": 0
+    },
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": 4.67923e-08,
+    "ckks_levels_consumed": 3,
+    "ckks_tolerance": 1e-06,
+    "static_cost": 0.0
+  },
+  "best_result": {
+    "success": true,
+    "candidate_expr": "(let u (* x alpha) (let w (* u c2) (let v (+ c1 (+ w w)) (let p (* u v) (+ (- p c2) c0)))))",
+    "scheme": "CKKS",
+    "stage_failed": null,
+    "error_message": null,
+    "execution_latency_ms": 45.9968,
+    "latency_samples_ms": [
+      46.8684,
+      45.9968,
+      45.7987
+    ],
+    "compilation_time_ms": 0.724833,
+    "correctness_checked": true,
+    "correct": true,
+    "correctness_detail": "max abs error 5.649e-08 vs expected outputs (tolerance 1e-06)",
+    "depth": 7,
+    "multiplicative_depth": 3,
+    "op_counts": {
+      "mul": 1,
+      "mul_plain": 2,
+      "square": 0,
+      "add": 1,
+      "add_plain": 2,
+      "sub": 0,
+      "sub_plain": 1,
+      "negate": 0,
+      "relin": 1,
+      "rotate": 0,
+      "rescale": 3,
+      "mod_switch": 1
+    },
+    "remaining_noise_budget": 0,
+    "ckks_max_abs_error": 5.64907e-08,
+    "ckks_levels_consumed": 3,
+    "ckks_tolerance": 1e-06,
+    "static_cost": 0.0
+  },
+  "speedup_vs_unoptimized": 1.2828261966049812,
+  "speedup_vs_egraph": null,
+  "egraph_speedup_vs_unoptimized": null,
+  "valid_candidates": 5,
+  "history": [
+    {
+      "iteration": 1,
+      "candidate": "(let u (* x alpha) (let w (* u c2) (let v (+ c1 (+ w w)) (let p (* u v) (+ (- p c2) c0)))))",
+      "llm_response": "The original computes `z*c1 + (2z\u00b2 \u2212 1)*c2 + c0` with `z = x*alpha`. I factor out `u = x*alpha`: the result becomes `u*(c1 + 2*c2*u) \u2212 c2 + c0`, which is algebraically identical. This keeps multiplicative depth at 3 but removes one plaintext multiplication (`zsq` is no longer needed). The factored form uses one ciphertext-ciphertext multiply (`u*v`), and `2*w` is done as `(+ w w)` to avoid a scalar multiply. Constants are only combined with ciphertexts, respecting the rule that every operation involves a ciphertext.\n\nPROPOSED_EXPRESSION:\n(let u (* x alpha)\n  (let w (* u c2)\n    (let v (+ c1 (+ w w))\n      (let p (* u v)\n        (+ (- p c2) c0)))))",
+      "llm_seconds": 11.083149208003306,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 1268,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 2229,
+        "output_tokens_details": {
+          "thinking_tokens": 1924
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(let u (* x alpha) (let w (* u c2) (let v (+ c1 (+ w w)) (let p (* u v) (+ (- p c2) c0)))))",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 45.9968,
+        "latency_samples_ms": [
+          46.8684,
+          45.9968,
+          45.7987
+        ],
+        "compilation_time_ms": 0.724833,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 5.649e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 7,
+        "multiplicative_depth": 3,
+        "op_counts": {
+          "mul": 1,
+          "mul_plain": 2,
+          "square": 0,
+          "add": 1,
+          "add_plain": 2,
+          "sub": 0,
+          "sub_plain": 1,
+          "negate": 0,
+          "relin": 1,
+          "rotate": 0,
+          "rescale": 3,
+          "mod_switch": 1
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 5.64907e-08,
+        "ckks_levels_consumed": 3,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": true
+    },
+    {
+      "iteration": 2,
+      "candidate": "(let u (* x alpha) (let v (+ c1 (* u (+ c2 c2))) (+ (- (* u v) c2) c0)))",
+      "llm_response": "The current version uses one ciphertext-ciphertext multiply, two plaintext multiplies, and three rescales. I looked for a schedule with fewer expensive operations and found no clear win. The alternative of precomputing `u*u` costs more plaintext multiplies, and combining plaintext constants like `alpha*c2` would create a plaintext-only subexpression, which the grammar disallows.\n\nThis variant keeps the same operation mix but folds `2*c2` into the plaintext multiply with `u` rather than a separate `w+w` step. This may trim a little overhead, but I expect only a marginal gain. The math is unchanged: `u*(c1 + 2c2\u00b7u) \u2212 c2 + c0`.\n\nPROPOSED_EXPRESSION:\n(let u (* x alpha)\n  (let v (+ c1 (* u (+ c2 c2)))\n    (+ (- (* u v) c2) c0)))",
+      "llm_seconds": 9.204837583994959,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 1868,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 1728,
+        "output_tokens_details": {
+          "thinking_tokens": 1426
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": false,
+        "candidate_expr": "(let u (* x alpha) (let v (+ c1 (* u (+ c2 c2))) (+ (- (* u v) c2) c0)))",
+        "scheme": "CKKS",
+        "stage_failed": "chehab_compiler",
+        "error_message": "CHEHAB exited with status 1:\ncandidate error: operation '+' between two plaintext operands: at least one operand must depend on a ciphertext",
+        "execution_latency_ms": 0.0,
+        "latency_samples_ms": [],
+        "compilation_time_ms": 0.0,
+        "correctness_checked": false,
+        "correct": false,
+        "correctness_detail": "",
+        "depth": 0,
+        "multiplicative_depth": 0,
+        "op_counts": {},
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": null,
+        "ckks_levels_consumed": 0,
+        "ckks_tolerance": null,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    },
+    {
+      "iteration": 3,
+      "candidate": "(let u (* x alpha) (let w (* u c2) (let v (+ c1 (+ w w)) (let p (* u v) (+ (- p c2) c0)))))",
+      "llm_response": "The error came from `(+ c2 c2)`. Both operands are plaintext inputs, so the sum has no ciphertext dependency, which the grammar forbids. I'll drop that subexpression and return to the verified Iteration 1 structure, which computes `2*c2*u` as `(+ w w)` where `w = u*c2` is a ciphertext. The math is `u*(c1 + 2*c2*u) - c2 + c0`, with `u = x*alpha`. Every operation involves a ciphertext, and this version is already verified at 46.00 ms with error 5.65e-08. I don't have a clearly better schedule that avoids extra multiplications, so I'm resubmitting it.\n\nPROPOSED_EXPRESSION:\n(let u (* x alpha)\n  (let w (* u c2)\n    (let v (+ c1 (+ w w))\n      (let p (* u v)\n        (+ (- p c2) c0)))))",
+      "llm_seconds": 3.4317082920024404,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 2383,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 644,
+        "output_tokens_details": {
+          "thinking_tokens": 334
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(let u (* x alpha) (let w (* u c2) (let v (+ c1 (+ w w)) (let p (* u v) (+ (- p c2) c0)))))",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 46.1688,
+        "latency_samples_ms": [
+          45.9819,
+          46.1688,
+          46.2677
+        ],
+        "compilation_time_ms": 0.909542,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 8.847e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 7,
+        "multiplicative_depth": 3,
+        "op_counts": {
+          "mul": 1,
+          "mul_plain": 2,
+          "square": 0,
+          "add": 1,
+          "add_plain": 2,
+          "sub": 0,
+          "sub_plain": 1,
+          "negate": 0,
+          "relin": 1,
+          "rotate": 0,
+          "rescale": 3,
+          "mod_switch": 1
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 8.84692e-08,
+        "ckks_levels_consumed": 3,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    },
+    {
+      "iteration": 4,
+      "candidate": "(let u (* x alpha) (let w (* u c2) (let v (+ c1 (+ w w)) (let p (* u v) (+ (- p c2) c0)))))",
+      "llm_response": "Iteration 3 measured 46.17 ms, within noise of the 46.00 ms best, so this structure is at a plateau. I considered an alternative that computes `u*u` directly and expresses the result as `c1*u + c2*(2u\u00b2 \u2212 1) + c0`. It needs three plaintext multiplies (`x*alpha`, `c1*u`, `c2*t`) plus the ciphertext multiply, versus two plaintext multiplies in the current form, so I expect it to be slower. Folding constants like `c0 \u2212 c2` would create plaintext-only operations, which the grammar rejects. I'm resubmitting the verified best expression, which has one ciphertext multiply, two plaintext multiplies, and depth 3.\n\nPROPOSED_EXPRESSION:\n(let u (* x alpha)\n  (let w (* u c2)\n    (let v (+ c1 (+ w w))\n      (let p (* u v)\n        (+ (- p c2) c0)))))",
+      "llm_seconds": 5.975747125005,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 2988,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 1120,
+        "output_tokens_details": {
+          "thinking_tokens": 799
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(let u (* x alpha) (let w (* u c2) (let v (+ c1 (+ w w)) (let p (* u v) (+ (- p c2) c0)))))",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 46.063,
+        "latency_samples_ms": [
+          45.9666,
+          46.063,
+          46.783
+        ],
+        "compilation_time_ms": 0.646458,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 3.973e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 7,
+        "multiplicative_depth": 3,
+        "op_counts": {
+          "mul": 1,
+          "mul_plain": 2,
+          "square": 0,
+          "add": 1,
+          "add_plain": 2,
+          "sub": 0,
+          "sub_plain": 1,
+          "negate": 0,
+          "relin": 1,
+          "rotate": 0,
+          "rescale": 3,
+          "mod_switch": 1
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 3.97327e-08,
+        "ckks_levels_consumed": 3,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    },
+    {
+      "iteration": 5,
+      "candidate": "(let u (* x alpha) (let w (* u c2) (let v (+ c1 (+ w w)) (let p (* u v) (+ (- p c2) c0)))))",
+      "llm_response": "The last four variants all measured 46.0\u201346.2 ms, so this schedule has plateaued. The remaining costs are one ciphertext-ciphertext multiply (`u*v`), two ciphertext-plaintext multiplies (`x*alpha` and `u*c2`), and three rescales, which I don't see how to reduce. Reaching depth 2 would need `u*v` computed without `v` depending on a prior multiply, and I don't see a way to do that. Folding `c0 - c2` is rejected because it is a plaintext-only operation. I'm resubmitting the verified best expression, which is algebraically `u*(c1 + 2*c2*u) - c2 + c0` with `u = x*alpha`.\n\nPROPOSED_EXPRESSION:\n(let u (* x alpha)\n  (let w (* u c2)\n    (let v (+ c1 (+ w w))\n      (let p (* u v)\n        (+ (- p c2) c0)))))",
+      "llm_seconds": 5.931803125000442,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 3604,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 1096,
+        "output_tokens_details": {
+          "thinking_tokens": 778
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(let u (* x alpha) (let w (* u c2) (let v (+ c1 (+ w w)) (let p (* u v) (+ (- p c2) c0)))))",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 46.0165,
+        "latency_samples_ms": [
+          46.113,
+          46.0165,
+          45.9166
+        ],
+        "compilation_time_ms": 0.723709,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 4.233e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 7,
+        "multiplicative_depth": 3,
+        "op_counts": {
+          "mul": 1,
+          "mul_plain": 2,
+          "square": 0,
+          "add": 1,
+          "add_plain": 2,
+          "sub": 0,
+          "sub_plain": 1,
+          "negate": 0,
+          "relin": 1,
+          "rotate": 0,
+          "rescale": 3,
+          "mod_switch": 1
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 4.23266e-08,
+        "ckks_levels_consumed": 3,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    },
+    {
+      "iteration": 6,
+      "candidate": "(let u (* x alpha) (let w (* u c2) (let v (+ c1 (+ w w)) (let p (* u v) (+ (- p c2) c0)))))",
+      "llm_response": "The last several variants all measured 46.0\u201346.2 ms, so this schedule has plateaued. The remaining cost is one ciphertext-ciphertext multiply (`u*v`), two ciphertext-plaintext multiplies (`x*alpha` and `u*c2`), and three rescales. I considered rewriting the polynomial as `s = x*x` plus a plaintext-weighted sum to get depth 2, but that needs plaintext-only products such as `alpha*c2`, which the grammar rejects, or extra plaintext multiplies that add levels. I don't see a verified-safe way to go lower, so I'm resubmitting the best expression, which is algebraically `u*(c1 + 2*c2*u) - c2 + c0` with `u = x*alpha`.\n\nPROPOSED_EXPRESSION:\n(let u (* x alpha)\n  (let w (* u c2)\n    (let v (+ c1 (+ w w))\n      (let p (* u v)\n        (+ (- p c2) c0)))))",
+      "llm_seconds": 5.182344041997567,
+      "llm_stop_reason": "end_turn",
+      "llm_usage": {
+        "input_tokens": 4217,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 1050,
+        "output_tokens_details": {
+          "thinking_tokens": 712
+        },
+        "service_tier": "standard",
+        "inference_geo": "global",
+        "speed": "standard"
+      },
+      "evaluation": {
+        "success": true,
+        "candidate_expr": "(let u (* x alpha) (let w (* u c2) (let v (+ c1 (+ w w)) (let p (* u v) (+ (- p c2) c0)))))",
+        "scheme": "CKKS",
+        "stage_failed": null,
+        "error_message": null,
+        "execution_latency_ms": 46.1168,
+        "latency_samples_ms": [
+          45.9266,
+          46.1168,
+          46.124
+        ],
+        "compilation_time_ms": 0.646125,
+        "correctness_checked": true,
+        "correct": true,
+        "correctness_detail": "max abs error 5.063e-08 vs expected outputs (tolerance 1e-06)",
+        "depth": 7,
+        "multiplicative_depth": 3,
+        "op_counts": {
+          "mul": 1,
+          "mul_plain": 2,
+          "square": 0,
+          "add": 1,
+          "add_plain": 2,
+          "sub": 0,
+          "sub_plain": 1,
+          "negate": 0,
+          "relin": 1,
+          "rotate": 0,
+          "rescale": 3,
+          "mod_switch": 1
+        },
+        "remaining_noise_budget": 0,
+        "ckks_max_abs_error": 5.06307e-08,
+        "ckks_levels_consumed": 3,
+        "ckks_tolerance": 1e-06,
+        "static_cost": 0.0
+      },
+      "is_best": false
+    }
+  ]
+}

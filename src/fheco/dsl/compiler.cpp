@@ -535,6 +535,27 @@ void Compiler::call_vectorizer(int vector_width, int optimization_method)
   {
     call_rl_vectorizer(vector_width);
   }
+  else if (optimization_method == 2)
+  {
+    std::cout << "Using candidate vectorized code from ../candidate_vectorized_code.txt" << std::endl;
+    std::ifstream src("../candidate_vectorized_code.txt");
+    std::ofstream dst("../vectorized_code.txt");
+    if (src.is_open() && dst.is_open())
+    {
+      dst << src.rdbuf();
+      src.close();
+      dst.close();
+    }
+    else
+    {
+      std::cerr << "Error: could not open ../candidate_vectorized_code.txt" << std::endl;
+    }
+    return;
+  }
+  else if (optimization_method == 3)
+  {
+    call_llm_vectorizer(vector_width);
+  }
   else
   {
     std::cerr << "Invalid optimization method specified." << std::endl;
@@ -542,10 +563,40 @@ void Compiler::call_vectorizer(int vector_width, int optimization_method)
   }
 }
 
+void Compiler::call_llm_vectorizer(int vector_width)
+{
+  namespace fs = std::filesystem;
+  const fs::path expr_file = fs::absolute("../expression.txt");
+  const fs::path vect_file = fs::absolute("../vectorized_code.txt");
+
+  std::ostringstream cmd;
+  cmd << "python -m llm_agent.run_agent --single-shot "
+      << "--expression-file '" << expr_file.string() << "' "
+      << "--output-file '" << vect_file.string() << "' "
+      << "--vector-width " << vector_width;
+  std::cout << "Executing LLM vectorizer: " << cmd.str() << '\n';
+  const int rc = std::system(cmd.str().c_str());
+  if (rc != 0)
+  {
+    std::cerr << "LLM Vectorizer exited with status " << rc << '\n';
+  }
+}
+
 void Compiler::call_egraph_vectorizer(int vector_width,int rewrite_rule_family_index)
 {
-  string command = "cargo run --release --manifest-path ../../../egraphs/Cargo.toml -- ../expression.txt " +
-                   to_string(vector_width) + " "+to_string(rewrite_rule_family_index)+" >> ../vectorized_code.txt";
+  // Prefer the prebuilt release binary (CHEHAB_EGRAPH_BIN overrides its path),
+  // so the vectorizer also works where cargo is not installed. Fall back to
+  // building it through cargo.
+  const char *bin_env = std::getenv("CHEHAB_EGRAPH_BIN");
+  const std::filesystem::path prebuilt =
+    bin_env ? std::filesystem::path(bin_env) : std::filesystem::path("../../../egraphs/target/release/egraphs-vectorization");
+  const string args = " ../expression.txt " + to_string(vector_width) + " " + to_string(rewrite_rule_family_index) +
+                      " >> ../vectorized_code.txt";
+  string command;
+  if (std::filesystem::exists(prebuilt))
+    command = "'" + prebuilt.string() + "'" + args;
+  else
+    command = "cargo run --release --manifest-path ../../../egraphs/Cargo.toml --" + args;
   // Use the system function to run the executable
   int result = system(command.c_str());
 
