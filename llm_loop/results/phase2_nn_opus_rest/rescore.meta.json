@@ -1,0 +1,29 @@
+{
+ "started": "2026-11-10T01:28:50",
+ "finished": "2026-11-10T01:32:38",
+ "git": {
+  "commit": "1d44c9e562df6786b2a1bc45ff935782ac886328",
+  "branch": "umair/llm-loop",
+  "dirty": false
+ },
+ "machine": "Darwin arm64 arm",
+ "compiler": "Apple clang version 17.0.0 (clang-1700.3.19.1)",
+ "seal": "4.1",
+ "protocol": {
+  "warmup_processes": 1,
+  "measured_processes": 10,
+  "fhe_runs_per_process": 10,
+  "compile_runs": 3,
+  "interleaved": true,
+  "heldout_correctness": true
+ },
+ "proposers": [
+  "{\"claude_code\": \"2.1.310 (Claude Code)\", \"effort\": \"medium\", \"model\": \"claude-opus-5-5\", \"proposer\": \"claude-code\"}"
+ ],
+ "baselines": {
+  "nn_linear": "fa0a5a75ff021416e669eca79736e17bef4231a8",
+  "nn_avgpool2d": "51a1cfe0be289b00173b2133899254d182bc97d8"
+ },
+ "runs_root": "/Users/umee/Downloads/CHEHAB/llm_loop/runs/phase2-nn-opus-rest",
+ "runs": 2
+}

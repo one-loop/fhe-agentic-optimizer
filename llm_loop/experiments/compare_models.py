@@ -23,15 +23,15 @@ SOURCES = {
     "haiku": ["phase2_pilot_5runs", "phase2_chebyshev_rest", "phase2_quad_batchnorm", "phase2_nn_haiku",
               "phase2_others_haiku"],
     "sonnet": ["phase2_sonnet", "phase2_sonnet_quad_batchnorm", "phase2_nn_sonnet", "phase2_others_sonnet"],
-    "opus": ["phase2_opus_focus", "phase2_nn_opus_focus", "phase2_others_opus"],
+    "opus": ["phase2_opus_focus", "phase2_nn_opus_focus", "phase2_others_opus", "phase2_opus_rest", "phase2_opus_quad_batchnorm", "phase2_nn_opus_rest"],
 }
 # Runs that were made but not yet neutrally re-scored.
 PENDING = {}
 GROUPS = [
-    ("9 Chebyshev activations", PILOT + REST, ["haiku", "sonnet"]),
+    ("9 Chebyshev activations", PILOT + REST, MODELS),
     ("GELU, Sigmoid d7, ELU", PILOT, MODELS),
     ("nn_conv2d (BFV)", ["nn_conv2d"], MODELS),
-    ("Quad, BatchNorm1d/2d, nn_linear, nn_avgpool2d", QUAD_BN + ["nn_linear", "nn_avgpool2d"], ["haiku", "sonnet"]),
+    ("Quad, BatchNorm1d/2d, nn_linear, nn_avgpool2d", QUAD_BN + ["nn_linear", "nn_avgpool2d"], MODELS),
     ("The other 14 operators", OTHERS, MODELS),
 ]
 ORDER = PILOT + REST + QUAD_BN + NN + OTHERS
@@ -118,7 +118,7 @@ def main():
         "  Sonnet's final (x1.01) 18: the tolerance is too tight for this task, not a kernel defect.",
         "  Sonnet's Hardshrink run 3 (error 81% of the tolerance) passed 20 of 20.",
         "- **Fixed chain.** These speedups use CHEHAB's fixed 10-level CKKS chain. Re-timed with the chain sized to each",
-        "  kernel, the Chebyshev speedups roughly double and Opus's two 10-level kernels drop: `../sized_chain_rescore/`.",
+        "  kernel, the Chebyshev speedups roughly double and Opus's two 10-level kernels drop: `../sized_chain_rescore_v2/`.",
         "- These are my loop's results only. Teammates' kernels are compared in `../phase2_teammates_rescore/`.",
         "",
         "## Across tasks (geometric mean of per-task mean speedups, same tasks for every model in a row)",

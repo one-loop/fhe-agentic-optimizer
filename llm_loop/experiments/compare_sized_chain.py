@@ -20,8 +20,8 @@ from llm_loop.experiments.campaign import OTHERS, PILOT, QUAD_BN, REST
 from llm_loop.experiments.compare_models import MODELS, RESULTS, load
 from llm_loop.tasks import TASKS
 
-OUT = RESULTS / "sized_chain_rescore"
-SIZED = ["sized_chain_rescore"]  # sized-chain re-scorings; later runs are added here
+OUT = RESULTS / "sized_chain_rescore_v2"
+SIZED = ["sized_chain_rescore_v2"]  # one session with every model's kernels, incl. the later Opus runs (v1: ../sized_chain_rescore/)
 ORDER = PILOT + REST + QUAD_BN + OTHERS
 GROUPS = [
     ("9 Chebyshev activations", PILOT + REST),
