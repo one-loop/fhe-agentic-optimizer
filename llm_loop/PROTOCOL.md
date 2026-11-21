@@ -165,3 +165,11 @@ tokens and time.
 
 **Run:** `llm_loop/experiments/feedback_study.sh` (results in `llm_loop/results/feedback_study_haiku-5-5/`,
 report `feedback_ablation.md`). Offline checks: `python3 -m llm_loop.tests.test_feedback_study`.
+
+**Fix before the study (2026-11-22, found in the pilot's first hour):** the BFV task header said "W = 6" for
+every BFV task, and the BFV system prompt suggested mask packing without saying that `slots()` is the task's
+width (1 for the Coyote trees, 2 for matmul_2x2). The model built masks longer than `slots()`, and CHEHAB
+crashed without a message. The header now states `slots() = W`, the prompt says plaintext vectors have exactly
+`slots()` entries (and that masks cannot help when W = 1), and a compiler crash without a message is reported
+as such. CKKS prompts are unchanged. The pilot's two BFV `independent` runs made before the fix were set aside
+(`runs/feedback-pilot-haiku-5-5-superseded/`) and rerun.

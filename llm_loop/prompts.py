@@ -60,7 +60,7 @@ BFV_SYSTEM_PROMPT = (SYSTEM_PROMPT.split("# CKKS rules")[0].replace(
 # Costs (N = 16384)
 - ciphertext x ciphertext multiply (+ relinearize): ~28 ms
 - ciphertext addition: ~0.2 ms
-Fewer ciphertext multiplications are what make a kernel faster, even at the price of many more additions. Every input value is repeated in all slots. Rotations only help after values have been moved to different slots, for example by multiplying a ciphertext by a 0/1 integer mask (`c * std::vector<int64_t>{...}`, a ciphertext x plaintext multiply per value), so that one ciphertext multiplication then works on many values at once.
+Fewer ciphertext multiplications are what make a kernel faster, even at the price of many more additions. Every input value is repeated in all slots. Rotations only help after values have been moved to different slots, for example by multiplying a ciphertext by a 0/1 integer mask (`c * std::vector<int64_t>{...}`, a ciphertext x plaintext multiply per value), so that one ciphertext multiplication then works on many values at once. `slots()` is the task's width W (stated in the task): a plaintext vector must have exactly slots() entries, with indices 0 to slots() - 1, and rotations are cyclic over slots() slots. When W = 1 there is a single slot, so masks and rotations cannot help; only the algebra of the computation can.
 
 # Correctness
 The kernel must compute the same function for ANY integer inputs: outputs must be exactly equal to the expected values. It is checked on the task's test inputs and on hidden random inputs, so never rely on properties of particular test values.
@@ -164,11 +164,16 @@ def system_prompt(hints: str, scheme: str = "ckks", chain: str = "fixed") -> str
     return base + {"none": "", "identities": IDENTITIES, "full": IDENTITIES + EXAMPLES}[hints]
 
 
+def _width(task) -> int:
+    """The dense case's slot count (for BFV, the operator's width W that slots() returns)."""
+    return next((c.slot_count for c in task.cases if c.name == "dense"), task.cases[-1].slot_count)
+
+
 def task_header(task) -> str:
     if task.scheme == "bfv":
         return (f"# Task: {task.name}\n{task.description}\n\nCorrectness: every output exactly equal to the "
                 "expected value, on the test inputs and on hidden random inputs. Latency is measured on the "
-                "dense test case (W = 6).")
+                f"dense test case. Width: slots() = {_width(task)}.")
     return (f"# Task: {task.name}\n{task.description}\n\nCorrectness: every output within {task.tolerance:g} "
             "(absolute) of the expected values, on the test inputs and on hidden random inputs. "
             "Latency is measured on the dense test case (256 slots or the task's largest case).")

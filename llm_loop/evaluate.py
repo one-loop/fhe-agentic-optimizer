@@ -183,7 +183,15 @@ class Evaluator:
         shutil.copy(run_dir / "fhe_io_example.txt", stage / "fhe_io_example.txt")
         out = _run([self.driver_build / "llm_driver", slot, task.scheme, self.chain], stage, self.timeout, self.env)
         if out.returncode != 0:
-            return out.stdout[-3000:]
+            text = "\n".join(l for l in out.stdout.splitlines() if l.strip() and "File copied successfully" not in l)
+            if not text.strip():  # crashed without a message (a signal, e.g. a segmentation fault)
+                sig = -out.returncode if out.returncode < 0 else None
+                text = (f"The compiler crashed without an error message (" +
+                        (f"signal {sig}{' (segmentation fault)' if sig == 11 else ''}" if sig else
+                         f"exit code {out.returncode}") +
+                        "). A common cause is C++ code in the kernel that indexes past the end of a vector, for "
+                        f"example a plaintext vector with fewer than the indices used (slots() = {slot} here).")
+            return text[-3000:]
         if quantify:
             if m := re.search(r"^([0-9.eE+-]+) ms$", out.stdout, re.M):
                 ev.compile_time_ms = float(m.group(1))
