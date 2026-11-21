@@ -32,8 +32,13 @@ _PLAIN_INPUT = re.compile(r'^\s*const vector<double> &(\w+) = plain_inputs\.at\(
 # for N = 32768 and 12 primes, from Phase 1 single-operation benchmarks
 # (elementwise_ckks, quad_ckks, extract_ckks eval-only times on the dev machine).
 # Costs shrink with the primes left: an operation at level l costs
-# (TOTAL_PRIMES - l) / TOTAL_PRIMES of its level-0 cost. Used to rank
-# candidates and pre-screen them, never as a reported result.
+# (primes - l) / TOTAL_PRIMES of its level-0 cost. With the sized chain
+# (primes = levels + 2 instead of TOTAL_PRIMES) every operation is also cheaper
+# by primes / TOTAL_PRIMES: key switching grows faster than linearly with the
+# chain. Calibrated on 7 baselines measured under both chains (Phase 0,
+# 2026-11-20): measured sized/fixed time ratios 0.06-0.98, vs 0.19-1.00 from
+# the linear factor alone; with the extra factor, estimates are within ~30%.
+# Used to rank candidates and pre-screen them, never as a reported result.
 OP_COST_MS = {
     "multiply": 4.0, "square": 3.5, "relinearize": 24.0, "rescale_to_next": 5.0, "multiply_plain": 2.0,
     "rotate_vector": 26.0, "rotate_rows": 26.0, "mod_switch_to_next": 1.0, "mod_switch_to": 1.0,
@@ -51,10 +56,19 @@ class StaticInfo:
     trace: List[Tuple[str, int]] = field(default_factory=list)  # (statement, level after it)
     unknown: List[str] = field(default_factory=list)  # evaluator calls this module does not model
     cost_items: List[Tuple[str, int]] = field(default_factory=list)  # (operation, level) for the cost model
+    sized_chain: bool = False  # the modulus chain holds levels + 2 primes instead of TOTAL_PRIMES
+
+    @property
+    def primes(self) -> int:
+        return self.levels + 2 if self.sized_chain else TOTAL_PRIMES
+
+    def level_factor(self, lvl: int) -> float:
+        """Cost of an operation at level lvl relative to level 0 of the fixed chain."""
+        return (self.primes - lvl) / TOTAL_PRIMES * (self.primes / TOTAL_PRIMES)
 
     @property
     def estimated_ms(self) -> float:
-        return sum(OP_COST_MS.get(op, 0.0) * (TOTAL_PRIMES - lvl) / TOTAL_PRIMES for op, lvl in self.cost_items)
+        return sum(OP_COST_MS.get(op, 0.0) * self.level_factor(lvl) for op, lvl in self.cost_items)
 
     def cost_breakdown(self) -> Dict[str, float]:
         """Estimated ms per cost category, for the 'bottleneck' line of the feedback."""
@@ -67,7 +81,7 @@ class StaticInfo:
         for op, lvl in self.cost_items:
             for name, ops in groups.items():
                 if op in ops:
-                    out[name] += OP_COST_MS.get(op, 0.0) * (TOTAL_PRIMES - lvl) / TOTAL_PRIMES
+                    out[name] += OP_COST_MS.get(op, 0.0) * self.level_factor(lvl)
         return out
 
     @property

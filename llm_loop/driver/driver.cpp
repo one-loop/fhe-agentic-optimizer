@@ -3,7 +3,11 @@
 // kernel's fhe(), Compiler::compile (simplification ruleset, bottom-up),
 // Compiler::gen_he_code, then the Quantifier report.
 //
-//   ./llm_driver <slot_count> [ckks|bfv]
+//   ./llm_driver <slot_count> [ckks|bfv] [fixed|sized]
+//
+// CKKS chain: `fixed` (default) always uses {60, 40 x 10, 60}; `sized` keeps only
+// as many 40-bit primes as the compiled kernel consumes levels (plus the first and
+// special primes), so neither the baseline nor a kernel pays for unused levels.
 //
 // Run it in a directory holding fhe_io_example.txt and an he/ subdirectory;
 // it writes he/_gen_he_fhe.{hpp,cpp} and he/main.cpp. The kernel (kernel.inc)
@@ -35,13 +39,14 @@ inline size_t slots()
 
 int main(int argc, char **argv)
 {
-  if (argc != 2 && argc != 3)
+  if (argc < 2 || argc > 4 || (argc == 4 && string(argv[3]) != "fixed" && string(argv[3]) != "sized"))
   {
-    cerr << "usage: " << argv[0] << " <slot_count> [ckks|bfv]\n";
+    cerr << "usage: " << argv[0] << " <slot_count> [ckks|bfv] [fixed|sized]\n";
     return 2;
   }
   llm_loop::slot_count = stoul(argv[1]);
-  const bool bfv = argc == 3 && string(argv[2]) == "bfv";
+  const bool bfv = argc >= 3 && string(argv[2]) == "bfv";
+  const bool sized_chain = argc == 4 && string(argv[3]) == "sized";
 
   // Settings of run_benchmarks.py's default CKKS runs (cse = 1, const_folding = 1).
   Compiler::enable_cse();
@@ -50,6 +55,7 @@ int main(int argc, char **argv)
 
   // Parameters shared by every CKKS benchmark: N = 32768, {60, 40 x 10, 60}, scale 2^40.
   CkksParams params{32768, {60, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 60}, 40};
+  params.trim_to_levels_used = sized_chain;
 
   const auto start = chrono::high_resolution_clock::now();
   // BFV: the benchmarks' 20-bit plaintext modulus, signed values. slots() is the operator's width;

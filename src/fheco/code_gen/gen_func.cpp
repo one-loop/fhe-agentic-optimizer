@@ -113,7 +113,18 @@ void gen_func(
   if (ckks)
   {
     // CKKS parameters are given explicitly; the parameter selector is BFV-only.
-    gen_main_code_ckks(func->ckks_params(), security_level);
+    CkksParams params = func->ckks_params();
+    if (params.trim_to_levels_used)
+    {
+      const auto &sizes = params.coeff_mod_bit_sizes;
+      const size_t levels = func->ckks_levels_used();
+      if (levels + 2 > sizes.size())
+        throw logic_error("CKKS function consumes more levels than the coefficient modulus provides");
+      vector<int> trimmed(sizes.begin(), sizes.begin() + 1 + levels);
+      trimmed.push_back(sizes.back());
+      params.coeff_mod_bit_sizes = move(trimmed);
+    }
+    gen_main_code_ckks(params, security_level);
     return;
   }
   //std::cout<<"\n ==>Welcome in encryption params selection : \n";

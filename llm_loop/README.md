@@ -4,8 +4,13 @@ Umair's Phase 2 loop. Each teammate builds an independent loop over the same
 CKKS operators, and the loops are then compared. This directory does not touch
 the compiler, the benchmarks, the shared runner or any other loop (`agent/`).
 
-Status: steps 1-3 are done (environment, baselines, reference kernels, the loop,
-tested offline). Step 4 (runs with a model) has not started.
+Status: steps 1-4 are done (environment, baselines, reference kernels, the loop,
+pilot runs with Haiku, Sonnet and Opus 5.5, the feedback ablation). **Phase 1 runs
+follow [PROTOCOL.md](PROTOCOL.md)** (frozen 2026-11-20): sized CKKS chain, 20
+repeated correctness checks with a strict speedup, 34 tasks in `main` / `trivial`
+sets, power/lid checks. Phase 0 changed the compiler in one place: the sized chain
+(`CkksParams::trim_to_levels_used`, from the teammates' sized-chain-and-history
+branch), off unless `--ckks-chain sized` is given.
 
 ## Layout
 
@@ -127,6 +132,10 @@ Every call to the model is one iteration; `--iterations` is the budget per task 
   different hints, then Thompson-sampling parent choice as in REx, one faster
   kernel shown for inspiration as in FunSearch, one repair turn per illegal kernel,
   duplicates not re-evaluated, static pre-screen of clearly slower kernels).
+  `independent`: the no-feedback ablation. Every call gets `linear`'s first prompt (task,
+  baseline kernel, baseline result) and never sees an earlier attempt or its result; no repair
+  turns. The loop still verifies and times every kernel and keeps the fastest correct one, so
+  `independent` vs `linear` isolates what feedback to the model adds.
 - **Feedback** (`--feedback`), the proposal's open design question: `execution`
   (measured latency) or `static` (cost-model latency; correctness is still checked
   on encrypted inputs and measured times are recorded).
@@ -183,6 +192,27 @@ through Claude Code headless mode for both strategies; 8 model calls per run;
 - **Outputs.** Runs: `runs/phase2-pilot/<strategy>/<task>/run<k>/` (git-ignored).
   Results: `results/phase2_pilot/` (`phase2_pilot.md`, `runs.csv`, `rescore.csv`,
   `rescore.meta.json`).
+
+## Feedback ablation
+
+Does compiler feedback to the model help, or would sampling the same number of kernels without
+feedback do as well? `experiments/feedback_ablation.sh` runs `independent`, `linear` and `archive`
+under the pilot protocol (hints none, measured feedback, 8 calls per run, 3 runs per task on GELU,
+Sigmoid d7 and ELU d7, task and strategy order rotated), re-scores every final kernel in one
+neutral session, and writes `results/feedback_ablation/feedback_ablation.md` with
+`experiments/compare_feedback.py`:
+
+- final-kernel speedups per task and strategy, and the geometric-mean ratio of each feedback
+  strategy to `independent`, with a 95% bootstrap interval and an exact sign-flip test on runs
+  paired by task and run number;
+- search behaviour: best-so-far speedup after k calls, correct attempts, duplicates, failures;
+- a sanity check: call 1 is the same prompt under `independent` and `linear`.
+
+```bash
+llm_loop/experiments/feedback_ablation.sh                                  # 216 model calls (Haiku)
+STRATEGIES="independent linear" llm_loop/experiments/feedback_ablation.sh   # 144 calls
+python3 -m llm_loop.tests.test_feedback_ablation                           # offline checks, no model
+```
 
 ## Caveats
 

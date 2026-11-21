@@ -1,5 +1,6 @@
-"""The 29 optimization tasks: every CKKS benchmark that run_benchmarks.py runs, and the
-three BFV neural-network operators (benchmarks/nn_*).
+"""The 34 optimization tasks: every CKKS benchmark that run_benchmarks.py runs, the three BFV
+neural-network operators (benchmarks/nn_*), and the Phase 0 additions (2 x 2 and 3 x 3 matrix
+multiplication, three Coyote polynomial trees; BFV). TASK_SETS separates the trivial tasks.
 
 Each task has
   - the benchmark's own input generators for the "fixed" and "dense" cases
@@ -18,7 +19,8 @@ Each task has
     and, for Chebyshev, flip coefficient signs.
 
 Tolerances follow each operator's owner: 1e-6 absolute, 1e-4 for the rotation
-and reduction operators (extract, table_mult, embedding). BFV results are exact.
+and reduction operators (extract, table_mult, embedding), 1e-5 for the 10-level
+composite ReLU (its baseline's noise alone reaches 1.35e-6). BFV results are exact.
 """
 import json
 from dataclasses import dataclass, field
@@ -296,8 +298,13 @@ TASKS["chebyshev_sigmoid_d5"] = _chebyshev("sigmoid", 5, "Umair")
 TASKS["chebyshev_relu_d7"] = _chebyshev("relu", 7, "Moonis")
 TASKS["chebyshev_relu_d2"] = _chebyshev("relu", 2, "Moonis")
 
+# The composite ReLU uses all 10 levels and its three stages amplify CKKS noise: its own baseline exceeded 1e-6 on
+# 3 of 20 repeated checks (max 1.35e-06), so 1e-6 tests the encryption noise, not the kernel. 1e-5 (as on the
+# teammates' sized-chain-and-history branch) still rejects any wrong kernel: the outputs are O(1).
+TOL_RELU_COMPOSITE = 1e-5
+
 TASKS["relu_composite"] = Task(
-    name="relu_composite", family="relu_composite", owner="Moonis", record="relu_ckks", tolerance=TOL,
+    name="relu_composite", family="relu_composite", owner="Moonis", record="relu_ckks", tolerance=TOL_RELU_COMPOSITE,
     cases=[Case(case, ["python3", str(SRC_BENCH / "relu_ckks" / "generate_relu_ckks.py"), points])
            for case, points in (("fixed", "points9"), ("dense", "dense"))],
     oracle=_relu_oracle, randomize=_relu_randomize,
@@ -435,4 +442,118 @@ for _name, _oracle, _description in (
                for case, width in (("fixed", 4), ("dense", 6))],
         oracle=_oracle, randomize=_bfv_randomize, edge=_bfv_edge, description=_description + _BFV_RULES)
 
-assert len(TASKS) == 29, len(TASKS)
+
+# ---------------------------------------------------------------------------
+# Phase 0 additions, BFV scalar layout like nn_*: matrix multiplication (the proposal's 2 x 2 and 3 x 3
+# matmul; benchmarks/matrix_mul's scalar fhe()) and Coyote polynomial trees (benchmarks/polynomials_coyote).
+# Inputs come from llm_loop/gen_io.py (seeded; the benchmarks' generators are not).
+# ---------------------------------------------------------------------------
+GEN_IO = Path(__file__).resolve().parent / "gen_io.py"
+TREES = SRC_BENCH / "polynomials_coyote" / "polynomial_trees"
+MATMUL_BOUND = 64
+
+
+def _matmul_oracle(io: IoExample) -> Dict[str, np.ndarray]:
+    n = int(round(sum(label.startswith("a_") for label in io.inputs) ** 0.5))
+    return {f"c_{i}_{j}": np.array([sum(_bfv_scalar(io, f"a_{i}_{k}") * _bfv_scalar(io, f"b_{k}_{j}")
+                                        for k in range(n))], dtype=float)
+            for i in range(n) for j in range(n)}
+
+
+def _bounded_randomize(bound: int, nonzero: bool = False):
+    values = [v for v in range(-bound, bound + 1) if v or not nonzero]
+
+    def randomize(io: IoExample, rng: np.random.Generator) -> None:
+        for label in io.inputs:
+            _set(io, label, [rng.choice(values)])
+    return randomize
+
+
+for _n in (2, 3):
+    TASKS[f"matmul_{_n}x{_n}"] = Task(
+        name=f"matmul_{_n}x{_n}", family="matmul", owner="Saad", record=f"matrix_mul_{_n}", tolerance=0.0,
+        scheme="bfv",
+        cases=[Case(case, ["python3", str(GEN_IO), "matmul", str(_n), str(seed)], _n)
+               for case, seed in (("fixed", 0), ("dense", 1))],
+        oracle=_matmul_oracle, randomize=_bounded_randomize(MATMUL_BOUND), edge=_bfv_edge,
+        description=(f"{_n} x {_n} integer matrix product C = A B: c_i_j = sum over k of a_i_k * b_k_j "
+                     f"(i, j, k in 0..{_n - 1}). Inputs: ciphertexts `a_i_j` and `b_i_j`, each holding one integer "
+                     f"in [-{MATMUL_BOUND}, {MATMUL_BOUND}]. Outputs: `c_i_j`, exactly. slots() = {_n}."))
+
+
+def _tree_expression(tree) -> str:
+    """The tree as one C++ expression over the leaf ciphertexts, in the benchmark's operation order."""
+    if isinstance(tree, str):
+        return tree
+    op, lhs, rhs = tree
+    return f"({_tree_expression(lhs)} {op} {_tree_expression(rhs)})"
+
+
+def _tree_task(stem: str, bound: int) -> Task:
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("gen_io", GEN_IO)
+    gen_io = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(gen_io)
+    path = TREES / f"tree_{stem}.txt"
+    tree = gen_io.parse_tree(path.read_text())
+    labels = list(dict.fromkeys(gen_io.leaves(tree)))
+
+    def oracle(io: IoExample) -> Dict[str, np.ndarray]:
+        return {"result": np.array([gen_io.evaluate(tree, {l: _bfv_scalar(io, l) for l in labels})], dtype=float)}
+
+    def edge(io: IoExample, rng: np.random.Generator) -> None:  # every leaf at +-bound: the largest result
+        for label in labels:
+            _set(io, label, [bound * rng.choice([-1, 1])])
+
+    name = "coyote_tree_" + stem.replace("-", "_")
+    task = Task(
+        name=name, family="poly_tree", owner="Saad", record=f"polynomials_coyote_{stem}", tolerance=0.0,
+        scheme="bfv",
+        cases=[Case(case, ["python3", str(GEN_IO), "tree", str(path), str(bound), str(seed)], 1)
+               for case, seed in (("fixed", 0), ("dense", 1))],
+        oracle=oracle, randomize=_bounded_randomize(bound, nonzero=True), edge=edge,
+        description=(f"Coyote random polynomial tree `{path.name}` over {len(labels)} integer ciphertext inputs, "
+                     f"each in [-{bound}, {bound}] without 0: result = {_tree_expression(tree)}. "
+                     "Output: `result`, exactly."))
+    task.tree_expression = _tree_expression(tree)  # for gen_baselines
+    task.tree_labels = labels
+    return task
+
+
+# Bounds keep every result below 2^18 (gen_io.py checks it).
+for _stem, _bound in (("100-50_5_1", 3), ("50-50_10_2", 2), ("100-100_5_1", 2)):
+    _t = _tree_task(_stem, _bound)
+    TASKS[_t.name] = _t
+
+assert len(TASKS) == 34, len(TASKS)
+
+# ---------------------------------------------------------------------------
+# Task sets, fixed before any Phase-1 run from the baselines' structure (not from results):
+#   trivial  the baseline is already a minimal circuit (one or two primitive operations per output: an
+#            elementwise op, x * x, x * A + B), so no correct kernel can beat it beyond timing noise;
+#   main     every other task: the set the paper's headline numbers are computed on.
+# ---------------------------------------------------------------------------
+TRIVIAL = ["elementwise_add", "elementwise_add_plain", "elementwise_add_scalar", "elementwise_mul",
+           "elementwise_mul_plain", "elementwise_mul_scalar", "quad", "batchnorm1d", "batchnorm2d"]
+TASK_SETS: Dict[str, List[str]] = {
+    "trivial": TRIVIAL,
+    "main": [n for n in TASKS if n not in TRIVIAL],
+    "new": [n for n, t in TASKS.items() if t.family in ("matmul", "poly_tree")],
+}
+
+
+def select(specs: List[str]) -> List[str]:
+    """Task names from names, 'all', 'family:<family>' or 'set:<trivial|main|new>', in order, deduplicated."""
+    names: List[str] = []
+    for spec in specs:
+        if spec == "all":
+            names += list(TASKS)
+        elif spec.startswith("family:"):
+            names += [n for n, t in TASKS.items() if t.family == spec.split(":", 1)[1]]
+        elif spec.startswith("set:"):
+            names += TASK_SETS[spec.split(":", 1)[1]]
+        elif spec in TASKS:
+            names.append(spec)
+        else:
+            raise KeyError(f"unknown task {spec}; known: {sorted(TASKS)}, sets: {sorted(TASK_SETS)}")
+    return list(dict.fromkeys(names))

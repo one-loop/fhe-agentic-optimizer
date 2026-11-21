@@ -60,7 +60,7 @@ BFV_SYSTEM_PROMPT = (SYSTEM_PROMPT.split("# CKKS rules")[0].replace(
 # Costs (N = 16384)
 - ciphertext x ciphertext multiply (+ relinearize): ~28 ms
 - ciphertext addition: ~0.2 ms
-Fewer ciphertext multiplications are what make a kernel faster, even at the price of many more additions. Every input value is repeated in all slots, so rotations are not useful here.
+Fewer ciphertext multiplications are what make a kernel faster, even at the price of many more additions. Every input value is repeated in all slots. Rotations only help after values have been moved to different slots, for example by multiplying a ciphertext by a 0/1 integer mask (`c * std::vector<int64_t>{...}`, a ciphertext x plaintext multiply per value), so that one ciphertext multiplication then works on many values at once.
 
 # Correctness
 The kernel must compute the same function for ANY integer inputs: outputs must be exactly equal to the expected values. It is checked on the task's test inputs and on hidden random inputs, so never rely on properties of particular test values.
@@ -138,11 +138,30 @@ HINTS = {
     ],
 }
 FAMILY_HINTS = {"chebyshev": "polynomial", "relu_composite": "polynomial", "extract": "rotation",
-                "reduction": "rotation", "quad": "simple", "batchnorm": "simple", "elementwise": "simple", "nn": "bilinear"}
+                "reduction": "rotation", "quad": "simple", "batchnorm": "simple", "elementwise": "simple", "nn": "bilinear",
+                "matmul": "bilinear", "poly_tree": "bilinear"}
 
 
-def system_prompt(hints: str, scheme: str = "ckks") -> str:
-    return (BFV_SYSTEM_PROMPT if scheme == "bfv" else SYSTEM_PROMPT) + {"none": "", "identities": IDENTITIES, "full": IDENTITIES + EXAMPLES}[hints]
+# Sized CKKS chain (--ckks-chain sized): the coefficient modulus holds one prime per level the kernel consumes,
+# so saving levels now pays. Only the two statements about fixed parameters change.
+_FIXED_LEVELS = ("3. Levels: every multiplication (ciphertext x ciphertext or ciphertext x plaintext) consumes one "
+                 "level, and 10 levels are available. Multiplicative depth must stay <= 10.")
+_SIZED_LEVELS = ("3. Levels: every multiplication (ciphertext x ciphertext or ciphertext x plaintext) consumes one "
+                 "level, and at most 10 levels are available. Multiplicative depth must stay <= 10. The modulus chain "
+                 "is sized to your kernel: it holds one prime per level the kernel consumes (plus two fixed primes).")
+_FIXED_DEPTH = ("Fewer ciphertext multiplications, rotations and alignments are what make a kernel faster. Lower depth "
+                "alone does not: the parameters are fixed, and a lower-depth kernel that needs more multiplications "
+                "is slower.")
+_SIZED_DEPTH = ("Fewer ciphertext multiplications, rotations and alignments make a kernel faster, and so does consuming "
+                "fewer levels: the chain is sized to the kernel, so every level saved makes every operation cheaper "
+                "(the costs above are for the full 10-level chain).")
+assert _FIXED_LEVELS in SYSTEM_PROMPT and _FIXED_DEPTH in SYSTEM_PROMPT
+SIZED_SYSTEM_PROMPT = SYSTEM_PROMPT.replace(_FIXED_LEVELS, _SIZED_LEVELS).replace(_FIXED_DEPTH, _SIZED_DEPTH)
+
+
+def system_prompt(hints: str, scheme: str = "ckks", chain: str = "fixed") -> str:
+    base = BFV_SYSTEM_PROMPT if scheme == "bfv" else (SIZED_SYSTEM_PROMPT if chain == "sized" else SYSTEM_PROMPT)
+    return base + {"none": "", "identities": IDENTITIES, "full": IDENTITIES + EXAMPLES}[hints]
 
 
 def task_header(task) -> str:

@@ -32,6 +32,8 @@ DRIVER_SRC = Path(__file__).resolve().parent / "driver"
 HE_CMAKE = SRC_BENCH / "quad_ckks" / "he" / "CMakeLists.txt"  # generic: builds main.cpp + _gen_he_fhe.cpp
 BFV_HE = DRIVER_SRC / "bfv_he"  # CMakeLists.txt and main.cpp of the generated BFV programs
 
+CHAINS = ("fixed", "sized")
+
 FORBIDDEN = ["#", "Compiler::", "util::", "operators::", "system", "popen", "exec", "fork", "fopen", "fstream",
              "ofstream", "ifstream", "FILE", "remove(", "rename(", "unlink", "filesystem", "getenv", "asm",
              "__", "main(", "thread", "extern", "reinterpret_cast", "goto"]
@@ -113,7 +115,10 @@ def _sync(src: Path, dst: Path) -> None:
 
 class Evaluator:
     def __init__(self, seal_prefix: Optional[str] = None, work: Path = WORK, repeats: int = 10,
-                 timeout: float = 900):
+                 timeout: float = 900, chain: str = "fixed"):
+        if chain not in CHAINS:
+            raise ValueError(f"chain must be one of {CHAINS}, not {chain!r}")
+        self.chain = chain  # CKKS modulus chain: fixed {60, 40 x 10, 60} or sized to the levels consumed
         self.seal_prefix = seal_prefix or os.environ.get("CMAKE_PREFIX_PATH", str(Path.home() / ".local"))
         # absolute: the driver and programs are launched from inside case directories
         self.work, self.repeats, self.timeout = Path(work).resolve(), repeats, timeout
@@ -176,7 +181,7 @@ class Evaluator:
         stage = run_dir / "stage"
         (stage / "he").mkdir(parents=True, exist_ok=True)
         shutil.copy(run_dir / "fhe_io_example.txt", stage / "fhe_io_example.txt")
-        out = _run([self.driver_build / "llm_driver", slot, task.scheme], stage, self.timeout, self.env)
+        out = _run([self.driver_build / "llm_driver", slot, task.scheme, self.chain], stage, self.timeout, self.env)
         if out.returncode != 0:
             return out.stdout[-3000:]
         if quantify:
@@ -270,6 +275,7 @@ class Evaluator:
                     io = iofile.read(run_dir / "fhe_io_example.txt")
                     scalars = {l for l, (c, v) in io.inputs.items() if not c and len(v) == 1}
                     info: StaticInfo = analyze((run_dir / "stage" / "he" / "_gen_he_fhe.cpp").read_text(), scalars)
+                    info.sized_chain = self.chain == "sized"
                     ev.static, ev.ops = info.summary(), info.ops
                     if task.scheme == "ckks":  # the cost model is calibrated on CKKS; without it, no pre-screen
                         ev.estimated_ms, ev.cost_breakdown = info.estimated_ms, info.cost_breakdown()

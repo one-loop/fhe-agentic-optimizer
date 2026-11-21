@@ -14,7 +14,13 @@ one session on this machine:
   - evaluation-only time = median of the per-process fhe() medians;
     end-to-end time = median of CHEHAB's execution_time_(ms);
     FHE error = max over every measured process and correctness case;
-  - speedup = baseline eval median / kernel eval median, same session.
+  - speedup = baseline eval median / kernel eval median, same session;
+  - repeated correctness: every timed kernel's built program is run again
+    --correctness-repeats times on every case (fresh keys and encryption noise
+    each process); a kernel that fails any repeat is not reliably correct and its
+    runs count as x1.000 in `speedup_strict` (the run falls back to the baseline);
+  - the CKKS modulus chain (--ckks-chain) and the machine's power/lid state are
+    recorded; timing refuses to start on battery or with the lid closed.
 Approximation error (polynomial vs true activation, from the generator) is a
 property of the task and is reported separately from FHE error.
 
@@ -34,11 +40,13 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List
 
-from llm_loop.evaluate import WORK, Evaluator, _run
+from llm_loop.evaluate import CHAINS, WORK, Evaluator, _run
+from llm_loop.machine import machine_state, require_stable_power
 from llm_loop.loop import git_state, normalize
 from llm_loop.tasks import TASKS, Task
 
 WARMUP, MEASURED, EVAL_REPEATS, COMPILE_RUNS = 1, 10, 10, 3
+CORRECTNESS_REPEATS = 20
 
 
 def sha1(text: str) -> str:
@@ -79,7 +87,26 @@ def time_once(evaluator: Evaluator, task: Task, tag: str) -> dict:
             "pass": "PASS" in out}
 
 
-def rescore_task(task: Task, runs: List[dict], evaluator: Evaluator) -> List[dict]:
+def repeat_correctness(evaluator: Evaluator, task: Task, tag: str, repeats: int) -> dict:
+    """Run the kernel's already built program `repeats` more times on every case. Each process generates
+    fresh keys and encrypts afresh, so a kernel whose error sits near the tolerance shows up here."""
+    checks = passes = 0
+    worst, worst_case = 0.0, ""
+    for case_dir in sorted(evaluator.work.glob(f"eval/{task.name}/{tag}/*/he/build/main")):
+        case = case_dir.parent.parent.parent.name
+        for _ in range(repeats):
+            out = _run(["./main", "--tol", repr(task.tolerance), "--repeats", 1], case_dir.parent,
+                       evaluator.timeout, evaluator.env).stdout
+            errors = [float(v) for v in re.findall(r"max_abs_error=([0-9.eE+-]+|nan|inf)", out)]
+            checks += 1
+            passes += "PASS" in out and bool(errors) if task.scheme == "ckks" else "PASS" in out
+            if errors and max(errors) >= worst:
+                worst, worst_case = max(errors), case
+    return {"repeat_checks": checks, "repeat_passes": passes, "repeat_worst_error": worst,
+            "repeat_worst_case": worst_case}
+
+
+def rescore_task(task: Task, runs: List[dict], evaluator: Evaluator, correctness_repeats: int = 0) -> List[dict]:
     kernels: Dict[str, dict] = {}
     base_src = task.baseline()
     kernels[sha1(normalize(base_src))] = {"source": base_src, "label": "baseline", "runs": []}
@@ -101,6 +128,9 @@ def rescore_task(task: Task, runs: List[dict], evaluator: Evaluator) -> List[dic
             t = time_once(evaluator, task, k["label"])
             if i >= WARMUP:
                 samples[k["label"]].append(t)
+    power_after_timing = machine_state()
+    repeats = {k["label"]: repeat_correctness(evaluator, task, k["label"], correctness_repeats)
+               for k in timed if correctness_repeats > 0 and k["ev"].correct}
     approx = approximation_error(task)
     base_eval = statistics.median(s["eval"][0] for s in samples["baseline"])
     rows = []
@@ -126,7 +156,14 @@ def rescore_task(task: Task, runs: List[dict], evaluator: Evaluator) -> List[dic
             "compile_median_ms": statistics.median(k["compile_ms"]) if k["compile_ms"] else "",
             "compile_runs_ms": " ".join(f"{c:.3f}" for c in k["compile_ms"]),
             "measured_processes": len(evals), **approx,
+            **repeats.get(k["label"], {"repeat_checks": 0, "repeat_passes": 0, "repeat_worst_error": "",
+                                       "repeat_worst_case": ""}),
+            "power_after_timing": power_after_timing["power_source"],
+            "lid_closed_after_timing": power_after_timing["lid_closed"],
         }
+        # Reliably correct: passed the evaluation, every timing process and every repeated check.
+        row["reliably_correct"] = bool(ev.correct and row["all_timing_runs_pass"] is not False
+                                       and (correctness_repeats == 0 or row["repeat_passes"] == row["repeat_checks"] > 0))
         rows.append(row)
     return rows
 
@@ -154,6 +191,10 @@ def report(out: Path, kernel_rows: List[dict], runs: List[dict], meta: dict) -> 
             "final_kernel": k["kernel"], "final_attempt": r["best_id"], "final_is_baseline": r["best_id"] == 0,
             "speedup": k["speedup"], "eval_median_ms": k["eval_median_ms"], "e2e_median_ms": k["e2e_median_ms"],
             "correct": k["correct"], "fhe_max_abs_error": k["fhe_max_abs_error"],
+            # Primary metric: a final kernel that is not reliably correct earns nothing (x1.000).
+            "speedup_strict": k["speedup"] if k["reliably_correct"] and k["speedup"] != "" else 1.0,
+            "reliably_correct": k["reliably_correct"],
+            "repeat_passes": f"{k['repeat_passes']}/{k['repeat_checks']}",
             "depth": k["depth"], "xdepth": k["xdepth"], "levels": k["levels_run"],
             "ct_ct_mul": k["ct_ct_mul"], "ct_pt_mul": k["ct_pt_mul"], "align_mul": k["align_mul"],
             "rescale": k["rescale"], "mod_switch": k["mod_switch"], "compile_median_ms": k["compile_median_ms"],
@@ -181,12 +222,14 @@ def report(out: Path, kernel_rows: List[dict], runs: List[dict], meta: dict) -> 
              f"({WARMUP} warmup + {MEASURED} measured processes of ./main --repeats {EVAL_REPEATS}, interleaved). "
              "The final kernel of each run is the strategy's own selection; re-scoring never re-selects. "
              "E2E = CHEHAB execution_time_(ms) (parse + encode + encrypt + fhe()). Compile time: median of 3, "
-             "reported only.", "",
+             f"reported only. CKKS chain: {meta.get('ckks_chain', 'fixed')}. Repeated correctness checks per case: "
+             f"{meta['protocol'].get('correctness_repeats', 0)}; strict speedup counts a final kernel that fails any "
+             "check as x1.000.", "",
              "## Every run", "",
-             "| task | strategy | run | final | speedup | eval (ms) | e2e (ms) | FHE err | depth | xdepth | levels | "
+             "| task | strategy | run | final | speedup | strict | repeats passed | eval (ms) | e2e (ms) | FHE err | depth | xdepth | levels | "
              "ct x ct | ct x pt | align | rescale | mod sw | C (ms) | correct / 8 | dup | failures | out tok | "
              "think tok | search (s) |",
-             "|---|---|---:|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---:|---:|---:|"]
+             "|---|---|---:|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---:|---:|---:|"]
     for x in run_rows:
         labels = {"compile_failures": "compile", "chehab_rejections": "chehab", "build_failures": "build",
                   "runtime_failures": "runtime", "wrong_output": "wrong", "heldout_failures": "held-out",
@@ -194,20 +237,21 @@ def report(out: Path, kernel_rows: List[dict], runs: List[dict], meta: dict) -> 
         fails = ", ".join(f"{label} {x[k]}" for k, label in labels.items() if x[k]) or "-"
         lines.append(
             f"| {x['task']} | {x['strategy']} | {x['run']} | #{x['final_attempt']} ({x['final_kernel']}) | "
-            f"x{fmt(x['speedup'], '.3f')} | {fmt(x['eval_median_ms'], '.1f')} | {fmt(x['e2e_median_ms'], '.1f')} | "
+            f"x{fmt(x['speedup'], '.3f')} | x{x['speedup_strict']:.3f} | {x['repeat_passes']} | "
+            f"{fmt(x['eval_median_ms'], '.1f')} | {fmt(x['e2e_median_ms'], '.1f')} | "
             f"{fmt(x['fhe_max_abs_error'], '.2e')} | "
             f"{x['depth']} | {x['xdepth']} | {x['levels']} | {x['ct_ct_mul']} | {x['ct_pt_mul']} | {x['align_mul']} | "
             f"{x['rescale']} | {x['mod_switch']} | {fmt(x['compile_median_ms'], '.2f')} | {x['correct_attempts']} / {x['calls']} | "
             f"{x['duplicates']} | {fails} | {x['output_tokens']} | {x['thinking_tokens']} | {x['search_seconds']} |")
-    lines += ["", "## Per task and strategy (3 runs each)", "", "| task | strategy | runs | speedup |", "|---|---|---:|---|"]
+    lines += ["", "## Per task and strategy (strict speedup)", "", "| task | strategy | runs | speedup |",
+              "|---|---|---:|---|"]
     per_task: Dict[str, Dict[str, List[float]]] = {}
-    for x in run_rows:
-        if x["speedup"] != "":  # a final kernel that failed the neutral check has no speedup (reported above)
-            per_task.setdefault(x["strategy"], {}).setdefault(x["task"], []).append(x["speedup"])
+    for x in run_rows:  # strict: a final kernel that failed any check counts as the baseline (x1.000)
+        per_task.setdefault(x["strategy"], {}).setdefault(x["task"], []).append(x["speedup_strict"])
     for strategy, tasks in sorted(per_task.items()):
         for task, v in sorted(tasks.items()):
             lines.append(f"| {task} | {strategy} | {len(v)} | {describe(v)} |")
-    lines += ["", "## Across tasks (geometric mean of the per-task mean speedups)", "",
+    lines += ["", "## Across tasks (geometric mean of the per-task mean strict speedups)", "",
               "| strategy | tasks | geometric mean |", "|---|---:|---:|"]
     for strategy, tasks in sorted(per_task.items()):
         means = [statistics.mean(v) for v in tasks.values()]
@@ -219,10 +263,12 @@ def report(out: Path, kernel_rows: List[dict], runs: List[dict], meta: dict) -> 
         r = next(k for k in kernel_rows if k["task"] == task)
         lines.append(f"| {task} | {r.get('max_fit_error', '-')} | {r.get('approx_error_fixed', '-')} | "
                      f"{r.get('approx_error_dense', '-')} |")
-    lines += ["", "## Re-scored kernels", "", "| task | kernel | used by | correct | eval (ms) | speedup |",
-              "|---|---|---|---|---:|---:|"]
+    lines += ["", "## Re-scored kernels", "",
+              "| task | kernel | used by | correct | repeats passed | worst repeat error | eval (ms) | speedup |",
+              "|---|---|---|---|---:|---:|---:|---:|"]
     for k in kernel_rows:
         lines.append(f"| {k['task']} | {k['kernel']} | {k['runs'] or 'baseline'} | {k['correct']} | "
+                     f"{k['repeat_passes']}/{k['repeat_checks']} | {fmt(k['repeat_worst_error'], '.2e')} | "
                      f"{k['eval_median_ms'] if k['eval_median_ms'] == '' else round(k['eval_median_ms'], 2)} | "
                      f"{'' if k['speedup'] == '' else round(k['speedup'], 3)} |")
     (out / "phase2_pilot.md").write_text("\n".join(lines) + "\n")
@@ -234,15 +280,26 @@ def main():
     p.add_argument("--tasks", nargs="+", help="default: every task found")
     p.add_argument("--out", type=Path, required=True)
     p.add_argument("--work", type=Path, default=WORK / "rescore")
+    p.add_argument("--ckks-chain", choices=CHAINS, default="fixed",
+                   help="CKKS modulus chain for the baseline and every kernel: fixed, or sized to the levels used")
+    p.add_argument("--correctness-repeats", type=int, default=CORRECTNESS_REPEATS,
+                   help="extra runs of every timed kernel on every case (fresh encryption); 0 disables")
+    p.add_argument("--allow-unstable-power", action="store_true", help="time even on battery or with the lid closed")
     args = p.parse_args()
+    power_at_start = require_stable_power(args.allow_unstable_power)
     runs = discover(args.runs)
     tasks = args.tasks or sorted({r["task"] for r in runs})
     started = datetime.now().isoformat(timespec="seconds")
-    evaluator = Evaluator(work=args.work)
+    chains = {r.get("ckks_chain", "fixed") for r in runs}
+    if chains - {args.ckks_chain}:
+        print(f"NOTE: the runs searched with the {sorted(chains)} chain; re-scoring with the {args.ckks_chain} chain",
+              flush=True)
+    evaluator = Evaluator(work=args.work, chain=args.ckks_chain)
     kernel_rows = []
     for name in tasks:
         print(f"== re-scoring {name}: {sum(r['task'] == name for r in runs)} runs", flush=True)
-        kernel_rows += rescore_task(TASKS[name], [r for r in runs if r["task"] == name], evaluator)
+        kernel_rows += rescore_task(TASKS[name], [r for r in runs if r["task"] == name], evaluator,
+                                    args.correctness_repeats)
         args.out.mkdir(parents=True, exist_ok=True)
         (args.out / "partial_kernel_rows.json").write_text(json.dumps(kernel_rows, default=str))  # survives a crash
     args.out.mkdir(parents=True, exist_ok=True)
@@ -252,7 +309,10 @@ def main():
         "compiler": subprocess.run(["c++", "--version"], capture_output=True, text=True).stdout.splitlines()[0],
         "seal": "4.1", "protocol": {"warmup_processes": WARMUP, "measured_processes": MEASURED,
                                     "fhe_runs_per_process": EVAL_REPEATS, "compile_runs": COMPILE_RUNS,
-                                    "interleaved": True, "heldout_correctness": True},
+                                    "interleaved": True, "heldout_correctness": True,
+                                    "correctness_repeats": args.correctness_repeats},
+        "ckks_chain": args.ckks_chain, "search_chains": sorted(chains),
+        "power_at_start": power_at_start, "power_at_end": machine_state(),
         "proposers": sorted({json.dumps(r["proposer"], sort_keys=True) for r in runs}),
         "baselines": {t: sha1(TASKS[t].baseline()) for t in tasks},
         "runs_root": str(args.runs), "runs": len([r for r in runs if r["task"] in tasks]),

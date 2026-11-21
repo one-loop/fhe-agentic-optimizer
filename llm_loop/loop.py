@@ -17,6 +17,12 @@ Strategies (same budget: --iterations model calls per task and run):
            best-shot prompting); one repair turn per illegal kernel; duplicates
            are not re-evaluated; a static cost-model pre-screen skips the
            encrypted run of kernels predicted to be clearly slower.
+  independent  no-feedback ablation: every call gets the same first prompt as
+           `linear` (task, baseline kernel, baseline result) and never sees an
+           earlier attempt or its result; no repair turns. The loop still
+           evaluates every kernel and keeps the fastest correct one, so the
+           comparison with `linear` isolates what feedback *to the model* adds
+           (best-of-N sampling with verification vs closed-loop refinement).
 
 Feedback (the proposal's open design question, section 1):
   execution  measured fhe() latency (default);
@@ -45,10 +51,11 @@ from typing import List, Optional
 import numpy as np
 
 from llm_loop import prompts
-from llm_loop.evaluate import WORK, Evaluation, Evaluator
+from llm_loop.evaluate import CHAINS, WORK, Evaluation, Evaluator
+from llm_loop.machine import machine_state, require_stable_power
 from llm_loop.proposers import ClaudeCodeProposer, ProposerUnavailable, ReplayProposer, UsageLimitReached
 from llm_loop.score import score
-from llm_loop.tasks import REPO, TASKS, Task
+from llm_loop.tasks import REPO, TASKS, Task, select
 
 RUNS = Path(__file__).resolve().parent / "runs"
 REPAIRABLE = {"rejected", "compile_error", "chehab_error", "build_error", "run_error"}
@@ -83,7 +90,7 @@ class TaskRun:
         self.task, self.args, self.proposer, self.evaluator = task, args, proposer, evaluator
         self.out, self.run = out, run
         self.rng = np.random.default_rng(args.seed + 1000 * run)
-        self.system = prompts.system_prompt(args.hints, task.scheme)
+        self.system = prompts.system_prompt(args.hints, task.scheme, getattr(args, "ckks_chain", "fixed"))
         self.hints = prompts.HINTS[prompts.FAMILY_HINTS[task.family]]
         self.entries: List[Entry] = [Entry(0, None, task.baseline(), "baseline", baseline, "baseline")]
         self.seen = {normalize(task.baseline()): 0}
@@ -185,11 +192,23 @@ class TaskRun:
         return entry
 
     # -------------------------------------------------------------- strategies
-    def run_linear(self):
+    def first_prompt(self, attempts: Optional[int]) -> str:
+        """The opening prompt shared by `linear` and `independent` (only the attempt count differs)."""
         b = self.baseline
-        first = (f"{prompts.task_header(self.task)}\n\n# Baseline kernel\n{prompts.code_block(b.source)}\n\n"
-                 f"# Baseline result\n{self.describe(b)}\n\nYou have {self.args.iterations} attempts. "
-                 "Propose a faster kernel that computes the same outputs.")
+        budget = f"You have {attempts} attempts. " if attempts else ""
+        return (f"{prompts.task_header(self.task)}\n\n# Baseline kernel\n{prompts.code_block(b.source)}\n\n"
+                f"# Baseline result\n{self.describe(b)}\n\n{budget}"
+                "Propose a faster kernel that computes the same outputs.")
+
+    def run_independent(self):
+        """No-feedback ablation: N stateless calls with one fixed prompt. The baseline's own result is part
+        of the prompt (as in `linear`'s first call); nothing about the model's attempts ever is."""
+        prompt = self.first_prompt(None)
+        for it in range(1, self.args.iterations + 1):
+            self.record(it, 0, self.ask(prompt, it))
+
+    def run_linear(self):
+        first = self.first_prompt(self.args.iterations)
         self.dialogue = [("user", first)]
         for it in range(1, self.args.iterations + 1):
             prompt = "\n\n".join(f"## {'Compiler' if role == 'user' else 'You (earlier answer)'}\n{text}"
@@ -265,7 +284,8 @@ class TaskRun:
     def execute(self) -> dict:
         started_at = datetime.now().isoformat(timespec="seconds")
         start = time.time()
-        (self.run_linear if self.args.strategy == "linear" else self.run_archive)()
+        {"linear": self.run_linear, "archive": self.run_archive,
+         "independent": self.run_independent}[self.args.strategy]()
         search_seconds = time.time() - start
         if self.calls != self.args.iterations:  # every invocation counts; no free calls
             raise RuntimeError(f"{self.task.name} run {self.run}: {self.calls} calls, budget {self.args.iterations}")
@@ -281,6 +301,8 @@ class TaskRun:
             "task": self.task.name, "owner": self.task.owner, "run": self.run, "strategy": self.args.strategy,
             "started_at": started_at,
             "feedback": self.args.feedback, "hints": self.args.hints, "iterations": self.args.iterations,
+            "ckks_chain": getattr(self.args, "ckks_chain", "fixed"),
+            "machine_at_end": machine_state(),
             "proposer": self.proposer.describe(), "models_used": sorted(self.models_used), "calls": self.calls, "model_seconds": self.model_seconds,
             "estimated_cost_usd": self.cost_usd, "tokens": self.tokens, "search_seconds": search_seconds,
             "wall_seconds": time.time() - start, "git": self.args.git,
@@ -363,8 +385,9 @@ def make_proposer(args, task: Task):
 def main():
     p = argparse.ArgumentParser(description=__doc__.split("\n\n")[0], epilog=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--tasks", nargs="+", default=["all"], help="task names, 'all', or family:<family>")
-    p.add_argument("--strategy", choices=["archive", "linear"], default="archive")
+    p.add_argument("--tasks", nargs="+", default=["all"], help="task names, 'all', family:<family> or set:<main|trivial|new>")
+    p.add_argument("--strategy", choices=["archive", "linear", "independent"], default="archive",
+                   help="'independent' is the no-feedback ablation")
     p.add_argument("--iterations", type=int, default=8, help="model calls per task and run")
     p.add_argument("--runs", type=int, default=1, help="independent runs per task (best-of-N)")
     p.add_argument("--proposer", default="claude-code", help="'claude-code' or 'replay:<dir>'")
@@ -378,22 +401,20 @@ def main():
                    help="a kernel must be this much faster than the best to replace it (timing noise)")
     p.add_argument("--final-rounds", type=int, default=5, help="neutral re-timing rounds of each run's best kernel")
     p.add_argument("--seed", type=int, default=0)
+    p.add_argument("--allow-unstable-power", action="store_true",
+                   help="run even on battery or with the lid closed (in-loop timings select the final kernel)")
+    p.add_argument("--ckks-chain", choices=CHAINS, default="fixed",
+                   help="CKKS modulus chain: fixed {60, 40 x 10, 60}, or sized to the levels each kernel consumes")
     p.add_argument("--out", type=Path, help="results directory (default llm_loop/runs/<timestamp>)")
     p.add_argument("--work", type=Path, default=WORK / "loop",
                    help="build directory; give concurrent runs different ones")
     args = p.parse_args()
     args.feedback_label = "measured" if args.feedback == "execution" else "static"
 
-    names = []
-    for t in args.tasks:
-        if t == "all":
-            names += list(TASKS)
-        elif t.startswith("family:"):
-            names += [n for n, task in TASKS.items() if task.family == t.split(":", 1)[1]]
-        elif t in TASKS:
-            names.append(t)
-        else:
-            p.error(f"unknown task {t}; known: {sorted(TASKS)}")
+    try:
+        names = select(args.tasks)
+    except KeyError as e:
+        p.error(str(e))
     out = args.out or RUNS / datetime.now().strftime("%Y%m%d-%H%M%S")
     out.mkdir(parents=True, exist_ok=True)
     args.git = git_state()
@@ -401,7 +422,7 @@ def main():
         f.write(json.dumps({"time": datetime.now().isoformat(timespec="seconds"), "argv": sys.argv[1:],
                             **{k: str(v) for k, v in vars(args).items()}}) + "\n")
 
-    evaluator = Evaluator(work=args.work)
+    evaluator = Evaluator(work=args.work, chain=args.ckks_chain)
     results = []
     try:
         for name in dict.fromkeys(names):
@@ -415,6 +436,8 @@ def main():
                 if run_dir.exists():
                     shutil.rmtree(run_dir)  # an interrupted run restarts from scratch
                 run_dir.mkdir(parents=True)
+                # In-loop timings choose the final kernel: stop (resumable) rather than time on battery.
+                require_stable_power(args.allow_unstable_power)
                 if baseline is None:
                     print(f"== {name}: evaluating the baseline", flush=True)
                     baseline = evaluator.evaluate(task, task.baseline(), heldout=True, tag="baseline")

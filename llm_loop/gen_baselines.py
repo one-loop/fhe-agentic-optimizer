@@ -180,8 +180,46 @@ EMBEDDING = HEADER.format(source="operators::embedding (benchmarks/extract_embed
 """
 
 
+def matmul() -> str:
+    return HEADER.format(source="benchmarks/matrix_mul/matrix_mul.cpp (scalar fhe())") + """void fhe()
+{
+  size_t size = slots();
+  std::vector<std::vector<Ciphertext>> a(size, std::vector<Ciphertext>(size));
+  std::vector<std::vector<Ciphertext>> b(size, std::vector<Ciphertext>(size));
+  std::vector<std::vector<Ciphertext>> c(size, std::vector<Ciphertext>(size));
+  for (size_t i = 0; i < size; ++i)
+    for (size_t j = 0; j < size; ++j)
+    {
+      a[i][j] = Ciphertext("a_" + std::to_string(i) + "_" + std::to_string(j));
+      b[i][j] = Ciphertext("b_" + std::to_string(i) + "_" + std::to_string(j));
+    }
+  for (size_t i = 0; i < size; ++i)
+    for (size_t j = 0; j < size; ++j)
+    {
+      c[i][j] = a[i][0] * b[0][j];
+      for (size_t k = 1; k < size; ++k)
+        c[i][j] += a[i][k] * b[k][j];
+      c[i][j].set_output("c_" + std::to_string(i) + "_" + std::to_string(j));
+    }
+}
+"""
+
+
+def poly_tree(task) -> str:
+    """The tree as benchmarks/polynomials_coyote builds it: one operation per tree node, leaves as inputs."""
+    lines = [HEADER.format(source=f"benchmarks/polynomials_coyote ({task.cases[0].command[3].split('/')[-1]})"),
+             "void fhe()", "{"]
+    lines += [f'  Ciphertext {label}("{label}");' for label in task.tree_labels]
+    lines += [f"  Ciphertext result = {task.tree_expression};", '  result.set_output("result");', "}"]
+    return "\n".join(lines) + "\n"
+
+
 def baseline_source(name: str) -> str:
     task = TASKS[name]
+    if task.family == "matmul":
+        return matmul()
+    if task.family == "poly_tree":
+        return poly_tree(task)
     if task.family == "chebyshev":
         _, activation, degree = name.split("_")
         return chebyshev(activation, int(degree[1:]))
@@ -311,9 +349,14 @@ NN_CONV2D = HEADER.format(source="benchmarks/nn_conv2d/nn_conv2d.cpp") + """void
 
 def main() -> None:
     BASELINES.mkdir(exist_ok=True)
+    changed = []
     for name in TASKS:
-        (BASELINES / f"{name}.cpp").write_text(baseline_source(name))
-    print(f"wrote {len(TASKS)} baselines to {BASELINES}")
+        path = BASELINES / f"{name}.cpp"
+        source = baseline_source(name)
+        if not path.exists() or path.read_text() != source:
+            changed.append(name)
+        path.write_text(source)
+    print(f"wrote {len(TASKS)} baselines to {BASELINES}; new or changed: {changed or 'none'}")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# Stand-in for `cargo run --release --manifest-path <dir>/Cargo.toml -- <args>` on machines without a Rust
+# toolchain: runs the prebuilt <dir>/target/release/<package name> with <args>, in the same working directory.
+# CHEHAB's vectorizer (src/fheco/dsl/compiler.cpp) calls cargo this way. Refuses anything else, and refuses a
+# binary older than its sources (it would not be the code in the repository).
+#   PATH="$PWD/llm_loop/tools/cargo-shim:$PATH" python3 run_benchmarks.py --vectorize 1 --opt-method 0 ...
+set -euo pipefail
+[[ "${1:-}" == run ]] || { echo "cargo shim: only 'run' is supported" >&2; exit 2; }
+shift
+manifest="" ; release=0
+while [[ $# -gt 0 && "$1" != "--" ]]; do
+  case "$1" in
+    --release) release=1 ;;
+    --manifest-path) shift; manifest="$1" ;;
+    *) echo "cargo shim: unsupported option $1" >&2; exit 2 ;;
+  esac
+  shift
+done
+[[ "${1:-}" == "--" ]] && shift
+[[ $release == 1 && -n "$manifest" ]] || { echo "cargo shim: need --release --manifest-path" >&2; exit 2; }
+dir="$(cd "$(dirname "$manifest")" && pwd)"
+name="$(sed -n 's/^name *= *"\(.*\)"/\1/p' "$manifest" | head -1)"
+bin="$dir/target/release/$name"
+[[ -x "$bin" ]] || { echo "cargo shim: no prebuilt $bin" >&2; exit 2; }
+if [[ -n "$(find "$dir/src" "$manifest" -newer "$bin" -print -quit)" ]]; then
+  echo "cargo shim: $bin is older than its sources; rebuild it with a real cargo" >&2; exit 2
+fi
+exec "$bin" "$@"
