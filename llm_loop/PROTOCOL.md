@@ -116,3 +116,52 @@ interrupted run restarts from scratch.
 | cost model (pre-screen) | linear in primes left | also scales with chain length (sized chain only) |
 | CKKS error messages | scale mismatch without operands | operands' levels, scales and expressions (from sized-chain-and-history) |
 | power / lid | not checked | enforced and recorded |
+
+## 10. Feedback study (protocol v1.1, fixed 2026-11-21 before its runs)
+
+The paper's focus moves to the feedback system. This study runs before Phase-1 E1 and uses everything above
+except where stated here.
+
+**Question.** What does compiler feedback to the model contribute, which part of it matters, and does steering
+the model toward approaches it has not tried help?
+
+**Arms** (all: Haiku 5.5, 8 calls, hints none, sized chain, margin 2%, same selection of the final kernel):
+
+| arm | what the model sees after each attempt |
+|---|---|
+| `independent` | nothing (8 stateless calls with the same first prompt) |
+| `linear-minimal` | valid / correct or not, with the compiler's message when not; no latency, operation counts or ranking; pre-screen off (its verdict would reveal the cost model's estimate) |
+| `linear` | the full feedback: L, D, C, operation counts, best so far |
+| `linear-explore` | `linear` + a ledger of the approaches tried (stated technique, result, operation counts), kernels with the same operation counts as an earlier one marked as repeats, and the instruction to use an approach not in the ledger (the last call may refine the best kernel instead). Answers start with a `Technique:` line |
+| `archive` | as in section 4 |
+| `archive-explore` | `archive` + the same ledger and instruction in every non-repair prompt |
+
+`independent`, `linear-minimal` and `linear` share the first prompt and system prompt, so their call-1 results
+are a sanity check. The explore arms add the `Technique:` paragraph to the system prompt.
+
+**Tasks:** the `feedback` set (12 tasks of `main`, chosen for time; `tasks.py` gives the reasons): GELU, SiLU,
+Sigmoid, ELU, Softplus, ReLU and HardShrink (degree 7), extract_sparse, nn_conv2d, matmul 2x2 and 3x3,
+coyote_tree_100_50_5_1. **Runs:** 3 per task and arm (36 pairs per comparison; from the pilot's SD this
+detects about a 4% effect at 80% power, about 5% after the Holm correction). Order: all arms' run 1, then run 2, then run 3, with task and arm order
+rotated per run.
+
+**Re-scoring (v1.1 change to section 2):** the 20 correctness repeats run for the baseline and for every kernel
+faster than the baseline. A kernel at or below x1.000 is not repeated: strict scoring could only raise an
+unreliable slow kernel to x1.000, so skipping is conservative. BFV kernels (exact integer arithmetic; a failure
+would mean noise-budget exhaustion) get 2 repeats. Everything else in sections 1-2 is unchanged.
+
+**Primary comparisons** (paired by task and run, geometric-mean ratio of per-task mean strict speedups, 95%
+bootstrap interval, sign-flip test (Monte Carlo, 100,000 draws), Holm correction over the five):
+
+1. `linear` vs `independent`: does feedback help?
+2. `linear` vs `linear-minimal`: does the performance content of the feedback help beyond correctness?
+3. `linear-explore` vs `linear`: does steering help the dialogue?
+4. `archive` vs `linear`: does search help on top of feedback?
+5. `archive-explore` vs `archive`: does steering help the search?
+
+**Secondary (exploratory):** every arm vs `independent`; diversity per run (distinct kernels, duplicates,
+distinct operation-count structures, structure repeats, distinct techniques); best-so-far curves; failures;
+tokens and time.
+
+**Run:** `llm_loop/experiments/feedback_study.sh` (results in `llm_loop/results/feedback_study_haiku-5-5/`,
+report `feedback_ablation.md`). Offline checks: `python3 -m llm_loop.tests.test_feedback_study`.

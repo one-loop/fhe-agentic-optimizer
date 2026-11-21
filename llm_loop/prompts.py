@@ -262,3 +262,49 @@ def history_table(entries: List[dict]) -> str:
                     f"{s.get('ct_pt_mul', '-')} | {s.get('align_mul', '-')} | {s.get('rotate', '-')} | "
                     f"{e.get('idea', '')[:90].replace('|', '/')} |")
     return "\n".join(rows)
+
+
+# ---------------------------------------------------------------------------------------------------------------
+# Feedback-content arms (strategies `linear-minimal`, `linear-explore`, `archive-explore`).
+
+# minimal: the model learns whether each kernel is valid and correct (and the compiler's message when it is not),
+# but nothing about its speed or operation counts.
+MINIMAL_CORRECT = "Valid code (correct on every test case)."
+
+# explore: every answer names its technique; the feedback lists the approaches tried so far and asks for a new one.
+EXPLORE_FORMAT = """
+
+# Technique line
+Begin every answer with one line `Technique: <a short name for the optimization approach>` (for example "baby-step giant-step split", "factor out common multiplications"), then state the idea and give the kernel as described above."""
+
+EXPLORE_INSTRUCTION = ("Your next kernel must use an approach that is NOT among the valid kernels in the list above: "
+                       "a different algorithm, evaluation order or decomposition, not a renaming or small reordering "
+                       "of a listed one. An approach whose kernel was rejected or gave wrong results may be fixed and "
+                       "submitted again. "
+                       "Kernels with the same operation counts as an earlier kernel are marked as repeats. Even if "
+                       "you believe the best kernel is already optimal, try a structurally different alternative: "
+                       "only the fastest correct kernel counts, so a new approach that turns out slower costs "
+                       "nothing.")
+EXPLORE_LAST = ("This is the last attempt: either try an approach not in the list above or refine the best kernel "
+                "so far, whichever you expect to be faster.")
+
+
+def technique_of(text: str) -> str:
+    """The `Technique:` line of an answer ('' if there is none)."""
+    m = re.search(r"^[\s>*_#-]*Technique[*_]*\s*:\s*[*_]*\s*(.+?)\s*$", text or "", flags=re.M | re.I)
+    return m.group(1).strip("*_ ")[:80] if m else ""
+
+
+def ledger(rows: List[dict]) -> str:
+    """The approaches tried so far: technique (or stated idea), outcome, latency, structure and repeat notes."""
+    if not rows:
+        return "(nothing tried yet)"
+    out = ["| # | technique | outcome | L (ms) | ct x ct | ct x pt | rot | levels | note |",
+           "|---|---|---|---:|---:|---:|---:|---:|---|"]
+    for r in rows:
+        s = r.get("static") or {}
+        latency = "-" if r.get("latency") is None else f"{r['latency']:.1f}"
+        out.append(f"| {r['id']} | {(r.get('technique') or r.get('idea') or '')[:70].replace('|', '/')} | "
+                   f"{r['outcome']} | {latency} | {s.get('ct_ct_mul', '-')} | {s.get('ct_pt_mul', '-')} | "
+                   f"{s.get('rotate', '-')} | {s.get('levels', '-')} | {r.get('note', '')} |")
+    return "\n".join(out)

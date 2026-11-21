@@ -12,6 +12,9 @@ sets, power/lid checks. Phase 0 changed the compiler in one place: the sized cha
 (`CkksParams::trim_to_levels_used`, from the teammates' sized-chain-and-history
 branch), off unless `--ckks-chain sized` is given.
 
+Next: the **feedback study** (PROTOCOL.md section 10, `experiments/feedback_study.sh`): six arms
+(`independent`, `linear-minimal`, `linear`, `linear-explore`, `archive`, `archive-explore`) on 12 tasks x 3 runs.
+
 ## Layout
 
 | Path | What it is |

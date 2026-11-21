@@ -40,13 +40,24 @@ class ProposerUnavailable(RuntimeError):
     stopped and redone later instead of spending one of its calls on a non-answer."""
 
 
+def find_claude(executable: str = "claude") -> str:
+    """`claude` from PATH, else the newest copy bundled with the Claude desktop app (its folder name changes when
+    the app updates, so it cannot be put on PATH once and for all)."""
+    if found := shutil.which(executable):
+        return found
+    bundled = Path.home() / "Library/Application Support/Claude/claude-code"
+    candidates = sorted(bundled.glob("*/*/claude.app/Contents/MacOS/claude"),
+                        key=lambda c: tuple(int(x) for x in c.parts[-6].split(".") if x.isdigit()))
+    return str(candidates[-1]) if candidates else executable
+
+
 class ClaudeCodeProposer:
     name = "claude-code"
 
     def __init__(self, model: str = "claude-haiku-5-5", effort: str = "medium", timeout: float = 900,
                  executable: str = "claude"):
         self.model, self.effort, self.timeout = model, effort, timeout
-        self.executable = shutil.which(executable) or executable
+        self.executable = find_claude(executable)
         self.workdir = Path(tempfile.mkdtemp(prefix="llm_loop_claude_"))  # empty: no project files to load
 
     def describe(self) -> dict:

@@ -28,6 +28,8 @@
 # Phase-1 protocol (llm_loop/PROTOCOL.md) uses this script through experiments/phase1.sh: CKKS_CHAIN=sized,
 # TASKS=set:main, 5 runs. TASKS accepts task names, family:<f> and set:<s>. The defaults reproduce the
 # completed ablation (fixed chain, three Chebyshev tasks).
+# The feedback study (experiments/feedback_study.sh) adds the arms linear-minimal, linear-explore and
+# archive-explore (STRATEGIES accepts every loop.py strategy).
 set -euo pipefail
 
 repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -49,7 +51,8 @@ command -v caffeinate >/dev/null && KEEP_AWAKE=(caffeinate -i)
 
 if [[ "$PROPOSER" == claude-code ]]; then
   unset ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN  # subscription only: headless mode would bill a key
-  command -v claude >/dev/null || { echo "claude (Claude Code CLI) is not on PATH" >&2; exit 1; }
+  python3 -c "import os,sys; from llm_loop.proposers import find_claude; sys.exit(not os.path.exists(find_claude()))" \
+    || { echo "claude (Claude Code CLI) not found on PATH or in the Claude app" >&2; exit 1; }
 fi
 
 # shellcheck disable=SC2086

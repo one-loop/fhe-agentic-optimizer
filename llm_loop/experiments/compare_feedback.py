@@ -14,8 +14,14 @@ Reference strategy: `independent` (no feedback). For every other strategy:
     same number were made next to each other in the session);
   - search behaviour (from attempts.jsonl, in-loop timings, not neutral):
     best-so-far speedup after k calls, correct attempts, duplicates, failures.
-Call 1 gets the same prompt under `independent` and `linear`, so their call-1
-results are two samples of the same distribution: a sanity check.
+Call 1 gets the same prompt under `independent`, `linear` and `linear-minimal`,
+so their call-1 results are samples of the same distribution: a sanity check.
+
+Feedback study (PROTOCOL.md, section 10): the declared primary comparisons
+(PRIMARY, those whose two strategies are present) get a Holm correction; every
+strategy against `independent` is reported as secondary. Diversity of each
+strategy's proposals (loop.diversity) is reported for every run, including runs
+made before it was recorded.
 
   python3 -m llm_loop.experiments.compare_feedback --runs llm_loop/runs/feedback-ablation \
       --rescore llm_loop/results/feedback_ablation --out llm_loop/results/feedback_ablation
@@ -31,7 +37,18 @@ from typing import Dict, List, Optional
 
 import numpy as np
 
+from llm_loop.loop import diversity
+
 REFERENCE = "independent"
+# The feedback study's primary comparisons, declared before its runs: (strategy, against, question).
+PRIMARY = [
+    ("linear", "independent", "does feedback to the model help?"),
+    ("linear", "linear-minimal", "does the performance content of the feedback help (beyond correctness)?"),
+    ("linear-explore", "linear", "does steering toward new approaches help the dialogue?"),
+    ("archive", "linear", "does search on top of feedback help?"),
+    ("archive-explore", "archive", "does steering toward new approaches help the search?"),
+]
+MC_DRAWS = 100_000
 FAILURES = ("rejected", "compile_error", "chehab_error", "build_error", "run_error", "wrong_output", "heldout_fail",
             "no_code", "predicted_slower")
 
@@ -56,6 +73,7 @@ def load_runs(root: Path) -> List[dict]:
             curve.append(base / best)
         r["curve"] = curve
         r["attempts"] = attempts
+        r["diversity"] = diversity(attempts, r["baseline"].get("static"))
         runs.append(r)
     return runs
 
@@ -72,11 +90,17 @@ def load_neutral(rescore: Path) -> Dict[tuple, Optional[float]]:
     return out
 
 
-def sign_flip_p(diffs: List[float]) -> float:
-    """Exact two-sided sign-flip permutation p-value for the mean of paired differences."""
+def sign_flip_p(diffs: List[float], seed: int = 0) -> float:
+    """Two-sided sign-flip permutation p-value for the mean of paired differences: exact up to 20 pairs, else
+    Monte Carlo with MC_DRAWS random sign vectors (p = (hits + 1) / (draws + 1))."""
     if not diffs:
         return float("nan")
     observed = abs(statistics.mean(diffs))
+    if len(diffs) > 20:
+        d = np.asarray(diffs)
+        signs = np.random.default_rng(seed).choice((-1.0, 1.0), size=(MC_DRAWS, len(d)))
+        hits = int((np.abs((signs * d).mean(axis=1)) >= observed - 1e-12).sum())
+        return (hits + 1) / (MC_DRAWS + 1)
     hits = total = 0
     for signs in itertools.product((1, -1), repeat=len(diffs)):
         total += 1
@@ -84,17 +108,42 @@ def sign_flip_p(diffs: List[float]) -> float:
     return hits / total
 
 
-def bootstrap_ratio(per_task: Dict[str, Dict[str, List[float]]], strategy: str, draws: int = 10000,
-                    seed: int = 0) -> tuple:
-    """95% interval of the geometric mean over tasks of mean(strategy) / mean(independent)."""
+def holm(pvalues: List[float]) -> List[float]:
+    """Holm-adjusted p-values, in the input order."""
+    order = sorted(range(len(pvalues)), key=lambda i: pvalues[i])
+    adjusted, running = [0.0] * len(pvalues), 0.0
+    for rank, i in enumerate(order):
+        running = max(running, min(1.0, (len(pvalues) - rank) * pvalues[i]))
+        adjusted[i] = running
+    return adjusted
+
+
+def compare(per_task: Dict[str, Dict[str, List[float]]], speed: Dict[tuple, float], a: str, b: str) -> Optional[dict]:
+    """Strategy a against b: geometric-mean ratio over tasks, bootstrap interval, paired sign-flip test."""
+    ts = [t for t in per_task if per_task[t].get(a) and per_task[t].get(b)]
+    if not ts:
+        return None
+    ratio = geomean([statistics.mean(per_task[t][a]) / statistics.mean(per_task[t][b]) for t in ts])
+    lo, hi = bootstrap_ratio(per_task, a, b)
+    diffs = [math.log(speed[(t, s, k)] / speed[(t, b, k)]) for (t, s, k) in speed if s == a and (t, b, k) in speed]
+    better = sum(d > math.log(1.02) for d in diffs)
+    worse = sum(d < -math.log(1.02) for d in diffs)
+    return {"strategy": a, "reference": b, "tasks": len(ts), "geomean_ratio": ratio, "ci_low": lo, "ci_high": hi,
+            "paired_runs": len(diffs), "sign_flip_p": sign_flip_p(diffs), "better": better, "worse": worse,
+            "tied": len(diffs) - better - worse}
+
+
+def bootstrap_ratio(per_task: Dict[str, Dict[str, List[float]]], strategy: str, reference: str = REFERENCE,
+                    draws: int = 10000, seed: int = 0) -> tuple:
+    """95% interval of the geometric mean over tasks of mean(strategy) / mean(reference)."""
     rng = np.random.default_rng(seed)
-    tasks = [t for t in per_task if per_task[t].get(strategy) and per_task[t].get(REFERENCE)]
+    tasks = [t for t in per_task if per_task[t].get(strategy) and per_task[t].get(reference)]
     stats = []
     for _ in range(draws):
         logs = []
         for t in tasks:
             a = rng.choice(per_task[t][strategy], len(per_task[t][strategy]))
-            b = rng.choice(per_task[t][REFERENCE], len(per_task[t][REFERENCE]))
+            b = rng.choice(per_task[t][reference], len(per_task[t][reference]))
             logs.append(math.log(a.mean() / b.mean()))
         stats.append(math.exp(statistics.mean(logs)))
     return float(np.percentile(stats, 2.5)), float(np.percentile(stats, 97.5))
@@ -145,30 +194,53 @@ def main():
             f"**x{geomean([statistics.mean(per_task[t][s]) for t in common]):.3f}**" for s in strategies) + " |")
 
     csv_rows = []
-    if REFERENCE in strategies and len(strategies) > 1:
-        lines += ["", f"## Effect of feedback (strategy vs `{REFERENCE}`)", "",
-                  "Ratio > 1: the strategy with feedback found faster kernels than sampling the same number of "
-                  "kernels without feedback.", "",
-                  "| strategy | tasks | geo. mean ratio | 95% bootstrap interval | paired runs | sign-flip p | "
-                  "runs better / worse / tied (2%) |", "|---|---:|---:|---|---:|---:|---|"]
-        for s in strategies[1:]:
-            ts = [t for t in tasks if per_task[t].get(s) and per_task[t].get(REFERENCE)]
-            if not ts:
-                continue
-            ratio = geomean([statistics.mean(per_task[t][s]) / statistics.mean(per_task[t][REFERENCE]) for t in ts])
-            lo, hi = bootstrap_ratio(per_task, s)
-            diffs = [math.log(speed[(t, s, k)] / speed[(t, REFERENCE, k)]) for (t, st, k) in speed
-                     if st == s and (t, REFERENCE, k) in speed]
-            better = sum(d > math.log(1.02) for d in diffs)
-            worse = sum(d < -math.log(1.02) for d in diffs)
-            p_value = sign_flip_p(diffs) if len(diffs) <= 20 else float("nan")
-            lines.append(f"| {s} | {len(ts)} | x{ratio:.3f} | x{lo:.3f} - x{hi:.3f} | {len(diffs)} | "
-                         f"{p_value:.3f} | {better} / {worse} / {len(diffs) - better - worse} |")
-            csv_rows.append({"strategy": s, "reference": REFERENCE, "tasks": len(ts), "geomean_ratio": ratio,
-                             "ci_low": lo, "ci_high": hi, "paired_runs": len(diffs), "sign_flip_p": p_value,
-                             "better": better, "worse": worse})
-        lines += ["", "With 3 runs per task the interval is wide; treat a ratio within it as \"no detectable "
-                  "effect\", not as \"no effect\"."]
+    header = ["| strategy | against | tasks | geo. mean ratio | 95% bootstrap interval | paired runs | sign-flip p | "
+              "{}runs better / worse / tied (2%) |", "|---|---|---:|---:|---|---:|---:|{}---|"]
+    primary = [c for c in (compare(per_task, speed, a, b) for a, b, _ in PRIMARY if {a, b} <= set(strategies)) if c]
+    if primary:
+        for c, adj in zip(primary, holm([c["sign_flip_p"] for c in primary])):
+            c["holm_p"], c["family"] = adj, "primary"
+        questions = {(a, b): q for a, b, q in PRIMARY}
+        lines += ["", "## Primary comparisons (declared before the runs; Holm-corrected)", "",
+                  "Ratio > 1: the first strategy's final kernels were faster.", "",
+                  header[0].format("Holm p | "), header[1].format("---:|")]
+        for c in primary:
+            lines.append(f"| {c['strategy']} | {c['reference']} | {c['tasks']} | x{c['geomean_ratio']:.3f} | "
+                         f"x{c['ci_low']:.3f} - x{c['ci_high']:.3f} | {c['paired_runs']} | {c['sign_flip_p']:.4f} | "
+                         f"{c['holm_p']:.4f} | {c['better']} / {c['worse']} / {c['tied']} |")
+        lines += [""] + [f"- {c['strategy']} vs {c['reference']}: {questions[(c['strategy'], c['reference'])]}"
+                         for c in primary]
+        csv_rows += primary
+    secondary = [c for c in (compare(per_task, speed, s, REFERENCE) for s in strategies
+                             if s != REFERENCE and (s, REFERENCE) not in {(a, b) for a, b, _ in PRIMARY}) if c] \
+        if REFERENCE in strategies else []
+    if secondary:
+        for c in secondary:
+            c["holm_p"], c["family"] = "", "secondary"
+        lines += ["", f"## Every other strategy vs `{REFERENCE}` (secondary, uncorrected)", "",
+                  header[0].format(""), header[1].format("")]
+        for c in secondary:
+            lines.append(f"| {c['strategy']} | {c['reference']} | {c['tasks']} | x{c['geomean_ratio']:.3f} | "
+                         f"x{c['ci_low']:.3f} - x{c['ci_high']:.3f} | {c['paired_runs']} | {c['sign_flip_p']:.4f} | "
+                         f"{c['better']} / {c['worse']} / {c['tied']} |")
+        csv_rows += secondary
+    if csv_rows:
+        lines += ["", "Treat a ratio whose interval includes x1.000 as \"no detectable effect\", not as \"no "
+                  "effect\"."]
+
+    lines += ["", "## Diversity of the proposals (per run, mean over runs)", "",
+              "distinct kernels: proposals that were not identical to an earlier kernel; distinct structures: new "
+              "operation-count fingerprints (ct x ct, ct x pt, rotations, levels, alignments, mod switches), the "
+              "baseline's excluded; structure repeats: evaluated proposals with a fingerprint already seen; "
+              "techniques: distinct `Technique:` lines (explore arms only).", "",
+              "| strategy | runs | distinct kernels | duplicates | distinct structures | structure repeats | "
+              "distinct techniques |", "|---|---:|---:|---:|---:|---:|---:|"]
+    for s in strategies:
+        ds = [r["diversity"] for r in runs if r["strategy"] == s]
+        mean = lambda k: statistics.mean(d[k] for d in ds)
+        lines.append(f"| {s} | {len(ds)} | {mean('distinct_kernels'):.2f} | {mean('duplicates'):.2f} | "
+                     f"{mean('distinct_structures'):.2f} | {mean('structure_repeats'):.2f} | "
+                     f"{mean('distinct_techniques'):.2f} |")
 
     lines += ["", "## Search behaviour (in-loop timings, not neutral)", "",
               "Best-so-far speedup after k calls, mean over runs and tasks (the baseline counts as found at k = 0).",
@@ -193,10 +265,11 @@ def main():
                      f"{sum(r.get('duplicates', 0) for r in rs)} | {sum(r['best_id'] != 0 for r in rs)} / {len(rs)} | "
                      f"{fail_text} |")
 
-    first = {s: [r["curve"][0] for r in runs if r["strategy"] == s and r["curve"]] for s in ("independent", "linear")}
-    if first["independent"] and first["linear"]:
+    first = {s: [r["curve"][0] for r in runs if r["strategy"] == s and r["curve"]]
+             for s in ("independent", "linear", "linear-minimal") if s in strategies}
+    if len(first) > 1:
         lines += ["", "## Sanity check: call 1", "",
-                  "Call 1 is the same prompt under `independent` and `linear`, so these should agree up to sampling "
+                  "Call 1 is the same prompt under these strategies, so they should agree up to sampling "
                   "noise.", "", "| strategy | runs | mean call-1 speedup | correct at call 1 |", "|---|---:|---:|---:|"]
         for s, v in first.items():
             ok = sum(1 for r in runs if r["strategy"] == s and r["attempts"]
@@ -206,8 +279,9 @@ def main():
     args.out.mkdir(parents=True, exist_ok=True)
     (args.out / "feedback_ablation.md").write_text("\n".join(lines) + "\n")
     with open(args.out / "feedback_ablation.csv", "w", newline="") as f:
+        div = ["distinct_kernels", "distinct_structures", "structure_repeats", "distinct_techniques"]
         fields = ["task", "strategy", "run", "speedup", "speedup_source", "calls", "correct_attempts", "duplicates",
-                  "best_attempt"] + [f"best_after_{k}" for k in range(1, calls + 1)]
+                  "best_attempt"] + div + [f"best_after_{k}" for k in range(1, calls + 1)]
         w = csv.DictWriter(f, fieldnames=fields)
         w.writeheader()
         for r in sorted(runs, key=lambda r: (r["task"], r["strategy"], r["run"])):
@@ -215,11 +289,11 @@ def main():
                         "speedup": speed.get((r["task"], r["strategy"], r["run"]), ""),
                         "speedup_source": "neutral" if neutral else "in-loop", "calls": r["calls"],
                         "correct_attempts": r["correct_attempts"], "duplicates": r.get("duplicates", 0),
-                        "best_attempt": r["best_id"],
+                        "best_attempt": r["best_id"], **{k: r["diversity"][k] for k in div},
                         **{f"best_after_{k + 1}": round(v, 4) for k, v in enumerate(r["curve"])}})
     if csv_rows:
         with open(args.out / "feedback_effect.csv", "w", newline="") as f:
-            w = csv.DictWriter(f, fieldnames=list(csv_rows[0]))
+            w = csv.DictWriter(f, fieldnames=list(dict.fromkeys(k for c in csv_rows for k in c)))
             w.writeheader()
             w.writerows(csv_rows)
     print(f"wrote {args.out / 'feedback_ablation.md'}")

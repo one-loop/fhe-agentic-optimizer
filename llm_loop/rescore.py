@@ -18,7 +18,12 @@ one session on this machine:
   - repeated correctness: every timed kernel's built program is run again
     --correctness-repeats times on every case (fresh keys and encryption noise
     each process); a kernel that fails any repeat is not reliably correct and its
-    runs count as x1.000 in `speedup_strict` (the run falls back to the baseline);
+    runs count as x1.000 in `speedup_strict` (the run falls back to the baseline).
+    Protocol v1.1 (feedback study): the repeats run for the baseline and for every
+    kernel faster than the baseline; a kernel at or below x1.000 is not repeated
+    (strict scoring can only raise an unreliable slow kernel to x1.000, so skipping
+    is conservative); BFV programs (exact integer arithmetic) get
+    --bfv-correctness-repeats (default 2) instead;
   - the CKKS modulus chain (--ckks-chain) and the machine's power/lid state are
     recorded; timing refuses to start on battery or with the lid closed.
 Approximation error (polynomial vs true activation, from the generator) is a
@@ -47,6 +52,7 @@ from llm_loop.tasks import TASKS, Task
 
 WARMUP, MEASURED, EVAL_REPEATS, COMPILE_RUNS = 1, 10, 10, 3
 CORRECTNESS_REPEATS = 20
+BFV_CORRECTNESS_REPEATS = 2
 
 
 def sha1(text: str) -> str:
@@ -106,7 +112,8 @@ def repeat_correctness(evaluator: Evaluator, task: Task, tag: str, repeats: int)
             "repeat_worst_case": worst_case}
 
 
-def rescore_task(task: Task, runs: List[dict], evaluator: Evaluator, correctness_repeats: int = 0) -> List[dict]:
+def rescore_task(task: Task, runs: List[dict], evaluator: Evaluator, correctness_repeats: int = 0,
+                 bfv_repeats: int = BFV_CORRECTNESS_REPEATS, repeat_all: bool = False) -> List[dict]:
     kernels: Dict[str, dict] = {}
     base_src = task.baseline()
     kernels[sha1(normalize(base_src))] = {"source": base_src, "label": "baseline", "runs": []}
@@ -129,10 +136,19 @@ def rescore_task(task: Task, runs: List[dict], evaluator: Evaluator, correctness
             if i >= WARMUP:
                 samples[k["label"]].append(t)
     power_after_timing = machine_state()
-    repeats = {k["label"]: repeat_correctness(evaluator, task, k["label"], correctness_repeats)
-               for k in timed if correctness_repeats > 0 and k["ev"].correct}
-    approx = approximation_error(task)
     base_eval = statistics.median(s["eval"][0] for s in samples["baseline"])
+    n_repeats = bfv_repeats if task.scheme == "bfv" else correctness_repeats
+    repeats, skipped = {}, {}
+    for k in timed:
+        evals = [x["eval"][0] for x in samples[k["label"]] if x["eval"]]
+        faster = bool(evals) and base_eval / statistics.median(evals) > 1.0
+        if n_repeats <= 0 or not k["ev"].correct:
+            continue
+        if k["label"] == "baseline" or faster or repeat_all:
+            repeats[k["label"]] = repeat_correctness(evaluator, task, k["label"], n_repeats)
+        else:
+            skipped[k["label"]] = "not faster than the baseline"
+    approx = approximation_error(task)
     rows = []
     for key, k in kernels.items():
         ev, s = k["ev"], samples.get(k["label"], [])
@@ -158,12 +174,15 @@ def rescore_task(task: Task, runs: List[dict], evaluator: Evaluator, correctness
             "measured_processes": len(evals), **approx,
             **repeats.get(k["label"], {"repeat_checks": 0, "repeat_passes": 0, "repeat_worst_error": "",
                                        "repeat_worst_case": ""}),
+            "repeat_skipped": skipped.get(k["label"], ""),
             "power_after_timing": power_after_timing["power_source"],
             "lid_closed_after_timing": power_after_timing["lid_closed"],
         }
         # Reliably correct: passed the evaluation, every timing process and every repeated check.
+        # A kernel whose repeats were skipped (not faster than the baseline) counts on its single checks.
         row["reliably_correct"] = bool(ev.correct and row["all_timing_runs_pass"] is not False
-                                       and (correctness_repeats == 0 or row["repeat_passes"] == row["repeat_checks"] > 0))
+                                       and (n_repeats <= 0 or row["repeat_skipped"]
+                                            or row["repeat_passes"] == row["repeat_checks"] > 0))
         rows.append(row)
     return rows
 
@@ -194,7 +213,8 @@ def report(out: Path, kernel_rows: List[dict], runs: List[dict], meta: dict) -> 
             # Primary metric: a final kernel that is not reliably correct earns nothing (x1.000).
             "speedup_strict": k["speedup"] if k["reliably_correct"] and k["speedup"] != "" else 1.0,
             "reliably_correct": k["reliably_correct"],
-            "repeat_passes": f"{k['repeat_passes']}/{k['repeat_checks']}",
+            "repeat_passes": "skipped (not faster)" if k.get("repeat_skipped") else
+            f"{k['repeat_passes']}/{k['repeat_checks']}",
             "depth": k["depth"], "xdepth": k["xdepth"], "levels": k["levels_run"],
             "ct_ct_mul": k["ct_ct_mul"], "ct_pt_mul": k["ct_pt_mul"], "align_mul": k["align_mul"],
             "rescale": k["rescale"], "mod_switch": k["mod_switch"], "compile_median_ms": k["compile_median_ms"],
@@ -284,6 +304,10 @@ def main():
                    help="CKKS modulus chain for the baseline and every kernel: fixed, or sized to the levels used")
     p.add_argument("--correctness-repeats", type=int, default=CORRECTNESS_REPEATS,
                    help="extra runs of every timed kernel on every case (fresh encryption); 0 disables")
+    p.add_argument("--bfv-correctness-repeats", type=int, default=BFV_CORRECTNESS_REPEATS,
+                   help="repeats for BFV kernels (exact integer arithmetic)")
+    p.add_argument("--repeat-all", action="store_true",
+                   help="also repeat kernels that are not faster than the baseline (protocol v1.0)")
     p.add_argument("--allow-unstable-power", action="store_true", help="time even on battery or with the lid closed")
     args = p.parse_args()
     power_at_start = require_stable_power(args.allow_unstable_power)
@@ -299,7 +323,7 @@ def main():
     for name in tasks:
         print(f"== re-scoring {name}: {sum(r['task'] == name for r in runs)} runs", flush=True)
         kernel_rows += rescore_task(TASKS[name], [r for r in runs if r["task"] == name], evaluator,
-                                    args.correctness_repeats)
+                                    args.correctness_repeats, args.bfv_correctness_repeats, args.repeat_all)
         args.out.mkdir(parents=True, exist_ok=True)
         (args.out / "partial_kernel_rows.json").write_text(json.dumps(kernel_rows, default=str))  # survives a crash
     args.out.mkdir(parents=True, exist_ok=True)
@@ -310,7 +334,9 @@ def main():
         "seal": "4.1", "protocol": {"warmup_processes": WARMUP, "measured_processes": MEASURED,
                                     "fhe_runs_per_process": EVAL_REPEATS, "compile_runs": COMPILE_RUNS,
                                     "interleaved": True, "heldout_correctness": True,
-                                    "correctness_repeats": args.correctness_repeats},
+                                    "correctness_repeats": args.correctness_repeats,
+                                    "bfv_correctness_repeats": args.bfv_correctness_repeats,
+                                    "repeat_only_faster_kernels": not args.repeat_all},
         "ckks_chain": args.ckks_chain, "search_chains": sorted(chains),
         "power_at_start": power_at_start, "power_at_end": machine_state(),
         "proposers": sorted({json.dumps(r["proposer"], sort_keys=True) for r in runs}),

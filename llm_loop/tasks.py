@@ -539,6 +539,14 @@ TASK_SETS: Dict[str, List[str]] = {
     "trivial": TRIVIAL,
     "main": [n for n in TASKS if n not in TRIVIAL],
     "new": [n for n, t in TASKS.items() if t.family in ("matmul", "poly_tree")],
+    # Feedback study (PROTOCOL.md section 10), fixed 2026-11-21 before its runs: a subset of `main` that fits a
+    # weekend (about 1.7 h per strategy and run with Haiku): seven Chebyshev activations (the lower-degree d5/d2
+    # variants and the remaining d7 ones, selu and mish, are left out as near-repeats of the family), one rotation
+    # task, one BFV convolution, both matrix products and the smallest Coyote tree. The slowest tasks to search
+    # (relu_composite, embedding, about 14 min per run) are left out for time.
+    "feedback": ["chebyshev_gelu_d7", "chebyshev_silu_d7", "chebyshev_sigmoid_d7", "chebyshev_elu_d7",
+                 "chebyshev_softplus_d7", "chebyshev_relu_d7", "chebyshev_hardshrink_d7", "extract_sparse",
+                 "nn_conv2d", "matmul_2x2", "matmul_3x3", "coyote_tree_100_50_5_1"],
 }
 
 

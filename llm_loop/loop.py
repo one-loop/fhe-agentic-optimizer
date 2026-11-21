@@ -23,6 +23,17 @@ Strategies (same budget: --iterations model calls per task and run):
            evaluates every kernel and keeps the fastest correct one, so the
            comparison with `linear` isolates what feedback *to the model* adds
            (best-of-N sampling with verification vs closed-loop refinement).
+  linear-minimal  `linear` whose feedback says only whether each kernel is valid
+           and correct (with the compiler's message when it is not): no latency,
+           operation counts or ranking, and no static pre-screen (its verdict
+           would reveal the cost model's estimate). Isolates what the
+           performance content of the feedback adds.
+  linear-explore, archive-explore  the strategy plus exploration steering:
+           every answer starts with a `Technique:` line, and the feedback lists
+           the approaches tried so far (technique, result, operation counts),
+           marks kernels with the same operation counts as an earlier one as
+           repeats, and asks for an approach not yet in the list (the last call
+           may refine the best kernel instead). Selection is unchanged.
 
 Feedback (the proposal's open design question, section 1):
   execution  measured fhe() latency (default);
@@ -60,6 +71,40 @@ from llm_loop.tasks import REPO, TASKS, Task, select
 RUNS = Path(__file__).resolve().parent / "runs"
 REPAIRABLE = {"rejected", "compile_error", "chehab_error", "build_error", "run_error"}
 THOMPSON_C = 20.0  # REx's recommended exploration constant
+STRATEGIES = ["independent", "linear", "linear-minimal", "linear-explore", "archive", "archive-explore"]
+STRUCTURE_KEYS = ("ct_ct_mul", "ct_pt_mul", "rotate", "levels", "align_mul", "mod_switch")
+
+
+def structure(static: Optional[dict]) -> Optional[tuple]:
+    """A kernel's structural fingerprint: its expensive operation counts and levels (additions are ignored)."""
+    if not static or "ct_ct_mul" not in static:
+        return None
+    return tuple(static.get(k) for k in STRUCTURE_KEYS)
+
+
+def diversity(attempts: List[dict], baseline_static: Optional[dict]) -> dict:
+    """How varied a run's proposals were, from its attempts.jsonl rows (works for runs made before this existed).
+    distinct_kernels: proposals with code that were not textual duplicates of an earlier kernel (or the baseline);
+    distinct_structures: different fingerprints among the evaluated proposals, the baseline's excluded;
+    structure_repeats: evaluated proposals whose fingerprint an earlier kernel (or the baseline) already had."""
+    seen = {structure(baseline_static)} - {None}
+    new, repeats, techniques = set(), 0, []
+    for a in sorted(attempts, key=lambda a: a.get("iteration", 0)):
+        if a.get("technique"):
+            techniques.append(a["technique"])
+        fp = structure((a.get("evaluation") or {}).get("static"))
+        if fp is None or a.get("outcome", "ok").startswith("duplicate"):
+            continue
+        if fp in seen:
+            repeats += 1
+        else:
+            new.add(fp)
+        seen.add(fp)
+    with_code = [a for a in attempts if a.get("outcome", "ok") != "no_code"]
+    return {"distinct_kernels": sum(not a.get("outcome", "ok").startswith("duplicate") for a in with_code),
+            "duplicates": sum(a.get("outcome", "ok").startswith("duplicate") for a in with_code),
+            "distinct_structures": len(new), "structure_repeats": repeats,
+            "distinct_techniques": len({t.lower() for t in techniques}), "techniques": techniques}
 
 
 @dataclass
@@ -73,6 +118,7 @@ class Entry:
     refinements: int = 0
     repaired: bool = False
     is_repair: bool = False
+    technique: str = ""
 
     @property
     def correct(self) -> bool:
@@ -90,7 +136,12 @@ class TaskRun:
         self.task, self.args, self.proposer, self.evaluator = task, args, proposer, evaluator
         self.out, self.run = out, run
         self.rng = np.random.default_rng(args.seed + 1000 * run)
+        self.base, _, self.mode = args.strategy.partition("-")  # mode: "", "minimal" or "explore"
         self.system = prompts.system_prompt(args.hints, task.scheme, getattr(args, "ckks_chain", "fixed"))
+        if self.mode == "explore":
+            self.system += prompts.EXPLORE_FORMAT
+        # minimal feedback: no pre-screen, whose verdict would tell the model the cost model's estimate
+        self.prescreen = 0.0 if self.mode == "minimal" else args.prescreen
         self.hints = prompts.HINTS[prompts.FAMILY_HINTS[task.family]]
         self.entries: List[Entry] = [Entry(0, None, task.baseline(), "baseline", baseline, "baseline")]
         self.seen = {normalize(task.baseline()): 0}
@@ -122,6 +173,29 @@ class TaskRun:
             return prompts.metrics(e.ev, self.baseline.ev, self.best.ev, self.args.feedback_label, self.task.scheme)
         return prompts.failure(e.ev) if e.ev is not None else e.outcome
 
+    def attempt_feedback(self, e: Entry) -> str:
+        """What the model is told about one of its attempts (minimal: correctness only)."""
+        if self.mode == "minimal" and e.correct:
+            return prompts.MINIMAL_CORRECT
+        return self.describe(e)
+
+    def ledger(self) -> str:
+        """explore mode: every attempt so far with its technique, result, structure and repeat notes."""
+        rows, seen = [], {structure(self.baseline.ev.static): 0}
+        for e in self.entries[1:]:
+            fp = structure(e.ev.static) if e.ev is not None else None
+            note = ""
+            if e.outcome.startswith("duplicate"):
+                note = "repeat (identical code)"
+            elif fp is not None and fp in seen:
+                note = f"repeat (same operation counts as #{seen[fp]}" + (", the baseline)" if seen[fp] == 0 else ")")
+            if fp is not None:
+                seen.setdefault(fp, e.id)
+            rows.append({"id": e.id, "technique": e.technique, "idea": e.idea, "outcome": e.outcome, "note": note,
+                         "latency": self.latency(e.ev) if e.correct else None,
+                         "static": e.ev.static if e.ev is not None else {}})
+        return prompts.ledger(rows)
+
     def history(self, limit: int = 10) -> str:
         rows = []
         for e in self.entries[-limit:]:
@@ -136,11 +210,11 @@ class TaskRun:
         if key in self.seen:
             return None, f"duplicate of #{self.seen[key]}"
         best = self.best.ev
-        if self.args.prescreen > 0 and self.args.feedback == "execution" and best.estimated_ms:
+        if self.prescreen > 0 and self.args.feedback == "execution" and best.estimated_ms:
             pre = self.evaluator.evaluate(self.task, source, static_only=True, tag="candidate")
             if pre.status != "ok":
                 return pre, pre.status
-            if pre.estimated_ms > best.estimated_ms * (1 + self.args.prescreen):
+            if pre.estimated_ms > best.estimated_ms * (1 + self.prescreen):
                 pre.status = "predicted_slower"
                 pre.message = (f"Not run on encrypted inputs: the static cost model predicts "
                                f"{pre.estimated_ms:.1f} ms, more than the best kernel's {best.estimated_ms:.1f} ms "
@@ -174,17 +248,19 @@ class TaskRun:
     def record(self, it: int, parent: Optional[int], text: str, is_repair: bool = False) -> Entry:
         source = prompts.extract_kernel(text)
         if source is None:
-            entry = Entry(len(self.entries), parent, "", prompts.idea_of(text) or "(no answer)", None, "no_code")
+            entry = Entry(len(self.entries), parent, "", prompts.idea_of(text) or "(no answer)", None, "no_code",
+                          technique=prompts.technique_of(text))
         else:
             (self.out / f"kernel_{it:02d}.cpp").write_text(source)
             ev, outcome = self.evaluate(source)
-            entry = Entry(len(self.entries), parent, source, prompts.idea_of(text), ev, outcome, is_repair=is_repair)
+            entry = Entry(len(self.entries), parent, source, prompts.idea_of(text), ev, outcome, is_repair=is_repair,
+                          technique=prompts.technique_of(text))
             if source and normalize(source) not in self.seen:
                 self.seen[normalize(source)] = entry.id
         self.entries.append(entry)
         with open(self.out / "attempts.jsonl", "a") as f:
             f.write(json.dumps({"iteration": it, "id": entry.id, "parent": parent, "outcome": entry.outcome,
-                                "repair": is_repair, "idea": entry.idea,
+                                "repair": is_repair, "idea": entry.idea, "technique": entry.technique,
                                 "evaluation": entry.ev.to_dict() if entry.ev else None}) + "\n")
         lat = f"{self.latency(entry.ev):.1f} ms" if entry.correct else ""
         print(f"   [{self.task.name} run {self.run}] call {it}: #{entry.id} from #{parent} {entry.outcome} {lat}",
@@ -218,11 +294,21 @@ class TaskRun:
             entry = self.record(it, self.best.id, text)
             left = self.args.iterations - it
             best = self.best
-            feedback = (f"# Result of attempt {it}\n{self.describe(entry)}\n\nBest so far: #{best.id} "
-                        f"({'the baseline' if best.id == 0 else f'attempt {best.id}'}).")
+            feedback = f"# Result of attempt {it}\n{self.attempt_feedback(entry)}"
+            if self.mode != "minimal":  # the ranking is performance information
+                feedback += (f"\n\nBest so far: #{best.id} "
+                             f"({'the baseline' if best.id == 0 else f'attempt {best.id}'}).")
+            if self.mode == "explore":
+                feedback += f"\n\n# Approaches tried so far\n{self.ledger()}"
             if left:
-                feedback += (f"\n{left} attempt(s) left. Propose an improved kernel (start from the best one if "
-                             "this attempt was worse or failed).")
+                if self.mode == "minimal":
+                    feedback += f"\n{left} attempt(s) left. Propose another kernel that you expect to be faster."
+                elif self.mode == "explore":
+                    feedback += f"\n\n{left} attempt(s) left. " + (
+                        prompts.EXPLORE_INSTRUCTION if left > 1 else prompts.EXPLORE_LAST)
+                else:
+                    feedback += (f"\n{left} attempt(s) left. Propose an improved kernel (start from the best one "
+                                 "if this attempt was worse or failed).")
             self.dialogue.append(("user", feedback))
 
     def thompson_parent(self) -> Entry:
@@ -243,6 +329,13 @@ class TaskRun:
             insp = min(better, key=lambda e: self.latency(e.ev))
             parts.append(f"# A faster kernel found earlier (#{insp.id}), for inspiration\n"
                          f"{prompts.code_block(insp.source)}\n\n## Its result\n{self.describe(insp)}")
+        if self.mode == "explore":
+            parts.append("# Approaches tried so far\n" + self.ledger())
+            last = self.calls == self.args.iterations - 1  # this prompt is for the final call
+            parts.append(f"# This attempt\n{hint}\nPropose one kernel that improves on #{parent.id}. "
+                         + (prompts.EXPLORE_LAST if last else prompts.EXPLORE_INSTRUCTION)
+                         + " Return the technique line, the idea and the complete kernel.")
+            return "\n\n".join(parts)
         if len(self.entries) > 1:
             parts.append("# Attempts so far (most recent last)\n" + self.history())
         parts.append(f"# This attempt\n{hint}\nPropose one kernel that improves on #{parent.id}. "
@@ -285,7 +378,7 @@ class TaskRun:
         started_at = datetime.now().isoformat(timespec="seconds")
         start = time.time()
         {"linear": self.run_linear, "archive": self.run_archive,
-         "independent": self.run_independent}[self.args.strategy]()
+         "independent": self.run_independent}[self.base]()
         search_seconds = time.time() - start
         if self.calls != self.args.iterations:  # every invocation counts; no free calls
             raise RuntimeError(f"{self.task.name} run {self.run}: {self.calls} calls, budget {self.args.iterations}")
@@ -315,6 +408,9 @@ class TaskRun:
             "predicted_slower": outcomes.count("predicted_slower"), "failures": failures,
             "best_source_sha1": hashlib.sha1(best.source.encode()).hexdigest(),
             "correct_attempts": sum(e.correct for e in self.entries[1:]),
+            "diversity": diversity([json.loads(line) for line in (self.out / "attempts.jsonl").read_text().splitlines()
+                                    if line.strip()], self.baseline.ev.static)
+            if (self.out / "attempts.jsonl").exists() else {},
         }
 
 
@@ -386,8 +482,8 @@ def main():
     p = argparse.ArgumentParser(description=__doc__.split("\n\n")[0], epilog=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--tasks", nargs="+", default=["all"], help="task names, 'all', family:<family> or set:<main|trivial|new>")
-    p.add_argument("--strategy", choices=["archive", "linear", "independent"], default="archive",
-                   help="'independent' is the no-feedback ablation")
+    p.add_argument("--strategy", choices=STRATEGIES, default="archive",
+                   help="'independent' is the no-feedback ablation; -minimal / -explore change the feedback content")
     p.add_argument("--iterations", type=int, default=8, help="model calls per task and run")
     p.add_argument("--runs", type=int, default=1, help="independent runs per task (best-of-N)")
     p.add_argument("--proposer", default="claude-code", help="'claude-code' or 'replay:<dir>'")
