@@ -1,0 +1,13 @@
+task,strategy,run,started_at,final_kernel,final_attempt,final_is_baseline,speedup,eval_median_ms,e2e_median_ms,correct,fhe_max_abs_error,depth,xdepth,levels,ct_ct_mul,ct_pt_mul,align_mul,rescale,mod_switch,compile_median_ms,calls,correct_attempts,duplicates,compile_failures,chehab_rejections,build_failures,runtime_failures,wrong_output,heldout_failures,no_code,predicted_slower,input_tokens,output_tokens,thinking_tokens,search_seconds,models
+tree_100-50_10_1,haiku,1,2026-11-15T14:42:47,baseline,0,True,1.0,13879.75,18536.35,True,0.0,10,9,,512,0,0,0,0,2.41196,8,0,6,0,0,0,0,0,0,2,0,84075,66671,18176,272.2,claude-haiku-5-5
+tree_100-50_10_1,opus,1,2026-11-15T16:13:48,baseline,0,True,1.0,13879.75,18536.35,True,0.0,10,9,,512,0,0,0,0,2.41196,8,7,1,0,0,0,0,0,0,0,0,150421,81981,9569,5271.9,claude-opus-5-5
+tree_100-50_10_1,sonnet,1,2026-11-15T15:09:45,k1,6,False,1.0003639718336252,13874.7,18499.95,True,0.0,16,8,,512,0,0,0,0,2.77608,8,3,2,0,0,0,0,0,0,3,0,130679,53539,8124,2256.6,claude-sonnet-5-5
+tree_100-50_5_1,haiku,1,2026-11-15T14:14:50,baseline,0,True,1.0,317.7555,470.56500000000005,True,0.0,5,3,,12,0,0,0,0,0.379167,8,7,1,0,0,0,0,0,0,0,0,28052,37319,32367,437.2,claude-haiku-5-5
+tree_100-50_5_1,opus,1,2026-11-15T15:51:18,baseline,0,True,1.0,317.7555,470.56500000000005,True,0.0,5,3,,12,0,0,0,0,0.379167,8,6,2,0,0,0,0,0,0,0,0,28619,12425,7370,353.7,claude-opus-5-5
+tree_100-50_5_1,sonnet,1,2026-11-15T14:51:04,baseline,0,True,1.0,317.7555,470.56500000000005,True,0.0,5,3,,12,0,0,0,0,0.379167,8,5,3,0,0,0,0,0,0,0,0,28825,10311,5836,264.1,claude-sonnet-5-5
+tree_50-50_10_1,haiku,1,2026-11-15T14:22:55,baseline,0,True,1.0,449.3675,612.6635,True,0.0,8,5,,17,0,0,0,0,0.536833,8,6,2,0,0,0,0,0,0,0,0,29567,37445,31448,423.4,claude-haiku-5-5
+tree_50-50_10_1,opus,1,2026-11-15T15:57:36,baseline,0,True,1.0,449.3675,612.6635,True,0.0,8,5,,17,0,0,0,0,0.536833,8,8,0,0,0,0,0,0,0,0,0,28112,14723,9255,461.0,claude-opus-5-5
+tree_50-50_10_1,sonnet,1,2026-11-15T14:55:53,baseline,0,True,1.0,449.3675,612.6635,True,0.0,8,5,,17,0,0,0,0,0.536833,8,6,2,0,0,0,0,0,0,0,0,28061,12376,7727,313.2,claude-sonnet-5-5
+tree_50-50_5_1,haiku,1,2026-11-15T14:09:48,baseline,0,True,1.0,53.28085,92.13625,True,0.0,4,2,,2,0,0,0,0,0.363208,8,6,2,0,0,0,0,0,0,0,0,25913,17730,14456,260.7,claude-haiku-5-5
+tree_50-50_5_1,opus,1,2026-11-15T15:47:33,baseline,0,True,1.0,53.28085,92.13625,True,0.0,4,2,,2,0,0,0,0,0.363208,8,6,2,0,0,0,0,0,0,0,0,25058,3825,1238,204.4,claude-opus-5-5
+tree_50-50_5_1,sonnet,1,2026-11-15T14:47:30,baseline,0,True,1.0,53.28085,92.13625,True,0.0,4,2,,2,0,0,0,0,0.363208,8,6,2,0,0,0,0,0,0,0,0,24824,5537,3190,193.6,claude-sonnet-5-5

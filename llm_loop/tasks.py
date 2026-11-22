@@ -1,5 +1,5 @@
-"""The 29 optimization tasks: every CKKS benchmark that run_benchmarks.py runs, and the
-three BFV neural-network operators (benchmarks/nn_*).
+"""The 33 optimization tasks: every CKKS benchmark that run_benchmarks.py runs, the
+three BFV neural-network operators (benchmarks/nn_*), and 4 random expression trees (BFV, at the end).
 
 Each task has
   - the benchmark's own input generators for the "fixed" and "dense" cases
@@ -435,4 +435,92 @@ for _name, _oracle, _description in (
                for case, width in (("fixed", 4), ("dense", 6))],
         oracle=_oracle, randomize=_bfv_randomize, edge=_bfv_edge, description=_description + _BFV_RULES)
 
-assert len(TASKS) == 29, len(TASKS)
+
+# ---------------------------------------------------------------------------
+# Random arithmetic expression trees (unstructured code): Coyote's polynomial trees, shipped with
+# CHEHAB in benchmarks/polynomials_coyote/polynomial_trees (tree_<regime>_<depth>_<i>.txt, + and *
+# over ciphertexts x<N>, each holding one integer). BFV, scalar path, like the nn_* operators. The benchmark
+# writes no expected output, so the cases come from llm_loop/tree_case.py and the oracle below.
+# Expected outputs are exact modulo the plaintext modulus of the loop's BFV runtime
+# (driver/bfv_he/main.cpp: N = 16384, PlainModulus::Batching(N, 20)).
+# ---------------------------------------------------------------------------
+TREES_DIR = SRC_BENCH / "polynomials_coyote" / "polynomial_trees"
+TREES = ["tree_50-50_5_1", "tree_100-50_5_1", "tree_50-50_10_1", "tree_100-50_10_1"]
+BFV_N = 16384
+
+
+def _bfv_plain_modulus(n: int = BFV_N, bits: int = 20) -> int:
+    """SEAL's PlainModulus::Batching(n, bits): the largest prime below 2^bits that is 1 mod 2n."""
+    v = (1 << bits) - 2 * n + 1
+    while any(v % d == 0 for d in range(2, int(v ** 0.5) + 1)):
+        v -= 2 * n
+    return v
+
+
+BFV_T = _bfv_plain_modulus()
+
+
+def parse_tree(text: str):
+    """'( op a b )' prefix notation -> nested (op, a, b) tuples; leaves are input names."""
+    tokens = text.split()
+
+    def node():
+        tok = tokens.pop(0)
+        if tok != "(":
+            return tok
+        op, a, b = tokens.pop(0), node(), node()
+        assert op in "+*" and tokens.pop(0) == ")", text[:80]
+        return op, a, b
+
+    tree = node()
+    assert not tokens
+    return tree
+
+
+def tree_inputs(tree) -> List[str]:
+    return [tree] if isinstance(tree, str) else tree_inputs(tree[1]) + tree_inputs(tree[2])
+
+
+def eval_tree(tree, values: Dict[str, int]) -> int:
+    if isinstance(tree, str):
+        return values[tree]
+    a, b = eval_tree(tree[1], values), eval_tree(tree[2], values)
+    return a + b if tree[0] == "+" else a * b
+
+
+def _signed_mod(v: int) -> int:
+    v %= BFV_T
+    return v - BFV_T if v > BFV_T // 2 else v
+
+
+def _tree_oracle(tree):
+    def oracle(io: IoExample) -> Dict[str, np.ndarray]:
+        values = {label: int(io.inputs[label][1][0]) for label in io.inputs}
+        return {"result": np.array([_signed_mod(eval_tree(tree, values))], dtype=float)}
+    return oracle
+
+
+def _tree_depths(tree):
+    """(depth, multiplicative depth)"""
+    if isinstance(tree, str):
+        return 0, 0
+    (da, ma), (db, mb) = _tree_depths(tree[1]), _tree_depths(tree[2])
+    return max(da, db) + 1, max(ma, mb) + (tree[0] == "*")
+
+
+for _name in TREES:
+    _tree = parse_tree((TREES_DIR / f"{_name}.txt").read_text())
+    _n_in, (_depth, _mdepth) = len(tree_inputs(_tree)), _tree_depths(_tree)
+    _ops = (TREES_DIR / f"{_name}.txt").read_text().split()
+    TASKS[_name] = Task(
+        name=_name, family="tree", owner="Umair", record="", tolerance=0.0, scheme="bfv",
+        cases=[Case(case, ["python3", str(Path(__file__).resolve().parent / "tree_case.py"), _name, str(seed)], 1)
+               for case, seed in (("fixed", 1), ("dense", 2))],
+        oracle=_tree_oracle(_tree), randomize=_bfv_randomize, edge=_bfv_edge,
+        description=(f"A random arithmetic expression tree from Coyote's benchmark set ({_name}: {_n_in} inputs, "
+                     f"{_ops.count('*')} multiplications, {_ops.count('+')} additions, depth "
+                     f"{_depth}, multiplicative depth {_mdepth}): result = the expression in the baseline. Inputs: "
+                     "ciphertexts `x<N>` (the names in the baseline), each holding one integer. Output: `result`, "
+                     "exact modulo the 20-bit plaintext modulus. slots() is 1 and every value is its own ciphertext."))
+
+assert len(TASKS) == 29 + len(TREES), len(TASKS)

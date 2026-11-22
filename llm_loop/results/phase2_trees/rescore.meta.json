@@ -1,0 +1,33 @@
+{
+ "started": "2026-11-15T17:41:41",
+ "finished": "2026-11-15T19:13:41",
+ "git": {
+  "commit": "dabcfaa0d35f0ccf8bd183227af783dd1e8d609a",
+  "branch": "umair/llm-loop",
+  "dirty": true
+ },
+ "machine": "Darwin arm64 arm",
+ "compiler": "Apple clang version 17.0.0 (clang-1700.3.19.1)",
+ "seal": "4.1",
+ "protocol": {
+  "warmup_processes": 1,
+  "measured_processes": 10,
+  "fhe_runs_per_process": 10,
+  "compile_runs": 3,
+  "interleaved": true,
+  "heldout_correctness": true
+ },
+ "proposers": [
+  "{\"claude_code\": \"2.1.310 (Claude Code)\", \"effort\": \"medium\", \"model\": \"claude-haiku-5-5\", \"proposer\": \"claude-code\"}",
+  "{\"claude_code\": \"2.1.310 (Claude Code)\", \"effort\": \"medium\", \"model\": \"claude-opus-5-5\", \"proposer\": \"claude-code\"}",
+  "{\"claude_code\": \"2.1.310 (Claude Code)\", \"effort\": \"medium\", \"model\": \"claude-sonnet-5-5\", \"proposer\": \"claude-code\"}"
+ ],
+ "baselines": {
+  "tree_100-50_10_1": "d6e17a861eff73e096e43c434b4726ad374c563d",
+  "tree_100-50_5_1": "ca96f6e876c18d980abefecc9c8633eada67befe",
+  "tree_50-50_10_1": "53fb3533ad656b82ac6cab9d28f53b6df91ddd68",
+  "tree_50-50_5_1": "9a6257dafbd8eb499a07646850c77ffc81366887"
+ },
+ "runs_root": "llm_loop/runs/trees-all",
+ "runs": 12
+}

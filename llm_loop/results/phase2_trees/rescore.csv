@@ -1,0 +1,6 @@
+task,kernel,sha1,runs,status,message,correct,all_timing_runs_pass,tolerance,fhe_max_abs_error,eval_median_ms,eval_min_ms,eval_max_ms,e2e_median_ms,speedup,depth,xdepth,levels_static,levels_run,ct_ct_mul,ct_pt_mul,align_mul,rescale,mod_switch,rotate,add,add_plain,compile_median_ms,compile_runs_ms,measured_processes
+tree_100-50_10_1,baseline,d232fd2820b723419fae060246c5fe933ddae820,haiku/run1 opus/run1,ok,,True,True,0.0,0.0,13879.75,13610.5,14089.6,18536.35,1.0,10,9,0,,512,0,0,0,0,0,511,0,2.41196,3.531 2.412 2.303,10
+tree_100-50_10_1,k1,fb1a6c52ba401c467a28096456ee8a7eb41daae5,sonnet/run1,ok,,True,True,0.0,0.0,13874.7,13655.0,14425.6,18499.95,1.0003639718336252,16,8,0,,512,0,0,0,0,0,511,0,2.77608,3.964 2.776 2.677,10
+tree_100-50_5_1,baseline,1db67ee71bcd1e44e5463e3f10d6f48228217752,haiku/run1 opus/run1 sonnet/run1,ok,,True,True,0.0,0.0,317.7555,317.427,318.486,470.56500000000005,1.0,5,3,0,,12,0,0,0,0,0,19,0,0.379167,0.378 0.379 0.498,10
+tree_50-50_10_1,baseline,fb3b45f0832a9d4b7a9b4cfd19e568a02095e09e,haiku/run1 opus/run1 sonnet/run1,ok,,True,True,0.0,0.0,449.3675,448.498,453.258,612.6635,1.0,8,5,0,,17,0,0,0,0,0,16,0,0.536833,0.561 0.537 0.478,10
+tree_50-50_5_1,baseline,46bca4143d9e7846e64d93195c4d9e766c257473,haiku/run1 opus/run1 sonnet/run1,ok,,True,True,0.0,0.0,53.28085,53.0621,53.4944,92.13625,1.0,4,2,0,,2,0,0,0,0,0,5,0,0.363208,0.437 0.353 0.363,10

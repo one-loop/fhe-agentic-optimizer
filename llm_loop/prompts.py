@@ -136,9 +136,15 @@ HINTS = {
         "Reuse partial results that several outputs have in common.",
         "Restructure the computation, trading multiplications for additions when that pays off.",
     ],
+    "arithmetic": [
+        "Reduce the number of ciphertext x ciphertext multiplications.",
+        "Reduce the multiplicative depth with a more balanced tree, without adding multiplications.",
+        "Restructure the expression (associativity, commutativity, distributivity), keeping it exactly equal.",
+    ],
 }
 FAMILY_HINTS = {"chebyshev": "polynomial", "relu_composite": "polynomial", "extract": "rotation",
-                "reduction": "rotation", "quad": "simple", "batchnorm": "simple", "elementwise": "simple", "nn": "bilinear"}
+                "reduction": "rotation", "quad": "simple", "batchnorm": "simple", "elementwise": "simple", "nn": "bilinear",
+                "tree": "arithmetic"}
 
 
 def system_prompt(hints: str, scheme: str = "ckks") -> str:
@@ -149,7 +155,7 @@ def task_header(task) -> str:
     if task.scheme == "bfv":
         return (f"# Task: {task.name}\n{task.description}\n\nCorrectness: every output exactly equal to the "
                 "expected value, on the test inputs and on hidden random inputs. Latency is measured on the "
-                "dense test case (W = 6).")
+                + ("dense test case (W = 6)." if task.family == "nn" else "dense test case."))
     return (f"# Task: {task.name}\n{task.description}\n\nCorrectness: every output within {task.tolerance:g} "
             "(absolute) of the expected values, on the test inputs and on hidden random inputs. "
             "Latency is measured on the dense test case (256 slots or the task's largest case).")

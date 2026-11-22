@@ -20,6 +20,8 @@ Experiments, in priority order:
  10. others_haiku, others_sonnet, others_opus  the other 14 operators, 1 run per model, archive only
  11. opus_rest_chebyshev, opus_quad_batchnorm, opus_nn_rest  Opus on the 11 operators it had not run: the other
      6 Chebyshev activations (3 runs), Quad, BatchNorm1d/2d, nn_linear, nn_avgpool2d (1 run), archive only
+ 12. trees_haiku, trees_sonnet, trees_opus  4 of Coyote's random expression trees (unstructured code, BFV),
+     1 run per model, archive only; run with --skip-rescore and re-timed together afterwards
 
 Unattended behaviour: if Claude's usage limit is reached, or the model cannot be
 reached, the campaign waits and retries (an interrupted run is redone from
@@ -48,6 +50,7 @@ REST = ["chebyshev_silu_d7", "chebyshev_selu_d7", "chebyshev_softplus_d7", "cheb
 OTHERS = ["chebyshev_relu_d7", "chebyshev_relu_d2", "relu_composite", "elementwise_add", "elementwise_add_plain",
           "elementwise_add_scalar", "elementwise_mul", "elementwise_mul_plain", "elementwise_mul_scalar", "extract",
           "extract_linear", "extract_sparse", "table_mult", "embedding"]  # the teammates' operators in tasks.py
+TREES = ["tree_50-50_5_1", "tree_100-50_5_1", "tree_50-50_10_1", "tree_100-50_10_1"]  # tasks.TREES
 EXPERIMENTS = [
     {"name": "chebyshev_rest", "tasks": REST, "runs": [1, 2, 3], "hints": "none", "feedback": "execution",
      "out": "phase2-chebyshev-rest", "results": "phase2_chebyshev_rest"},
@@ -94,6 +97,14 @@ EXPERIMENTS = [
      "out": "phase2-opus-rest", "results": "phase2_opus_rest", "model": "claude-opus-5-5", "strategies": ["archive"]},
     {"name": "opus_nn_rest", "tasks": NN_ONE_RUN, "runs": [1], "hints": "none", "feedback": "execution",
      "out": "phase2-nn-opus-rest", "results": "phase2_nn_opus_rest", "model": "claude-opus-5-5",
+     "strategies": ["archive"]},
+    {"name": "trees_haiku", "tasks": TREES, "runs": [1], "hints": "none", "feedback": "execution",
+     "out": "phase2-trees-haiku", "results": "phase2_trees_haiku", "strategies": ["archive"]},
+    {"name": "trees_sonnet", "tasks": TREES, "runs": [1], "hints": "none", "feedback": "execution",
+     "out": "phase2-trees-sonnet", "results": "phase2_trees_sonnet", "model": "claude-sonnet-5-5",
+     "strategies": ["archive"]},
+    {"name": "trees_opus", "tasks": TREES, "runs": [1], "hints": "none", "feedback": "execution",
+     "out": "phase2-trees-opus", "results": "phase2_trees_opus", "model": "claude-opus-5-5",
      "strategies": ["archive"]},
 ]
 WAIT_LIMIT_S = 30 * 60      # after a usage limit

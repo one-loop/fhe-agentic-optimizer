@@ -45,11 +45,14 @@ def sha1(text: str) -> str:
     return hashlib.sha1(text.encode()).hexdigest()
 
 
-def discover(root: Path) -> List[dict]:
-    """Every completed run under <root>/<strategy>/<task>/run<k>/."""
+def discover(root: Path, by_folder: bool = False) -> List[dict]:
+    """Every completed run under <root>/<strategy>/<task>/run<k>/. by_folder: label each run by its top
+    folder instead of its strategy (a combined root <model>/<task>/run<k>/ of several models' runs)."""
     runs = []
     for result in sorted(root.glob("*/*/run*/result.json")):
         r = json.loads(result.read_text())
+        if by_folder:
+            r["strategy"] = result.parent.parent.parent.name
         r["best_source"] = (result.parent / "best.cpp").read_text()
         r["dir"] = str(result.parent)
         runs.append(r)
@@ -234,8 +237,9 @@ def main():
     p.add_argument("--tasks", nargs="+", help="default: every task found")
     p.add_argument("--out", type=Path, required=True)
     p.add_argument("--work", type=Path, default=WORK / "rescore")
+    p.add_argument("--by-folder", action="store_true", help="label runs by their top folder (e.g. the model)")
     args = p.parse_args()
-    runs = discover(args.runs)
+    runs = discover(args.runs, args.by_folder)
     tasks = args.tasks or sorted({r["task"] for r in runs})
     started = datetime.now().isoformat(timespec="seconds")
     evaluator = Evaluator(work=args.work)
