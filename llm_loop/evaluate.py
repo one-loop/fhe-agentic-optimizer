@@ -33,6 +33,9 @@ HE_CMAKE = SRC_BENCH / "quad_ckks" / "he" / "CMakeLists.txt"  # generic: builds 
 BFV_HE = DRIVER_SRC / "bfv_he"  # CMakeLists.txt and main.cpp of the generated BFV programs
 
 CHAINS = ("fixed", "sized")
+# CHEHAB rewrite rulesets the driver can run; "simplification" is the benchmarks' (and every loop's) setting,
+# "none" the unoptimized reference (no rewriting, no CSE / operand ordering / constant folding).
+COMPILER_MODES = ("simplification", "depth", "ops_cost", "joined", "none")
 
 FORBIDDEN = ["#", "Compiler::", "util::", "operators::", "system", "popen", "exec", "fork", "fopen", "fstream",
              "ofstream", "ifstream", "FILE", "remove(", "rename(", "unlink", "filesystem", "getenv", "asm",
@@ -115,9 +118,12 @@ def _sync(src: Path, dst: Path) -> None:
 
 class Evaluator:
     def __init__(self, seal_prefix: Optional[str] = None, work: Path = WORK, repeats: int = 10,
-                 timeout: float = 900, chain: str = "fixed"):
+                 timeout: float = 900, chain: str = "fixed", compiler_mode: str = "simplification"):
         if chain not in CHAINS:
             raise ValueError(f"chain must be one of {CHAINS}, not {chain!r}")
+        if compiler_mode not in COMPILER_MODES:
+            raise ValueError(f"compiler_mode must be one of {COMPILER_MODES}, not {compiler_mode!r}")
+        self.compiler_mode = compiler_mode  # may be changed between evaluate() calls (experiments/compiler_ladder.py)
         self.chain = chain  # CKKS modulus chain: fixed {60, 40 x 10, 60} or sized to the levels consumed
         self.seal_prefix = seal_prefix or os.environ.get("CMAKE_PREFIX_PATH", str(Path.home() / ".local"))
         # absolute: the driver and programs are launched from inside case directories
@@ -181,7 +187,9 @@ class Evaluator:
         stage = run_dir / "stage"
         (stage / "he").mkdir(parents=True, exist_ok=True)
         shutil.copy(run_dir / "fhe_io_example.txt", stage / "fhe_io_example.txt")
-        out = _run([self.driver_build / "llm_driver", slot, task.scheme, self.chain], stage, self.timeout, self.env)
+        mode = [] if self.compiler_mode == "simplification" else [self.compiler_mode]
+        out = _run([self.driver_build / "llm_driver", slot, task.scheme, self.chain] + mode, stage, self.timeout,
+                   self.env)
         if out.returncode != 0:
             text = "\n".join(l for l in out.stdout.splitlines() if l.strip() and "File copied successfully" not in l)
             if not text.strip():  # crashed without a message (a signal, e.g. a segmentation fault)

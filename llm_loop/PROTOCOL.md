@@ -84,6 +84,15 @@ Inputs come from `gen_io.py` (seeded). Still missing from the proposal: conv1d a
   (`fhe_io_example_adapted.txt`) lists all-zero expected outputs, so the check cannot pass. This must be fixed
   and the outputs verified before the e-graph numbers can be used.
 - **Coyote**: not installed on this machine. **Not yet available.**
+- **Compiler ladder** (added 2026-11-22, `experiments/compiler_ladder.sh`): for every task, the baseline
+  kernel unoptimized (driver mode `none`: no term rewriting, CSE, operand ordering or constant folding) and
+  through each CHEHAB ruleset (`simplification`, `depth`, `ops_cost`, `joined`), plus the LLM loop's best
+  final kernel (the highest strict speedup in an earlier neutral re-scoring, re-measured), all timed in one
+  interleaved session per task with the re-scoring protocol (held-out cases; 20 repeated checks per case,
+  BFV 2, for programs faster than the unoptimized one; identical generated programs are re-checked once).
+  It answers how much CHEHAB's rewriting gains over unoptimized code and whether the LLM's kernels beat
+  CHEHAB's best ruleset, not only its default. CHEHAB's own BFV benchmarks use vectorization plus the
+  `depth` ruleset; the vectorizer is not in the ladder (see the e-graph item above).
 
 ## 7. Machine
 
