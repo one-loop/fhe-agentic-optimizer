@@ -1,0 +1,98 @@
+{
+ "started": "2026-11-22T16:52:19",
+ "finished": "2026-11-22T21:36:27",
+ "git": {
+  "commit": "67c8d41bb9cf86770cee0486b3e4fb26821be498",
+  "branch": "saad/phase0",
+  "dirty": true
+ },
+ "machine": "Darwin arm64 arm",
+ "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)",
+ "seal": "4.1",
+ "ckks_chain": "sized",
+ "tasks": [
+  "chebyshev_gelu_d7",
+  "chebyshev_sigmoid_d7",
+  "chebyshev_elu_d7",
+  "extract_sparse",
+  "matmul_2x2",
+  "coyote_tree_100_50_5_1",
+  "batchnorm1d",
+  "batchnorm2d",
+  "chebyshev_hardshrink_d7",
+  "chebyshev_mish_d7",
+  "chebyshev_relu_d2",
+  "chebyshev_relu_d7",
+  "chebyshev_selu_d7",
+  "chebyshev_sigmoid_d5",
+  "chebyshev_silu_d7",
+  "chebyshev_softplus_d7",
+  "coyote_tree_100_100_5_1",
+  "coyote_tree_50_50_10_2",
+  "elementwise_add",
+  "elementwise_add_plain",
+  "elementwise_add_scalar",
+  "elementwise_mul",
+  "elementwise_mul_plain",
+  "elementwise_mul_scalar",
+  "embedding",
+  "extract",
+  "extract_linear",
+  "matmul_3x3",
+  "nn_avgpool2d",
+  "nn_conv2d",
+  "nn_linear",
+  "quad",
+  "relu_composite",
+  "table_mult"
+ ],
+ "protocol": {
+  "warmup_processes": 1,
+  "measured_processes": 10,
+  "fhe_runs_per_process": 10,
+  "compile_runs": 3,
+  "heldout_correctness": true,
+  "correctness_repeats": 20,
+  "bfv_correctness_repeats": 2
+ },
+ "llm_kernels": {
+  "chebyshev_elu_d7": {
+   "origin": "feedback-pilot-haiku-5-5/archive-explore/run1",
+   "prior_speedup": 2.5803422672522016,
+   "prior": "llm_loop/results/feedback_pilot_haiku-5-5/runs1-2",
+   "sha1": "548d9d36d1183f3b108fd5c28dd85c1e1bc8c7cf"
+  },
+  "chebyshev_gelu_d7": {
+   "origin": "feedback-pilot-haiku-5-5/archive-explore/run2",
+   "prior_speedup": 2.941973008092587,
+   "prior": "llm_loop/results/feedback_pilot_haiku-5-5/runs1-2",
+   "sha1": "6974a034d0cc5ba7d827927fbde70ba04d739f7a"
+  },
+  "chebyshev_sigmoid_d7": {
+   "origin": "feedback-pilot-haiku-5-5/linear-minimal/run1",
+   "prior_speedup": 2.7131377801006074,
+   "prior": "llm_loop/results/feedback_pilot_haiku-5-5/runs1-2",
+   "sha1": "89d896c070b6c9556ecdd14a2eb3b376fc3ddd64"
+  },
+  "extract_sparse": {
+   "origin": "feedback-pilot-haiku-5-5/archive/run2",
+   "prior_speedup": 1.2996037949497603,
+   "prior": "llm_loop/results/feedback_pilot_haiku-5-5/runs1-2",
+   "sha1": "11953750f6f590b0cefdb07761a9169394fa79e7"
+  },
+  "matmul_2x2": {
+   "origin": "feedback-pilot-haiku-5-5/archive/run2",
+   "prior_speedup": 1.5684636042602085,
+   "prior": "llm_loop/results/feedback_pilot_haiku-5-5/runs1-2",
+   "sha1": "c70d6e45b88529f0a2069d0230627f2bd214e211"
+  }
+ },
+ "power_at_start": {
+  "power_source": "AC Power",
+  "lid_closed": false
+ },
+ "power_at_end": {
+  "power_source": "AC Power",
+  "lid_closed": false
+ }
+}
